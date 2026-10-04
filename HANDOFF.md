@@ -53,6 +53,7 @@ The order moves through statuses 0 to 10 (99 = cancelled). See `SA-project/READM
 | Path | What |
 |---|---|
 | `customer/` | the customer website |
+| `admin/` | the shop (admin) CRM: shell + one file per sidebar item, see `admin/README.md` |
 | `factory/` | factory portal, not built yet (see its README) |
 | `supabase/migrations/` | database, in order |
 | `docs/intent/customer-site.md` | confirmed scope and decisions |
