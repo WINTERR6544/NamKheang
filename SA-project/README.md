@@ -59,6 +59,7 @@ customers, users, factories, machine_models (catalog), orders, order_statuses, s
 ## Next
 - [x] New swimlane (done in Figma, see "Business process (ใหม่)")
 - [x] Customer site (see `customer/`)
+- [x] Admin (shop) site (see `admin/`)
 - [ ] Use case diagram
 - [ ] ER diagram + data dictionary
 - [ ] Sequence diagrams per UC (started in Figma)

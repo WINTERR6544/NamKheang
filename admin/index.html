@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ICEFLOW · Shop / Admin</title>
+  <link rel="stylesheet" href="admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="gate" class="gate">
+    <form id="gform" class="card">
+      <h1>ICEFLOW</h1>
+      <p class="muted">Shop / Admin login</p>
+      <div style="margin:12px 0"><label>Email</label><input id="gemail" type="email" required autocomplete="username"></div>
+      <div style="margin:12px 0"><label>Password</label><input id="gpass" type="password" required autocomplete="current-password"></div>
+      <div id="gerr" class="err" hidden style="margin-bottom:12px"></div>
+      <button class="btn" style="width:100%">Log in</button>
+    </form>
+  </div>
+  <div id="app" class="shell" hidden>
+    <aside id="side"></aside>
+    <div class="col">
+      <header class="topbar">
+        <div class="crumbs" id="crumbs"></div>
+        <div class="me"><button class="bell" id="bell" title="Pending tasks" aria-label="Pending tasks">🔔<span class="count" id="bellc" hidden></span></button><span class="avatar" id="av"></span><b id="mename"></b></div>
+      </header>
+      <main id="view"></main>
+      <footer class="foot"><span>© 2026 ICEFLOW · Ice machine order management</span><span id="upd"></span></footer>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/core.js"></script>
+  <script src="js/lib.js"></script>
+  <script>boot();</script>
+</body>
+</html>
