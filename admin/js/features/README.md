@@ -20,6 +20,21 @@ One file per sidebar item. The shell (`../core.js`) loads a feature's file the f
 
 Not built yet (greyed "soon" in the sidebar): Customers, Factories, Notifications, Reports / History, Users & Roles.
 
+## Helper features (not sidebar items)
+Loaded on demand by other features or by the shell; they have no route of their own.
+
+| File | What it is | Used by |
+|---|---|---|
+| `order-actions.js` | `loadOrder()` and `orderNext()`: an order's next step for the shop and the handler behind every button | the order page and the popup |
+| `popup.js` | `openOrderPopup(id)`: side panel with the summary and next step; opens when any order row, card or link is clicked (Ctrl/Cmd-click opens the full page) | `core.js` click handler |
+| `board.js` | `registerBoard()` / `renderBoard()`: puts every order in its column and draws the board | the List \| Board switch |
+| `board-order.js` | columns for the Orders group: New, Quoted, Cancelled | `#/orders...?view=board` |
+| `board-payments.js` | columns for Payments: Deposit, Final payment, Refund | `#/payments/...?view=board` |
+| `board-mfg.js` | columns for Manufacturing and Installation: Factory, Production, QC, Install | `#/mfg/...`, `#/installation` with `?view=board` |
+
+## List | Board
+Pages in the Orders, Payments and Manufacturing/Installation sidebar groups show a **List | Board** switch (`?view=board`). The switch appears only when that group's `board-<group>.js` is installed. A card or row opens the popup; the popup's buttons call the same database actions as the full order page.
+
 ## Adding a feature
 1. Add `js/features/<name>.js` that calls `route(/^\/your\/path$/, async (el) => { ... })`.
 2. Add `[/^\/your\/path$/, "<name>"]` to `FEATURES` and a sidebar entry to `NAV` in `core.js`.
