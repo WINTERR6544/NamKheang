@@ -50,6 +50,8 @@ The order moves through statuses 0 to 10 (99 = cancelled). See `SA-project/READM
 - No automated tests. DB flow was verified with a rolled-back SQL script; the pages were not click-tested end to end.
 - Security advisor lists the customer RPCs and demo functions as callable by signed-in users. That is intentional (they are the API and check ownership), but the demo functions must go before real use.
 
+- Deposit/final split is **40% / 60%** (`business_rules.deposit_percent = 40`, see `supabase/migrations/…set_deposit_percent_40.sql`). The Figma examples show 70/30; the team chose 40/60.
+
 ## 6. Where things are
 | Path | What |
 |---|---|
