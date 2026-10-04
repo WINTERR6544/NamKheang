@@ -72,7 +72,7 @@ route(/^\/order\/(\d+)$/, async (el, [id]) => {
         <dt>รุ่น</dt><dd>${esc(o.machine_models?.name ?? o.machine_type)} · ${esc(o.capacity)}</dd><dt>สถานที่ติดตั้ง</dt><dd>${esc(o.install_address)}</dd>
         <dt>ไฟฟ้า / พื้นที่</dt><dd>${esc(o.install_power ?? "-")} / ${esc(o.install_space ?? "-")}</dd><dt>โรงงาน</dt><dd>${esc(o.factories?.name ?? "-")}</dd>
         <dt>เสร็จโดยประมาณ</dt><dd>${dateTH(o.est_finish_date)}</dd><dt>สั่งเมื่อ</dt><dd>${dateTH(o.created_at, true)}</dd></dl>`)}
-      <div class="card" style="background:var(--amber)"><h2>ขั้นตอนถัดไป</h2><div id="panel">${panel}</div></div>
+      <div class="card next"><h2>ขั้นตอนถัดไป</h2><div id="panel">${panel}</div></div>
     </div>
     <div class="grid cols2" style="margin-top:18px">
       ${card("ใบเสนอราคา", Q ? `<table class="t"><tbody>${Q.quotation_items.map((i) => `<tr><td>${esc(i.description)}</td><td style="text-align:right">${baht(i.amount)}</td></tr>`).join("")}
