@@ -82,8 +82,17 @@ const routes = [];
 const route = (re, fn) => routes.push({ re, fn });
 const main = () => $("#view");
 const hashParams = () => new URLSearchParams((location.hash.split("?")[1]) || "");
+function crumbsFor(path) {
+  let grp = "", item = null;
+  for (const n of NAV) { if (n.group) grp = n.group; else if (n.href === "#" + path) { item = n; if (!n.sub) grp = ""; break; } }
+  const parts = ["Shop / Admin"];
+  if (/^\/order\/\d+$/.test(path)) parts.push("Orders", "Order detail");
+  else if (item) { if (grp) parts.push(grp); parts.push(item.label); }
+  return parts.map((p, i) => (i === parts.length - 1 ? `<b>${p}</b>` : p)).join(" / ");
+}
 async function navigate() {
   const path = (location.hash || "#/dashboard").slice(1).split("?")[0];
+  $("#crumbs").innerHTML = crumbsFor(path);
   $$("aside a.nav").forEach((a) => a.classList.toggle("on", a.getAttribute("href") === "#" + path));
   for (const r of routes) {
     const m = path.match(r.re);
@@ -116,12 +125,12 @@ const NAV = [
   { label: "Reports / History", soon: 1 }, { label: "Users & Roles", soon: 1, sub: 1 },
 ];
 function sidebar(user) {
-  return `<div class="brand">❄ ICEFLOW</div><div class="small" style="padding:0 20px 6px;color:#9db6d1">SHOP / ADMIN</div>` +
+  return `<div class="brand">ICEFLOW</div><div class="sub-brand">SHOP &amp; ADMIN CRM</div>` +
     NAV.map((n) =>
       n.group ? `<div class="group">${n.group}</div>` :
       n.soon ? `<a class="nav soon ${n.sub ? "sub" : ""}" aria-disabled="true">${n.label}<span class="small">soon</span></a>` :
       `<a class="nav ${n.sub ? "sub" : ""}" href="${n.href}">${n.label}${n.key ? `<span class="count" id="c-${n.key}" hidden></span>` : ""}</a>`).join("") +
-    `<div class="who">${esc(user.name)}<br>${esc(user.role)}<br><button class="btn sm ghost" id="logout">ออกจากระบบ</button></div>`;
+    `<div class="who">${esc(user.name)} · ${esc(user.role)}<br><button class="btn sm ghost" id="logout" style="margin-top:8px">ออกจากระบบ</button></div>`;
 }
 async function refreshCounts() {
   const [n, p] = await Promise.all([
@@ -131,6 +140,8 @@ async function refreshCounts() {
   const c = { new: n.count ?? 0, dep: 0, fin: 0, ref: 0 };
   (p.data ?? []).forEach((x) => { c[{ deposit: "dep", final: "fin", refund: "ref" }[x.pay_type]]++; });
   for (const [k, v] of Object.entries(c)) { const el = $("#c-" + k); if (el) { el.textContent = v; el.hidden = !v; } }
+  const total = Object.values(c).reduce((a, b) => a + b, 0);
+  $("#bellc").textContent = total; $("#bellc").hidden = !total;
 }
 
 // ---- login gate ----
@@ -142,6 +153,9 @@ async function boot() {
   window.ME = u;
   $("#gate").hidden = true; $("#app").hidden = false;
   $("#side").innerHTML = sidebar(u);
+  $("#mename").textContent = u.name + " · " + u.role; $("#av").textContent = (u.name || "?").trim().charAt(0).toUpperCase();
+  $("#bell").onclick = () => { location.hash = "#/dashboard"; };
+  $("#upd").textContent = "อัปเดตล่าสุด " + dateTH(new Date(), true);
   $("#logout").onclick = async () => { await db.auth.signOut(); location.hash = ""; location.reload(); };
   await navigate();
   refreshCounts();

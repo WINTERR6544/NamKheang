@@ -67,3 +67,7 @@ The order moves through statuses 0 to 10 (99 = cancelled). See `SA-project/READM
 - Staff can only **read** orders/payments/etc. directly; every change goes through a `staff_*` function (`staff_create_quote`, `staff_verify_payment`, `staff_send_to_factory`, `staff_factory_response`, `staff_production`, `staff_qc_submit`, `staff_rework_done`, `staff_schedule_install`, `staff_confirm_installed`, `staff_cancel_order`, `staff_confirm_refund`).
 - There is no factory site yet, so the shop records the factory's accept/reject, production progress and install confirmation on its behalf.
 - Rejecting a payment slip deletes the payment row and notifies the customer, who then submits again (the old slip file stays in storage).
+
+### Figma alignment (admin)
+- Look follows the Figma "Shop / Admin" screens: dark sidebar, teal accent, white cards, breadcrumb bar, task list on the dashboard.
+- Not built yet, shown in Figma: quantity per order, shipping/install fee and discount on quotes, saved quotation drafts and PDF preview, "request more info from customer", shop-created orders, company profile fields (tax id, contact person), attachments, transfer-matching panel on payment verification.

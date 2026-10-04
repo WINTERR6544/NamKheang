@@ -10,7 +10,7 @@
 <body>
   <div id="gate" class="gate">
     <form id="gform" class="card">
-      <h1>❄ ICEFLOW</h1>
+      <h1>ICEFLOW</h1>
       <p class="muted">เข้าสู่ระบบฝั่งร้าน (Shop / Admin)</p>
       <div style="margin:12px 0"><label>อีเมล</label><input id="gemail" type="email" required autocomplete="username"></div>
       <div style="margin:12px 0"><label>รหัสผ่าน</label><input id="gpass" type="password" required autocomplete="current-password"></div>
@@ -20,7 +20,14 @@
   </div>
   <div id="app" class="shell" hidden>
     <aside id="side"></aside>
-    <main id="view"></main>
+    <div class="col">
+      <header class="topbar">
+        <div class="crumbs" id="crumbs"></div>
+        <div class="me"><button class="bell" id="bell" title="งานที่รอดำเนินการ" aria-label="งานที่รอดำเนินการ">🔔<span class="count" id="bellc" hidden></span></button><span class="avatar" id="av"></span><b id="mename"></b></div>
+      </header>
+      <main id="view"></main>
+      <footer class="foot"><span>© 2026 ICEFLOW · ระบบจัดการสั่งผลิตเครื่องทำน้ำแข็ง</span><span id="upd"></span></footer>
+    </div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="js/core.js"></script>
