@@ -117,13 +117,23 @@ function loadFeature(name) {
 const BOARD_OF = [[/^\/orders(\/|$)/, "order"], [/^\/payments\//, "payments"], [/^\/(mfg\/|installation$)/, "mfg"]];
 const boardProbe = {};
 const boardInstalled = (g) => (boardProbe[g] ??= fetch(`js/features/board-${g}.js`, { method: "HEAD" }).then((r) => r.ok).catch(() => false));
+// The List | Board choice is remembered per sidebar group (browser storage, so it survives reloads).
+// A link with an explicit ?view=list|board wins and is saved; a plain link (sidebar, breadcrumb) uses the saved choice.
+const viewKey = (g) => "iceflow.view." + g;
+async function currentView(g) {
+  const asked = hashParams().get("view");
+  if (asked === "board" || asked === "list") { try { localStorage.setItem(viewKey(g), asked); } catch {} return asked; }
+  let saved = null;
+  try { saved = localStorage.getItem(viewKey(g)); } catch {}
+  return saved === "board" && (await boardInstalled(g)) ? "board" : "list";
+}
 async function addViewToggle(path, group, isBoard) {
   if (!(await boardInstalled(group))) return;
   const head = main().querySelector(".head");
   if (!head || head.querySelector(".seg") || (location.hash || "").slice(1).split("?")[0] !== path) return;
   const seg = document.createElement("div");
   seg.className = "seg"; seg.setAttribute("role", "group"); seg.setAttribute("aria-label", "View");
-  seg.innerHTML = `<a href="#${path}" class="${isBoard ? "" : "on"}">List</a><a href="#${path}?view=board" class="${isBoard ? "on" : ""}">Board</a>`;
+  seg.innerHTML = `<a href="#${path}?view=list" class="${isBoard ? "" : "on"}">List</a><a href="#${path}?view=board" class="${isBoard ? "on" : ""}">Board</a>`;
   head.append(seg);
 }
 
@@ -132,7 +142,7 @@ async function navigate() {
   $("#crumbs").innerHTML = crumbsFor(path);
   $$("aside a.nav").forEach((a) => a.classList.toggle("on", a.getAttribute("href") === "#" + path));
   const group = BOARD_OF.find(([re]) => re.test(path))?.[1];
-  if (group && hashParams().get("view") === "board") {
+  if (group && (await currentView(group)) === "board") {
     main().innerHTML = `<p class="muted">Loading...</p>`;
     try { await loadFeature("board"); await loadFeature("board-" + group); }
     catch { main().innerHTML = `<div class="card empty">The board view is not installed in this build.<div class="small">Missing: js/features/board-${group}.js</div></div>`; return; }
