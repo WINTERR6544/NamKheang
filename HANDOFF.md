@@ -67,3 +67,6 @@ The order moves through statuses 0 to 10 (99 = cancelled). See `SA-project/READM
 - Staff can only **read** orders/payments/etc. directly; every change goes through a `staff_*` function (`staff_create_quote`, `staff_verify_payment`, `staff_send_to_factory`, `staff_factory_response`, `staff_production`, `staff_qc_submit`, `staff_rework_done`, `staff_schedule_install`, `staff_confirm_installed`, `staff_cancel_order`, `staff_confirm_refund`).
 - There is no factory site yet, so the shop records the factory's accept/reject, production progress and install confirmation on its behalf.
 - Rejecting a payment slip deletes the payment row and notifies the customer, who then submits again (the old slip file stays in storage).
+
+## 8. Language
+Both front ends and the database text (status descriptions, business rules, sample catalog, error and notification messages) are English. The `db_english` migration translates the data and re-creates the functions; the earlier migrations still contain the original Thai strings because migrations are history, so a rebuild from scratch ends in English after running them all in order.
