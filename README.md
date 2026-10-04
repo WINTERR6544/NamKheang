@@ -5,7 +5,7 @@ SA course project. Plain HTML + CSS + JavaScript on Supabase (project `ICEFLOW`,
 | Folder | Who | Status |
 |---|---|---|
 | [`customer/`](customer/) | ลูกค้า: register, catalog, order, quote + deposit, tracking, acceptance + payment, cancel | built (handed to another dev) |
-| `admin/` | ร้านขายเครื่องทำน้ำแข็ง (Shop / Admin CRM) | on its own branch: `feature/admin-shop-crm` |
+| [`admin/`](admin/) | ร้านขายเครื่องทำน้ำแข็ง (Shop / Admin CRM) | slice 1 built |
 | [`factory/`](factory/) | โรงงาน | not built (placeholder README) |
 | [`supabase/migrations/`](supabase/migrations/) | the database, in order | shared |
 | [`docs/`](docs/), [`SA-project/`](SA-project/) | intent doc, SA overview (UCs, statuses, open issues) | shared |
@@ -19,10 +19,14 @@ python -m http.server 5500
 ```
 
 Customer site: http://localhost:5500/customer/
+Admin (shop): http://localhost:5500/admin/
 
-In VS Code: open `ICEFLOW.code-workspace` and use Live Server on `customer/login.html`.
+In VS Code: open `ICEFLOW.code-workspace` and use Live Server on `customer/login.html` or `admin/index.html`.
 
 Supabase Auth: turn off *Confirm email* (Authentication → Sign In / Providers → Email) or new accounts can't log in until they confirm.
+
+## Staff login (admin)
+Staff sign in with a Supabase account that has a row in `users` (role `admin` or `shop`). Register the account on the customer site first, then add the `users` row (see `HANDOFF.md`).
 
 ## Demo controls
 On a customer order page, the collapsed "โหมดสาธิต" box plays the shop and factory. Remove `demo_step` / `demo_advance_to` in Supabase before any real use.

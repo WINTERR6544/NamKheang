@@ -53,8 +53,17 @@ The order moves through statuses 0 to 10 (99 = cancelled). See `SA-project/READM
 | Path | What |
 |---|---|
 | `customer/` | the customer website |
+| `admin/` | the shop (admin) CRM |
 | `factory/` | factory portal, not built yet (see its README) |
 | `supabase/migrations/` | database, in order |
 | `docs/intent/customer-site.md` | confirmed scope and decisions |
 | `SA-project/README.md` | SA project overview: UCs, statuses, open issues |
 | Figma file `JKNBpyS1vAUQkZPRkZX6FN` | UI reference and the new business-process swimlane |
+
+## 7. Admin (shop) site
+`admin/` is the shop CRM (plain HTML/JS, hash-routed, same Supabase project). Slice 1 covers Dashboard, Orders (All / New / Quotations / Cancelled), Manufacturing (Factory Requests / Production / QC), Installation + customer acceptance, and Payments (Deposit / Final / Refund). Customers, Factories, Notifications, Reports/History and Users & Roles are slice 2 (greyed "soon" in the sidebar).
+
+- Staff access: a row in `users` (role `admin` or `shop`, `is_active`) linked by `auth_id` to a Supabase Auth account. `is_staff()` drives the RLS policies.
+- Staff can only **read** orders/payments/etc. directly; every change goes through a `staff_*` function (`staff_create_quote`, `staff_verify_payment`, `staff_send_to_factory`, `staff_factory_response`, `staff_production`, `staff_qc_submit`, `staff_rework_done`, `staff_schedule_install`, `staff_confirm_installed`, `staff_cancel_order`, `staff_confirm_refund`).
+- There is no factory site yet, so the shop records the factory's accept/reject, production progress and install confirmation on its behalf.
+- Rejecting a payment slip deletes the payment row and notifies the customer, who then submits again (the old slip file stays in storage).
