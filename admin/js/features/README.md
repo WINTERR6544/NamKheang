@@ -33,7 +33,7 @@ Loaded on demand by other features or by the shell; they have no route of their 
 | `board-mfg.js` | columns for Manufacturing and Installation: Factory, Production, QC, Install | `#/mfg/...`, `#/installation` with `?view=board` |
 
 ## List | Board
-Pages in the Orders, Payments and Manufacturing/Installation sidebar groups show a **List | Board** switch (`?view=board`). The switch appears only when that group's `board-<group>.js` is installed. A card or row opens the popup; the popup's buttons call the same database actions as the full order page.
+Pages in the Orders, Payments and Manufacturing/Installation sidebar groups show a **List | Board** switch (`?view=board`). The switch appears only when that group's `board-<group>.js` is installed. The choice is remembered per sidebar group in browser storage (`iceflow.view.<group>`), so it survives reloads: a plain link (sidebar, breadcrumb) opens the saved mode, while a link with `?view=list` or `?view=board` sets and saves it. If the saved mode is Board but the board file is missing, the page opens as a list. A card or row opens the popup; the popup's buttons call the same database actions as the full order page.
 
 ## Adding a feature
 1. Add `js/features/<name>.js` that calls `route(/^\/your\/path$/, async (el) => { ... })`.
