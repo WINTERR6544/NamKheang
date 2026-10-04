@@ -2,6 +2,15 @@
 
 SA course demo. Plain HTML + CSS + JavaScript on Supabase (project `ICEFLOW`, ref `neotkiugfgktrjyzrbji`).
 
+## Admin (shop) site
+Serve the repo root and open `/admin/`:
+
+```bash
+python -m http.server 5510
+```
+
+Then http://localhost:5510/admin/. Staff sign in with a Supabase account that has a row in `users` (role `admin` or `shop`). Register the account on the customer site first, then add the `users` row (see `HANDOFF.md`).
+
 ## Run in VS Code
 1. File → Open Workspace from File → `ICEFLOW.code-workspace` (accept the Live Server recommendation).
 2. Open `site/login.html` → right-click → **Open with Live Server**.
@@ -26,6 +35,7 @@ Supabase Auth: turn off *Confirm email* (Authentication → Sign In / Providers 
 | `site/new-order.html` | UC1 step 2: install details for the chosen model, then create the order |
 | `site/order.html` | UC9 quote + deposit, UC10 timeline, UC7 acceptance + final payment, UC11 cancel, demo controls |
 | `site/app.js` | Supabase client + shared helpers |
+| `admin/index.html` | Shop / Admin CRM (slice 1: dashboard, orders, quotations, manufacturing, installation, payments) |
 | `site/style.css` | styles |
 | `supabase/migrations/` | the database, 5 migrations in order |
 | `HANDOFF.md` | handoff notes for the next owner |

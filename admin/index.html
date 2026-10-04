@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ICEFLOW · Shop / Admin</title>
+  <link rel="stylesheet" href="admin.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="gate" class="gate">
+    <form id="gform" class="card">
+      <h1>❄ ICEFLOW</h1>
+      <p class="muted">เข้าสู่ระบบฝั่งร้าน (Shop / Admin)</p>
+      <div style="margin:12px 0"><label>อีเมล</label><input id="gemail" type="email" required autocomplete="username"></div>
+      <div style="margin:12px 0"><label>รหัสผ่าน</label><input id="gpass" type="password" required autocomplete="current-password"></div>
+      <div id="gerr" class="err" hidden style="margin-bottom:12px"></div>
+      <button class="btn" style="width:100%">เข้าสู่ระบบ</button>
+    </form>
+  </div>
+  <div id="app" class="shell" hidden>
+    <aside id="side"></aside>
+    <main id="view"></main>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/core.js"></script>
+  <script src="js/pages.js"></script>
+  <script src="js/order.js"></script>
+  <script>boot();</script>
+</body>
+</html>
