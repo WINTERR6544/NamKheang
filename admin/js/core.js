@@ -7,16 +7,16 @@ const db = supabase.createClient(
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-const errText = (e) => (e && e.message) || "เกิดข้อผิดพลาด";
-const baht = (n) => Number(n ?? 0).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const dateTH = (s, time) => (s ? new Date(s).toLocaleString("th-TH", time ? { dateStyle: "medium", timeStyle: "short" } : { dateStyle: "medium" }) : "-");
+const errText = (e) => (e && e.message) || "Something went wrong";
+const baht = (n) => Number(n ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const dateTH = (s, time) => (s ? new Date(s).toLocaleString("en-GB", time ? { dateStyle: "medium", timeStyle: "short" } : { dateStyle: "medium" }) : "-");
 const daysAgo = (s) => (Date.now() - new Date(s).getTime()) / 86400000;
 
 // Staff wording for orders.status
 const STATUS = {
-  0: "ใหม่ รอเสนอราคา", 1: "เสนอราคาแล้ว", 2: "มัดจำแล้ว รอส่งโรงงาน", 3: "ส่งโรงงานแล้ว", 4: "กำลังผลิต",
-  5: "ผลิตเสร็จ รอ QC", 6: "QC ไม่ผ่าน รอแก้ไข", 7: "ผ่าน QC รอนัดติดตั้ง", 8: "นัดติดตั้งแล้ว", 9: "ติดตั้งแล้ว รอตรวจรับ",
-  10: "เสร็จสิ้น", 99: "ยกเลิก",
+  0: "New, waiting for quote", 1: "Quoted", 2: "Deposit paid, to send to factory", 3: "Sent to factory", 4: "In production",
+  5: "Built, waiting for QC", 6: "QC failed, being fixed", 7: "QC passed, to schedule install", 8: "Install scheduled", 9: "Installed, waiting for acceptance",
+  10: "Completed", 99: "Cancelled",
 };
 const pill = (s) => `<span class="pill ${s === 10 ? "ok" : s === 99 ? "bad" : [0, 2, 5, 7, 9].includes(s) ? "warn" : ""}">${esc(STATUS[s] ?? s)}</span>`;
 
@@ -29,13 +29,13 @@ function toast(msg, bad) {
 }
 
 // modal(title, bodyHtml, { ok, onOk(root) }) -> resolves true when onOk succeeded
-function modal(title, body, { ok = "บันทึก", onOk, onOpen } = {}) {
+function modal(title, body, { ok = "Save", onOk, onOpen } = {}) {
   return new Promise((resolve) => {
     const ov = document.createElement("div");
     ov.className = "ov";
     ov.innerHTML = `<div class="card" role="dialog" aria-modal="true"><h2>${esc(title)}</h2><div class="m">${body}</div>
       <div class="err" hidden style="margin-top:12px"></div>
-      <div class="row end" style="margin-top:14px"><button class="btn ghost c">ปิด</button>${onOk ? `<button class="btn o">${esc(ok)}</button>` : ""}</div></div>`;
+      <div class="row end" style="margin-top:14px"><button class="btn ghost c">Close</button>${onOk ? `<button class="btn o">${esc(ok)}</button>` : ""}</div></div>`;
     document.body.append(ov);
     const close = (v) => { ov.remove(); resolve(v); };
     $(".c", ov).onclick = () => close(false);
@@ -64,8 +64,8 @@ async function slipUrl(path) {
   return data.signedUrl;
 }
 async function showSlip(path) {
-  if (!path) return toast("ไม่มีไฟล์สลิป (ชำระเงินสด)", true);
-  try { const u = await slipUrl(path); modal("สลิป", `<a href="${u}" target="_blank" rel="noopener"><img class="slip" src="${u}" alt="สลิป"></a>`); }
+  if (!path) return toast("No slip file (paid in cash)", true);
+  try { const u = await slipUrl(path); modal("Slip", `<a href="${u}" target="_blank" rel="noopener"><img class="slip" src="${u}" alt="Payment slip"></a>`); }
   catch (e) { toast(errText(e), true); }
 }
 async function uploadSlip(file, prefix) {
@@ -97,13 +97,13 @@ async function navigate() {
   for (const r of routes) {
     const m = path.match(r.re);
     if (m) {
-      main().innerHTML = `<p class="muted">กำลังโหลด...</p>`;
+      main().innerHTML = `<p class="muted">Loading...</p>`;
       try { await r.fn(main(), m.slice(1)); } catch (e) { main().innerHTML = `<div class="err">${esc(errText(e))}</div>`; }
       window.scrollTo(0, 0);
       return;
     }
   }
-  main().innerHTML = `<div class="card empty">ไม่พบหน้านี้</div>`;
+  main().innerHTML = `<div class="card empty">Page not found</div>`;
 }
 window.addEventListener("hashchange", navigate);
 
@@ -130,7 +130,7 @@ function sidebar(user) {
       n.group ? `<div class="group">${n.group}</div>` :
       n.soon ? `<a class="nav soon ${n.sub ? "sub" : ""}" aria-disabled="true">${n.label}<span class="small">soon</span></a>` :
       `<a class="nav ${n.sub ? "sub" : ""}" href="${n.href}">${n.label}${n.key ? `<span class="count" id="c-${n.key}" hidden></span>` : ""}</a>`).join("") +
-    `<div class="who">${esc(user.name)} · ${esc(user.role)}<br><button class="btn sm ghost" id="logout" style="margin-top:8px">ออกจากระบบ</button></div>`;
+    `<div class="who">${esc(user.name)} · ${esc(user.role)}<br><button class="btn sm ghost" id="logout" style="margin-top:8px">Log out</button></div>`;
 }
 async function refreshCounts() {
   const [n, p] = await Promise.all([
@@ -149,13 +149,13 @@ async function boot() {
   const { data } = await db.auth.getSession();
   if (!data.session) return showLogin();
   const { data: u } = await db.from("users").select("user_id, name, role, is_active").eq("auth_id", data.session.user.id).maybeSingle();
-  if (!u || !u.is_active || !["admin", "shop"].includes(u.role)) return showLogin("บัญชีนี้ยังไม่มีสิทธิ์เข้าใช้งานฝั่งร้าน");
+  if (!u || !u.is_active || !["admin", "shop"].includes(u.role)) return showLogin("This account does not have shop access");
   window.ME = u;
   $("#gate").hidden = true; $("#app").hidden = false;
   $("#side").innerHTML = sidebar(u);
   $("#mename").textContent = u.name + " · " + u.role; $("#av").textContent = (u.name || "?").trim().charAt(0).toUpperCase();
   $("#bell").onclick = () => { location.hash = "#/dashboard"; };
-  $("#upd").textContent = "อัปเดตล่าสุด " + dateTH(new Date(), true);
+  $("#upd").textContent = "Last updated " + dateTH(new Date(), true);
   $("#logout").onclick = async () => { await db.auth.signOut(); location.hash = ""; location.reload(); };
   await navigate();
   refreshCounts();
@@ -168,7 +168,7 @@ function showLogin(msg) {
     e.preventDefault();
     err.hidden = true;
     const { error } = await db.auth.signInWithPassword({ email: $("#gemail").value, password: $("#gpass").value });
-    if (error) { err.textContent = /invalid login/i.test(error.message) ? "อีเมลหรือรหัสผ่านไม่ถูกต้อง" : errText(error); err.hidden = false; return; }
+    if (error) { err.textContent = /invalid login/i.test(error.message) ? "Wrong email or password" : errText(error); err.hidden = false; return; }
     boot();
   };
   if (msg) db.auth.signOut();
@@ -176,7 +176,7 @@ function showLogin(msg) {
 
 // generic table: cols = [{h, f(row)->html, cls}], rows, onClick(row)->href
 function table(cols, rows, href) {
-  if (!rows.length) return `<div class="empty">ไม่มีรายการ</div>`;
+  if (!rows.length) return `<div class="empty">No items</div>`;
   return `<div class="tw"><table class="t"><thead><tr>${cols.map((c) => `<th>${c.h}</th>`).join("")}</tr></thead><tbody>${rows.map((r) =>
     `<tr ${href ? `class="click" data-href="${href(r)}"` : ""}>${cols.map((c) => `<td>${c.f(r)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 }
