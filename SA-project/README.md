@@ -4,8 +4,9 @@ Source: shared Claude chat (https://claude.ai/share/0e16fe06-1fd8-4ce1-8e63-af98
 
 ## Scope
 - Actors: ลูกค้า, ร้านขายเครื่องทำน้ำแข็ง (admin), โรงงาน
-- System is a middleman. OUT of scope: after-sales/claims, installation, delivery. System only schedules the install date.
+- System is a middleman. OUT of scope: after-sales/claims, and performing the installation or delivery. The system schedules the install date and records that the factory confirmed the install (status 9).
 - Flow: UC8 -> UC1 -> UC9 -> UC2 -> UC3 -> UC4 -> UC5 -> UC6 -> UC7 (-> UC12 refund when cancelled)
+- Source of truth for numbers and tables is the live database: `supabase/migrations/`.
 
 ## Use cases (15)
 | UC | Name | Actor |
@@ -27,34 +28,38 @@ Source: shared Claude chat (https://claude.ai/share/0e16fe06-1fd8-4ce1-8e63-af98
 | 15 | จัดการผู้ใช้และสิทธิ์ | ร้าน |
 
 ## Status codes
-| code | meaning |
-|------|---------|
-| 0 | new |
-| 1 | waiting_factory |
-| 2 | reassigned |
-| 3 | in_process |
-| 4 | waiting_qc |
-| 5 | rework |
-| 6 | pdt_done |
-| 7 | scheduled |
-| 10 | done (paid) |
-| 11 | quoted |
-| 12 | deposit_paid |
-| 99 | cancelled |
+Match `order_statuses` in the database. Allowed moves are in `status_transitions` (enforced by a trigger).
 
-(8, 9, 13 removed with installation/delivery.) Every status change also inserts into `order_status_logs`.
+| code | name | meaning |
+|------|------|---------|
+| 0 | new | customer sent the order |
+| 1 | quoted | shop quoted, waiting for the customer |
+| 2 | deposit_paid | deposit verified |
+| 3 | waiting_factory | sent to factory, waiting for reply |
+| 4 | in_process | in production |
+| 5 | waiting_qc | produced, waiting for QC |
+| 6 | rework | QC failed, back to factory |
+| 7 | qc_passed | QC passed |
+| 8 | scheduled | install date set |
+| 9 | installed | factory confirmed install done |
+| 10 | done | accepted and fully paid |
+| 99 | cancelled | cancelled |
+
+Every status change also inserts into `order_status_logs` and notifies the customer (`notifications`).
 
 ## Tables
-customers, orders, quotations, payments, factories, qc_results, qc_items, notifications, order_status_logs, users
+customers, users, factories, machine_models (catalog), orders, order_statuses, status_transitions, order_status_logs, quotations, quotation_items, payments, factory_assignments, production_updates, qc_items, qc_results, appointments, acceptance_checks, notifications, business_rules
 
 ## Open issues
 - Who does QC: shop or factory? (swimlane vs UC5/Figma disagree)
-- Gap between status 7 and 10: system cannot know install happened.
-- Figma still has Installation and Delivery screens (out of scope); old swimlane still has install steps and lacks quotation/deposit.
-- Swimlane for the new process: empty lanes in Figma section "Business process (ใหม่)".
+- Figma still has Installation and Delivery screens; delivery is out of scope.
+- Catalog models and prices are sample data.
+- One machine per order (no quantity).
 
 ## Next
-- [ ] Fill new swimlane
+- [x] New swimlane (done in Figma, see "Business process (ใหม่)")
+- [x] Customer site (see `site/`)
 - [ ] Use case diagram
 - [ ] ER diagram + data dictionary
-- [ ] Sequence diagrams per UC
+- [ ] Sequence diagrams per UC (started in Figma)
+- [ ] Shop (admin) and factory sites

@@ -2,12 +2,12 @@
 
 Status: confirmed by user (2026-10-04)
 
-- **Outcome:** A Next.js + Supabase customer website for ICEFLOW covering six UCs: register and log in (UC8), create an order (UC1), quotation and deposit slip (UC9), order tracking (UC10), accept and pay the balance (UC7), and cancel (UC11).
+- **Outcome:** A plain HTML/CSS/JS + Supabase customer website for ICEFLOW covering six UCs: register and log in (UC8), create an order (UC1), quotation and deposit slip (UC9), order tracking (UC10), accept and pay the balance (UC7), and cancel (UC11).
 - **User:** The ice-machine buyer. The audience is the SA instructor and classmates seeing a demo.
 - **Why now:** Course demo of the SA project (UC doc, swimlane, Figma) turned into a working system.
 - **Success:** All six UCs run end to end on real ICEFLOW Supabase data. A hidden demo-controls panel moves an order to any status, so the whole flow can be shown in minutes.
 - **Constraint:**
-  - Database follows the UC doc exactly: same tables, columns and status codes (0, 1-7, 10, 11, 12, 99), plus a status lookup table.
+  - Database mirrors the UC doc's tables and columns. Status codes are the live DB's (0-10, 99) plus a status lookup table.
   - Every status change writes to `order_status_logs` and `notifications`.
   - SQL uses named columns, never `*`.
   - Login uses Supabase Auth, with a `customers` row created alongside it (`password_hash` dropped or placeholder).
@@ -16,4 +16,6 @@ Status: confirmed by user (2026-10-04)
 
 ## Decisions
 - Shop and factory steps are faked with demo controls.
-- Stack: Next.js + Supabase (project ICEFLOW, ref `neotkiugfgktrjyzrbji`).
+- Stack: started as Next.js + Supabase, switched to plain HTML/CSS/JS (no build step) at the user's request. Supabase project ICEFLOW, ref `neotkiugfgktrjyzrbji`.
+- Database status codes follow the live DB (renumbered to match the new swimlane), not the older UC doc.
+- Ordering flow: catalog (pick a model) -> details -> order.

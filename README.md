@@ -27,6 +27,8 @@ Supabase Auth: turn off *Confirm email* (Authentication → Sign In / Providers 
 | `site/order.html` | UC9 quote + deposit, UC10 timeline, UC7 acceptance + final payment, UC11 cancel, demo controls |
 | `site/app.js` | Supabase client + shared helpers |
 | `site/style.css` | styles |
+| `supabase/migrations/` | the database, 5 migrations in order |
+| `HANDOFF.md` | handoff notes for the next owner |
 | `docs/intent/customer-site.md` | confirmed scope for this build |
 | `SA-project/README.md` | SA project overview (UCs, statuses, open issues) |
 
