@@ -207,7 +207,17 @@ function table(cols, rows, href) {
   return `<div class="tw"><table class="t"><thead><tr>${cols.map((c) => `<th>${c.h}</th>`).join("")}</tr></thead><tbody>${rows.map((r) =>
     `<tr ${href ? `class="click" data-href="${href(r)}"` : ""}>${cols.map((c) => `<td>${c.f(r)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 }
-document.addEventListener("click", (e) => {
+// Clicking an order (row, card or link) opens the order popup when that feature is installed.
+// Ctrl/Cmd/Shift-click, or a link marked data-full, still opens the full order page.
+document.addEventListener("click", async (e) => {
+  if (e.defaultPrevented || e.button || e.ctrlKey || e.metaKey || e.shiftKey) return;
+  const t = e.target.closest('a[href^="#/order/"], tr[data-href^="#/order/"]');
+  const m = t && (t.getAttribute("href") || t.dataset.href).match(/^#\/order\/(\d+)$/);
+  if (m && t.dataset.full === undefined && !e.target.closest("button, input, select, #op")) {
+    e.preventDefault();
+    try { await loadFeature("popup"); openOrderPopup(Number(m[1])); } catch { location.hash = "#/order/" + m[1]; }
+    return;
+  }
   if (e.target.closest("button, a, input, select")) return;
   const tr = e.target.closest("tr[data-href]");
   if (tr) location.hash = tr.dataset.href;
