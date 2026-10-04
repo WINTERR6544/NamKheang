@@ -5,17 +5,16 @@ Customer side of the SA project is handed to a new owner. This is everything nee
 ## 1. Run it (2 minutes)
 1. Get invited to the Supabase organization **"CRM for ice making machine seller"** (project `ICEFLOW`, ref `neotkiugfgktrjyzrbji`, region ap-south-1). The owner invites you under *Organization → Team → Invite*. Role: Developer.
 2. Supabase dashboard → Authentication → Sign In / Providers → Email → turn **off** "Confirm email" (otherwise new demo accounts cannot log in until they confirm).
-3. Serve the `site/` folder:
+3. Serve the repo root:
    ```bash
-   cd site
    python -m http.server 5500
    ```
-   then open http://localhost:5500 (or use VS Code Live Server via `ICEFLOW.code-workspace`).
+   then open http://localhost:5500/customer/ (or use VS Code Live Server via `ICEFLOW.code-workspace`).
 
-No install or build step. The Supabase URL and publishable key are in `site/app.js` (safe to expose; row-level security protects the data).
+No install or build step. The Supabase URL and publishable key are in `customer/app.js` (safe to expose; row-level security protects the data).
 
 ## 2. What is built
-Plain HTML/CSS/JS, one Supabase client (`site/app.js`).
+Plain HTML/CSS/JS, one Supabase client (`customer/app.js`).
 
 | Page | UC | Notes |
 |---|---|---|
@@ -53,7 +52,8 @@ The order moves through statuses 0 to 10 (99 = cancelled). See `SA-project/READM
 ## 6. Where things are
 | Path | What |
 |---|---|
-| `site/` | the customer website |
+| `customer/` | the customer website |
+| `factory/` | factory portal, not built yet (see its README) |
 | `supabase/migrations/` | database, in order |
 | `docs/intent/customer-site.md` | confirmed scope and decisions |
 | `SA-project/README.md` | SA project overview: UCs, statuses, open issues |

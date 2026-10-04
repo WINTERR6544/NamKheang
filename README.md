@@ -1,39 +1,34 @@
-# ICEFLOW — ระบบสั่งผลิตเครื่องทำน้ำแข็ง (Customer site)
+# ICEFLOW — ระบบสั่งผลิตเครื่องทำน้ำแข็ง
 
-SA course demo. Plain HTML + CSS + JavaScript on Supabase (project `ICEFLOW`, ref `neotkiugfgktrjyzrbji`).
+SA course project. Plain HTML + CSS + JavaScript on Supabase (project `ICEFLOW`, ref `neotkiugfgktrjyzrbji`). One database, one front end per actor.
 
-## Run in VS Code
-1. File → Open Workspace from File → `ICEFLOW.code-workspace` (accept the Live Server recommendation).
-2. Open `site/login.html` → right-click → **Open with Live Server**.
+| Folder | Who | Status |
+|---|---|---|
+| [`customer/`](customer/) | ลูกค้า: register, catalog, order, quote + deposit, tracking, acceptance + payment, cancel | built (handed to another dev) |
+| `admin/` | ร้านขายเครื่องทำน้ำแข็ง (Shop / Admin CRM) | on its own branch: `feature/admin-shop-crm` |
+| [`factory/`](factory/) | โรงงาน | not built (placeholder README) |
+| [`supabase/migrations/`](supabase/migrations/) | the database, in order | shared |
+| [`docs/`](docs/), [`SA-project/`](SA-project/) | intent doc, SA overview (UCs, statuses, open issues) | shared |
+| [`HANDOFF.md`](HANDOFF.md) | notes for the next owner | |
 
-Without Live Server:
+## Run (no build step)
+From the repo root:
 
 ```bash
-cd site
 python -m http.server 5500
 ```
 
-Then open http://localhost:5500.
+Customer site: http://localhost:5500/customer/
+
+In VS Code: open `ICEFLOW.code-workspace` and use Live Server on `customer/login.html`.
 
 Supabase Auth: turn off *Confirm email* (Authentication → Sign In / Providers → Email) or new accounts can't log in until they confirm.
 
-## Layout
-| Path | What |
-|---|---|
-| `site/login.html` | UC8 register / log in |
-| `site/orders.html` | UC10 my orders |
-| `site/catalog.html` | UC1 step 1: pick a model from the catalog (`machine_models`, sample data) |
-| `site/new-order.html` | UC1 step 2: install details for the chosen model, then create the order |
-| `site/order.html` | UC9 quote + deposit, UC10 timeline, UC7 acceptance + final payment, UC11 cancel, demo controls |
-| `site/app.js` | Supabase client + shared helpers |
-| `site/style.css` | styles |
-| `supabase/migrations/` | the database, 5 migrations in order |
-| `HANDOFF.md` | handoff notes for the next owner |
-| `docs/intent/customer-site.md` | confirmed scope for this build |
-| `SA-project/README.md` | SA project overview (UCs, statuses, open issues) |
-
 ## Demo controls
-On an order page, the collapsed "โหมดสาธิต" box plays the shop and factory (quote, verify slip, produce, QC, schedule, install, verify final payment). Remove `demo_step` / `demo_advance_to` in Supabase before any real use.
+On a customer order page, the collapsed "โหมดสาธิต" box plays the shop and factory. Remove `demo_step` / `demo_advance_to` in Supabase before any real use.
 
 ## Database notes
-Status codes follow the live DB (`order_statuses`), which matches the new swimlane: 0 new, 1 quoted, 2 deposit_paid, 3 waiting_factory, 4 in_process, 5 waiting_qc, 6 rework, 7 qc_passed, 8 scheduled, 9 installed, 10 done, 99 cancelled.
+Status codes follow the live DB (`order_statuses`): 0 new, 1 quoted, 2 deposit_paid, 3 waiting_factory, 4 in_process, 5 waiting_qc, 6 rework, 7 qc_passed, 8 scheduled, 9 installed, 10 done, 99 cancelled.
+
+## Branch convention
+One branch per feature or change, cut from `main` (`feature/…`, `fix/…`, `chore/…`).
