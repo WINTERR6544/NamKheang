@@ -1,25 +1,25 @@
 <!doctype html>
-<html lang="th">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>เลือกรุ่นเครื่อง · ICEFLOW</title>
+  <title>Choose a model · ICEFLOW</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <main style="max-width:1080px">
-    <span class="eyebrow">STEP 1 / 2 · เลือกรุ่น</span>
-    <h1>แคตตาล็อกเครื่องทำน้ำแข็ง</h1>
-    <p class="muted" style="margin-bottom:20px">เลือกรุ่นที่ใช่ ขั้นต่อไปกรอกสถานที่ติดตั้งและรายละเอียดเพิ่มเติม</p>
+    <span class="eyebrow">STEP 1 / 2 · CHOOSE A MODEL</span>
+    <h1>Ice machine catalog</h1>
+    <p class="muted" style="margin-bottom:20px">Pick a model. Next you'll add the install address and details.</p>
     <div id="chips" class="inline" style="margin-bottom:24px"></div>
-    <div id="grid" class="catalog"><p class="muted">กำลังโหลด...</p></div>
+    <div id="grid" class="catalog"><p class="muted">Loading...</p></div>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="app.js"></script>
   <script>
     // Step 1 of ordering: pick a model, then new-order.html?model=<id> collects the rest
-    let models = [], filter = "ทั้งหมด";
+    let models = [], filter = "All";
 
     (async () => {
       if (!(await requireSession())) return;
@@ -31,22 +31,22 @@
     })();
 
     function draw() {
-      const types = ["ทั้งหมด", ...new Set(models.map((m) => m.machine_type))];
+      const types = ["All", ...new Set(models.map((m) => m.machine_type))];
       $("#chips").innerHTML = types.map((t) =>
         `<button class="btn ${t === filter ? "" : "ghost"}" data-t="${esc(t)}" aria-pressed="${t === filter}">${esc(t)}</button>`).join("");
       $("#chips").querySelectorAll("button").forEach((b) => (b.onclick = () => { filter = b.dataset.t; draw(); }));
 
-      const list = models.filter((m) => filter === "ทั้งหมด" || m.machine_type === filter);
+      const list = models.filter((m) => filter === "All" || m.machine_type === filter);
       $("#grid").innerHTML = list.length ? list.map((m) => `
         <article class="model">
           <div class="row"><span class="stamp" style="transform:rotate(-4deg)">${esc(m.code)}</span><span class="small muted">${esc(m.machine_type)}</span></div>
           <h2 style="margin-top:14px">${esc(m.name)}</h2>
-          <div class="li"><span>กำลังผลิต</span><i></i><b>${esc(m.capacity)}</b></div>
+          <div class="li"><span>Capacity</span><i></i><b>${esc(m.capacity)}</b></div>
           <p class="small" style="margin:10px 0 14px">${esc(m.description ?? "")}</p>
           <div class="price">${baht(m.price)}</div>
-          <div class="small muted" style="margin-bottom:14px">ราคาก่อน VAT 7%</div>
-          <a class="btn block" href="new-order.html?model=${m.model_id}">เลือกรุ่นนี้ →</a>
-        </article>`).join("") : `<div class="card">ไม่พบรุ่นในหมวดนี้</div>`;
+          <div class="small muted" style="margin-bottom:14px">Price before 7% VAT</div>
+          <a class="btn block" href="new-order.html?model=${m.model_id}">Choose this model →</a>
+        </article>`).join("") : `<div class="card">No models in this category</div>`;
     }
   </script>
 </body>

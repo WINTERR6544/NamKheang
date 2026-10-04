@@ -1,16 +1,16 @@
 <!doctype html>
-<html lang="th">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>คำสั่งซื้อ · ICEFLOW</title>
+  <title>Order · ICEFLOW</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <main>
-    <a href="orders.html" class="muted small" style="text-decoration:none">← คำสั่งซื้อของฉัน</a>
-    <div id="app" class="stack" style="margin-top:12px"><p class="muted">กำลังโหลด...</p></div>
+    <a href="orders.html" class="muted small" style="text-decoration:none">← My orders</a>
+    <div id="app" class="stack" style="margin-top:12px"><p class="muted">Loading...</p></div>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="app.js"></script>
@@ -31,7 +31,7 @@
         q("appointments", "install_datetime, status").order("created_at", { ascending: false }).limit(1).maybeSingle(),
         q("notifications", "message, created_at").order("created_at", { ascending: false }).limit(8),
       ]);
-      if (!o.data) return (app.innerHTML = `<div class="card">ไม่พบคำสั่งซื้อนี้</div>`);
+      if (!o.data) return (app.innerHTML = `<div class="card">Order not found</div>`);
       d = { o: o.data, logs: logs.data ?? [], quote: quote.data, pays: pays.data ?? [], appt: appt.data, notes: notes.data ?? [] };
       render();
     }
@@ -48,17 +48,17 @@
             <span class="${pillClass(o.status)}">${esc(STATUS_LABEL[o.status])}</span>
           </div>
           <dl class="kv">
-            <div><dt>สถานที่ติดตั้ง</dt><dd>${esc(o.install_address)}</dd></div>
-            <div><dt>สั่งเมื่อ</dt><dd>${dateTH(o.created_at, true)}</dd></div>
-            ${o.install_power ? `<div><dt>ระบบไฟฟ้า</dt><dd>${esc(o.install_power)}</dd></div>` : ""}
-            ${o.install_space ? `<div><dt>พื้นที่ติดตั้ง</dt><dd>${esc(o.install_space)}</dd></div>` : ""}
+            <div><dt>Install address</dt><dd>${esc(o.install_address)}</dd></div>
+            <div><dt>Ordered</dt><dd>${dateTH(o.created_at, true)}</dd></div>
+            ${o.install_power ? `<div><dt>Electrical supply</dt><dd>${esc(o.install_power)}</dd></div>` : ""}
+            ${o.install_space ? `<div><dt>Install area</dt><dd>${esc(o.install_space)}</dd></div>` : ""}
           </dl>
           <hr style="border:0;border-top:2px dashed var(--ink);margin:16px 0 0">
           ${barcode(o.order_code)}<div class="bc-text">${esc(o.order_code)}</div>
         </div>
         <div id="actions" class="stack"></div>
         ${timeline()}
-        ${d.notes.length ? `<div class="card"><h2>การแจ้งเตือน</h2><ul class="plain notes">${d.notes.map((n) =>
+        ${d.notes.length ? `<div class="card"><h2>Notifications</h2><ul class="plain notes">${d.notes.map((n) =>
           `<li><span>${esc(n.message)}</span><span class="muted" style="flex:none">${dateTH(n.created_at, true)}</span></li>`).join("")}</ul></div>` : ""}
         <div id="demo"></div>`;
       actions();
@@ -70,7 +70,7 @@
       const { o, logs } = d, at = new Map();
       logs.forEach((l) => at.set(l.status, l.changed_at)); // last time each status was reached
       const steps = o.status === 99 ? [...at.keys()].sort((a, b) => (at.get(a) < at.get(b) ? -1 : 1)) : MAIN_PATH;
-      return `<div class="card"><h2 style="margin-bottom:16px">สถานะคำสั่งซื้อ</h2><ol class="timeline">${steps.map((s) => {
+      return `<div class="card"><h2 style="margin-bottom:16px">Order status</h2><ol class="timeline">${steps.map((s) => {
         const cls = s === 99 ? "x done" : s === o.status ? "done cur" : at.has(s) ? "done" : "todo";
         return `<li class="${cls}"><span class="dot"></span><div><div>${s === o.status ? "<b>" : ""}${esc(STATUS_LABEL[s])}${s === o.status ? "</b>" : ""}</div>
           ${at.has(s) ? `<div class="muted small">${dateTH(at.get(s), true)}</div>` : ""}</div></li>`;
@@ -85,37 +85,37 @@
       const refund = pays.find((p) => p.pay_type === "refund");
       let html = "";
 
-      if (o.status === 0) html = info("รอร้านเสนอราคา", "ร้านกำลังตรวจสอบรายละเอียดและจะเสนอราคาให้เร็วๆ นี้ คุณจะได้รับการแจ้งเตือน");
+      if (o.status === 0) html = info("Waiting for the shop's quote", "The shop is reviewing your details and will send a quote soon. You'll get a notification.");
       else if (o.status === 1 && q) {
-        html = `<div class="card stack"><h2>ใบเสนอราคา</h2>
+        html = `<div class="card stack"><h2>Quotation</h2>
           <table class="q">${q.quotation_items.map((i) => `<tr><td>${esc(i.description)}</td><td>${baht(i.amount)}</td></tr>`).join("")}
-            <tr class="muted"><td>ภาษีมูลค่าเพิ่ม 7%</td><td>${baht(q.vat)}</td></tr>
-            <tr class="total"><td>รวมทั้งสิ้น</td><td>${baht(q.total_price)}</td></tr>
-            <tr class="dep"><td>มัดจำที่ต้องชำระ</td><td>${baht(q.deposit_amount)}</td></tr></table>
-          <div class="muted small">ใบเสนอราคามีผลถึง ${dateTH(q.valid_until)}</div>
-          ${deposit ? `<div class="ok">ส่งหลักฐานมัดจำแล้ว รอร้านตรวจสอบ</div>` : `<div id="pay"></div>`}</div>`;
+            <tr class="muted"><td>VAT 7%</td><td>${baht(q.vat)}</td></tr>
+            <tr class="total"><td>Total</td><td>${baht(q.total_price)}</td></tr>
+            <tr class="dep"><td>Deposit due</td><td>${baht(q.deposit_amount)}</td></tr></table>
+          <div class="muted small">Quote valid until ${dateTH(q.valid_until)}</div>
+          ${deposit ? `<div class="ok">Deposit slip sent. Waiting for the shop to verify it.</div>` : `<div id="pay"></div>`}</div>`;
       }
-      else if (o.status === 2) html = info("ชำระมัดจำแล้ว", "ร้านกำลังส่งคำสั่งผลิตให้โรงงาน");
-      else if (o.status === 3) html = info("รอโรงงานตอบรับ", "ร้านส่งคำสั่งผลิตให้โรงงานแล้ว หากโรงงานไม่รับ ร้านจะติดต่อโรงงานอื่นให้");
-      else if (o.status === 4) html = info("กำลังผลิต", `คาดว่าผลิตเสร็จ ${dateTH(o.est_finish_date)}`);
-      else if (o.status === 5 || o.status === 6) html = info("ตรวจคุณภาพ", "เครื่องผลิตเสร็จแล้ว กำลังตรวจคุณภาพก่อนนัดติดตั้ง");
-      else if (o.status === 7) html = info("ผ่านการตรวจคุณภาพ", "ร้านกำลังนัดวันติดตั้งกับคุณและโรงงาน");
-      else if (o.status === 8) html = info("นัดวันติดตั้งแล้ว", `วันนัด: <b>${appt ? dateTH(appt.install_datetime, true) : "-"}</b> (การติดตั้งดำเนินการโดยโรงงาน)`);
+      else if (o.status === 2) html = info("Deposit paid", "The shop is sending your production order to the factory.");
+      else if (o.status === 3) html = info("Waiting for the factory", "Your order was sent to the factory. If it declines, the shop will contact another one.");
+      else if (o.status === 4) html = info("In production", `Expected to be finished by ${dateTH(o.est_finish_date)}`);
+      else if (o.status === 5 || o.status === 6) html = info("Quality check", "Your machine is built and is being checked before the install date is set.");
+      else if (o.status === 7) html = info("Quality check passed", "The shop is arranging an install date with you and the factory.");
+      else if (o.status === 8) html = info("Installation scheduled", `Date: <b>${appt ? dateTH(appt.install_datetime, true) : "-"}</b> (the installation is done by the factory)`);
       else if (o.status === 9 && q) {
         html = final
-          ? info("รอร้านตรวจสอบการชำระเงิน", `ส่งหลักฐานชำระยอดคงเหลือ ${baht(final.amount)} แล้ว เมื่อร้านยืนยัน คุณจะได้รับใบเสร็จ`)
-          : `<div class="card stack"><h2>ตรวจรับงานและชำระยอดคงเหลือ</h2>
-              <div class="inline"><button class="btn" id="pass">ตรวจรับผ่าน</button><button class="btn ghost" id="fail">พบปัญหา</button></div>
+          ? info("Waiting for payment check", `Slip for the remaining ${baht(final.amount)} sent. You'll get a receipt once the shop confirms.`)
+          : `<div class="card stack"><h2>Accept the machine and pay the balance</h2>
+              <div class="inline"><button class="btn" id="pass">Accept</button><button class="btn ghost" id="fail">Report a problem</button></div>
               <div id="accept"></div></div>`;
       }
-      else if (o.status === 10) html = info("เสร็จสิ้น 🎉", `ชำระครบถ้วน${final?.receipt_no ? ` · เลขที่ใบเสร็จ <b>${esc(final.receipt_no)}</b>` : ""}`);
+      else if (o.status === 10) html = info("Completed 🎉", `Paid in full${final?.receipt_no ? ` · Receipt no. <b>${esc(final.receipt_no)}</b>` : ""}`);
       else if (o.status === 99) {
-        html = info("ยกเลิกแล้ว", `เหตุผล: ${esc(o.cancel_reason || "-")}${refund ? `<br>คืนมัดจำ ${baht(refund.amount)}: ${refund.verified ? "โอนคืนแล้ว" : "รอร้านโอนคืน"}` : ""}`);
+        html = info("Cancelled", `Reason: ${esc(o.cancel_reason || "-")}${refund ? `<br>Deposit refund ${baht(refund.amount)}: ${refund.verified ? "transferred back" : "waiting for the shop to transfer it"}` : ""}`);
       }
       if ([0, 1, 2, 3].includes(o.status)) html += `<div id="cancel"></div>`;
       box.innerHTML = html;
 
-      if ($("#pay")) payForm($("#pay"), "ยืนยันราคาและส่งหลักฐานมัดจำ", "deposit",
+      if ($("#pay")) payForm($("#pay"), "Confirm the quote and send the deposit slip", "deposit",
         (m, slip) => db.rpc("customer_accept_quote", { p_order: ORDER_ID, p_method: m, p_slip: slip }));
       if ($("#accept")) acceptance(pays, q);
       if ($("#cancel")) cancelBox(!!deposit?.verified);
@@ -125,15 +125,15 @@
     function payForm(el, label, prefix, call) {
       el.innerHTML = `<div class="stack">
         <div class="grid2">
-          <div><label>วิธีชำระ</label><select class="m"><option value="transfer">โอนผ่านบัญชีธนาคาร</option><option value="qr">QR พร้อมเพย์</option><option value="cash">เงินสด (ชำระกับร้าน)</option></select></div>
-          <div class="f"><label>สลิปการโอน</label><input class="file" type="file" accept="image/*"></div>
+          <div><label>Payment method</label><select class="m"><option value="transfer">Bank transfer</option><option value="qr">PromptPay QR</option><option value="cash">Cash (pay at the shop)</option></select></div>
+          <div class="f"><label>Transfer slip</label><input class="file" type="file" accept="image/*"></div>
         </div>
         <div class="err" hidden></div><button class="btn go">${label}</button></div>`;
       const m = $(".m", el), f = $(".f", el), e = $(".err", el), btn = $(".go", el);
       m.onchange = () => (f.hidden = m.value === "cash");
       btn.onclick = async () => {
         const file = $(".file", el).files[0];
-        if (m.value !== "cash" && !file) return errBox(e, "กรุณาแนบสลิปการโอน");
+        if (m.value !== "cash" && !file) return errBox(e, "Please attach the transfer slip");
         btn.disabled = true; errBox(e, "");
         let path = null;
         if (file && m.value !== "cash") {
@@ -155,17 +155,17 @@
       const paid = pays.filter((p) => p.pay_type === "deposit" && p.verified).reduce((s, p) => s + Number(p.amount), 0);
       const el = $("#accept");
       const showPass = () => {
-        el.innerHTML = `<div class="stack"><div class="small">ยอดคงเหลือที่ต้องชำระ <b>${baht(q.total_price - paid)}</b>
-          <span class="muted">(รวม ${baht(q.total_price)} − มัดจำ ${baht(paid)})</span></div><div id="fp"></div></div>`;
-        payForm($("#fp"), "ยืนยันตรวจรับและชำระเงิน", "final",
+        el.innerHTML = `<div class="stack"><div class="small">Balance due <b>${baht(q.total_price - paid)}</b>
+          <span class="muted">(total ${baht(q.total_price)} − deposit ${baht(paid)})</span></div><div id="fp"></div></div>`;
+        payForm($("#fp"), "Accept and pay", "final",
           (m, slip) => db.rpc("customer_submit_acceptance", { p_order: ORDER_ID, p_passed: true, p_note: null, p_method: m, p_slip: slip }));
       };
       const showFail = () => {
-        el.innerHTML = `<div class="stack"><div><label>ปัญหาที่พบ</label><textarea rows="3"></textarea></div>
-          <div class="err" hidden></div><button class="btn go">แจ้งปัญหาและขอนัดใหม่</button></div>`;
+        el.innerHTML = `<div class="stack"><div><label>What is wrong?</label><textarea rows="3"></textarea></div>
+          <div class="err" hidden></div><button class="btn go">Report the problem and ask for a new date</button></div>`;
         $(".go", el).onclick = async () => {
           const note = $("textarea", el).value.trim();
-          if (!note) return errBox($(".err", el), "กรุณาระบุปัญหาที่พบ");
+          if (!note) return errBox($(".err", el), "Please describe the problem");
           const { error } = await db.rpc("customer_submit_acceptance", { p_order: ORDER_ID, p_passed: false, p_note: note, p_method: null, p_slip: null });
           if (error) return errBox($(".err", el), errText(error));
           load();
@@ -180,19 +180,19 @@
     /* UC11: cancel */
     function cancelBox(hasDeposit) {
       const el = $("#cancel");
-      el.innerHTML = `<button class="link-red">ยกเลิกคำสั่งซื้อ</button>`;
+      el.innerHTML = `<button class="link-red">Cancel order</button>`;
       $("button", el).onclick = () => {
-        el.innerHTML = `<div class="card danger stack"><h2 style="color:#8a1f14">ยกเลิกคำสั่งซื้อ</h2>
-          <div><label>เหตุผล</label><textarea class="why" rows="2"></textarea></div>
-          ${hasDeposit ? `<div><label>บัญชีรับเงินมัดจำคืน</label><input class="acct" placeholder="ธนาคาร / เลขบัญชี / ชื่อบัญชี"></div>` : ""}
+        el.innerHTML = `<div class="card danger stack"><h2 style="color:#8a1f14">Cancel order</h2>
+          <div><label>Reason</label><textarea class="why" rows="2"></textarea></div>
+          ${hasDeposit ? `<div><label>Account for the deposit refund</label><input class="acct" placeholder="Bank / account number / account name"></div>` : ""}
           <div class="err" hidden></div>
-          <div class="inline"><button class="btn red go">ยืนยันยกเลิก</button><button class="btn ghost no">ไม่ยกเลิก</button></div></div>`;
+          <div class="inline"><button class="btn red go">Confirm cancel</button><button class="btn ghost no">Keep order</button></div></div>`;
         $(".no", el).onclick = () => cancelBox(hasDeposit);
         $(".go", el).onclick = async () => {
           const why = $(".why", el).value.trim(), acct = $(".acct", el)?.value.trim();
           const e = $(".err", el);
-          if (!why) return errBox(e, "กรุณาระบุเหตุผล");
-          if (hasDeposit && !acct) return errBox(e, "กรุณาระบุบัญชีสำหรับรับเงินมัดจำคืน");
+          if (!why) return errBox(e, "Please enter a reason");
+          if (hasDeposit && !acct) return errBox(e, "Please enter the account for the deposit refund");
           const { error } = await db.rpc("customer_cancel_order", { p_order: ORDER_ID, p_reason: why, p_refund_account: acct || null });
           if (error) return errBox(e, errText(error));
           load();
@@ -204,12 +204,12 @@
     function demo() {
       const s = d.o.status, el = $("#demo");
       if (s === 99 || s === 10) return;
-      el.innerHTML = `<details class="demo"><summary>โหมดสาธิต (แทนร้านและโรงงาน)</summary>
+      el.innerHTML = `<details class="demo"><summary>Demo mode (stands in for the shop and factory)</summary>
         <div class="stack" style="margin-top:12px">
-          <div class="muted">ใช้ข้ามขั้นที่ร้านหรือโรงงานต้องทำ เช่น เสนอราคา ตรวจสลิป ผลิต QC นัดติดตั้ง</div>
-          <div class="inline"><button class="btn ghost step">ไปขั้นถัดไป</button><span class="muted">หรือข้ามไปที่</span>
+          <div class="muted">Skip the steps the shop or factory would do: quote, slip check, production, QC, install date.</div>
+          <div class="inline"><button class="btn ghost step">Next step</button><span class="muted">or jump to</span>
             <select class="target">${MAIN_PATH.filter((x) => x > s).map((x) => `<option value="${x}" ${x === 10 ? "selected" : ""}>${esc(STATUS_LABEL[x])}</option>`).join("")}</select>
-            <button class="btn ghost jump">ข้ามไป</button></div>
+            <button class="btn ghost jump">Jump</button></div>
           <div class="err" hidden></div></div></details>`;
       const run = async (p) => {
         const { error } = await p;

@@ -6,21 +6,21 @@ const db = supabase.createClient(
 
 const $ = (sel, el = document) => el.querySelector(sel);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-const errText = (e) => (e && e.message) || "เกิดข้อผิดพลาด";
+const errText = (e) => (e && e.message) || "Something went wrong";
 
 // Customer-facing wording for orders.status (codes come from the order_statuses table)
 const STATUS_LABEL = {
-  0: "ส่งคำสั่งซื้อแล้ว รอร้านเสนอราคา", 1: "ร้านเสนอราคาแล้ว รอยืนยัน", 2: "ชำระมัดจำแล้ว",
-  3: "ส่งโรงงานผลิตแล้ว", 4: "กำลังผลิต", 5: "ผลิตเสร็จ รอตรวจคุณภาพ", 6: "แก้ไขตามผลตรวจคุณภาพ",
-  7: "ผ่านการตรวจคุณภาพ", 8: "นัดวันติดตั้งแล้ว", 9: "ติดตั้งเสร็จ รอตรวจรับ", 10: "เสร็จสิ้น", 99: "ยกเลิก",
+  0: "Order sent, waiting for the shop's quote", 1: "Quote ready, please confirm", 2: "Deposit paid",
+  3: "Sent to the factory", 4: "In production", 5: "Built, awaiting quality check", 6: "Being fixed after quality check",
+  7: "Quality check passed", 8: "Installation scheduled", 9: "Installed, awaiting your acceptance", 10: "Completed", 99: "Cancelled",
 };
 const MAIN_PATH = [0, 1, 2, 3, 4, 5, 7, 8, 9, 10]; // rework (6) only shows if it happened
-const MACHINE_TYPES = ["เครื่องทำน้ำแข็งหลอด", "เครื่องทำน้ำแข็งเกล็ด", "เครื่องทำน้ำแข็งก้อน"];
-const CAPACITIES = ["500 กก./วัน", "1 ตัน/วัน", "2 ตัน/วัน", "5 ตัน/วัน"];
+const MACHINE_TYPES = ["Tube ice machine", "Flake ice machine", "Block ice machine"];
+const CAPACITIES = ["500 kg/day", "1 ton/day", "2 tons/day", "5 tons/day"];
 
-const baht = (n) => Number(n).toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " บาท";
+const baht = (n) => Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " THB";
 const dateTH = (s, time) =>
-  s ? new Date(s).toLocaleString("th-TH", time ? { dateStyle: "medium", timeStyle: "short" } : { dateStyle: "medium" }) : "-";
+  s ? new Date(s).toLocaleString("en-GB", time ? { dateStyle: "medium", timeStyle: "short" } : { dateStyle: "medium" }) : "-";
 const pillClass = (s) => (s === 99 ? "pill cancel" : s === 10 ? "pill done" : "pill");
 
 // Redirects to the login page when signed out. Returns the session otherwise.
@@ -40,8 +40,8 @@ function mountHeader(signedIn) {
   h.className = "top";
   h.innerHTML = `<div class="in"><a class="logo" href="index.html"><span>❄</span> ICEFLOW</a><nav>${
     signedIn
-      ? `<a href="orders.html">คำสั่งซื้อของฉัน</a><button id="logout">ออกจากระบบ</button>`
-      : here === "login.html" ? `<a href="index.html">หน้าแรก</a>` : `<a href="login.html">เข้าสู่ระบบ</a>`
+      ? `<a href="orders.html">My orders</a><button id="logout">Log out</button>`
+      : here === "login.html" ? `<a href="index.html">Home</a>` : `<a href="login.html">Log in</a>`
   }</nav></div>`;
   document.body.prepend(h);
   const out = $("#logout", h);
