@@ -112,10 +112,35 @@ function loadFeature(name) {
   });
   return loaded[name];
 }
+// ---- boards: a sidebar group's pages can also be shown as a board (List | Board switch) ----
+// Each group's board is js/features/board-<group>.js; the shared renderer is features/board.js. Missing files hide the switch.
+const BOARD_OF = [[/^\/orders(\/|$)/, "order"], [/^\/payments\//, "payments"], [/^\/(mfg\/|installation$)/, "mfg"]];
+const boardProbe = {};
+const boardInstalled = (g) => (boardProbe[g] ??= fetch(`js/features/board-${g}.js`, { method: "HEAD" }).then((r) => r.ok).catch(() => false));
+async function addViewToggle(path, group, isBoard) {
+  if (!(await boardInstalled(group))) return;
+  const head = main().querySelector(".head");
+  if (!head || head.querySelector(".seg") || (location.hash || "").slice(1).split("?")[0] !== path) return;
+  const seg = document.createElement("div");
+  seg.className = "seg"; seg.setAttribute("role", "group"); seg.setAttribute("aria-label", "View");
+  seg.innerHTML = `<a href="#${path}" class="${isBoard ? "" : "on"}">List</a><a href="#${path}?view=board" class="${isBoard ? "on" : ""}">Board</a>`;
+  head.append(seg);
+}
+
 async function navigate() {
   const path = (location.hash || "#/dashboard").slice(1).split("?")[0];
   $("#crumbs").innerHTML = crumbsFor(path);
   $$("aside a.nav").forEach((a) => a.classList.toggle("on", a.getAttribute("href") === "#" + path));
+  const group = BOARD_OF.find(([re]) => re.test(path))?.[1];
+  if (group && hashParams().get("view") === "board") {
+    main().innerHTML = `<p class="muted">Loading...</p>`;
+    try { await loadFeature("board"); await loadFeature("board-" + group); }
+    catch { main().innerHTML = `<div class="card empty">The board view is not installed in this build.<div class="small">Missing: js/features/board-${group}.js</div></div>`; return; }
+    try { await renderBoard(main(), group); } catch (e) { main().innerHTML = `<div class="err">${esc(errText(e))}</div>`; }
+    addViewToggle(path, group, true);
+    window.scrollTo(0, 0);
+    return;
+  }
   const feature = FEATURES.find(([re]) => re.test(path));
   if (feature) {
     try { await loadFeature(feature[1]); }
@@ -126,6 +151,7 @@ async function navigate() {
     if (m) {
       main().innerHTML = `<p class="muted">Loading...</p>`;
       try { await r.fn(main(), m.slice(1)); } catch (e) { main().innerHTML = `<div class="err">${esc(errText(e))}</div>`; }
+      if (group) addViewToggle(path, group, false);
       window.scrollTo(0, 0);
       return;
     }
