@@ -1,28 +1,28 @@
 <!doctype html>
-<html lang="th">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>เข้าสู่ระบบ · ICEFLOW</title>
+  <title>Log in · ICEFLOW</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <main style="max-width:440px">
-    <h1 id="title">เข้าสู่ระบบ</h1>
-    <p class="muted" style="margin-bottom:20px">สั่งผลิตเครื่องทำน้ำแข็งและติดตามสถานะได้ในที่เดียว</p>
+    <h1 id="title">Log in</h1>
+    <p class="muted" style="margin-bottom:20px">Order an ice machine and track it in one place</p>
     <form id="form" class="card stack">
       <div id="extra" hidden class="stack">
-        <div><label>ชื่อ-นามสกุล</label><input id="name"></div>
-        <div><label>เบอร์โทร</label><input id="phone" inputmode="tel"></div>
+        <div><label>Full name</label><input id="name"></div>
+        <div><label>Phone</label><input id="phone" inputmode="tel"></div>
       </div>
-      <div><label>อีเมล</label><input id="email" type="email" required></div>
-      <div><label>รหัสผ่าน</label><input id="password" type="password" required minlength="6"></div>
+      <div><label>Email</label><input id="email" type="email" required></div>
+      <div><label>Password</label><input id="password" type="password" required minlength="6"></div>
       <div id="msg" class="err" hidden></div>
-      <button id="go" class="btn block">เข้าสู่ระบบ</button>
+      <button id="go" class="btn block">Log in</button>
     </form>
-    <p class="center muted small" style="margin-top:16px"><span id="q">ยังไม่มีบัญชี?</span>
-      <button id="toggle" class="link-red" style="color:var(--brand-dark)">สมัครสมาชิก</button></p>
+    <p class="center muted small" style="margin-top:16px"><span id="q">No account yet?</span>
+      <button id="toggle" class="link-red" style="color:var(--brand-dark)">Sign up</button></p>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="app.js"></script>
@@ -37,10 +37,10 @@
 
     $("#toggle").onclick = () => {
       register = !register;
-      $("#title").textContent = register ? "สมัครสมาชิก" : "เข้าสู่ระบบ";
-      $("#go").textContent = register ? "สมัครสมาชิก" : "เข้าสู่ระบบ";
-      $("#q").textContent = register ? "มีบัญชีแล้ว?" : "ยังไม่มีบัญชี?";
-      $("#toggle").textContent = register ? "เข้าสู่ระบบ" : "สมัครสมาชิก";
+      $("#title").textContent = register ? "Sign up" : "Log in";
+      $("#go").textContent = register ? "Sign up" : "Log in";
+      $("#q").textContent = register ? "Already have an account?" : "No account yet?";
+      $("#toggle").textContent = register ? "Log in" : "Sign up";
       $("#extra").hidden = !register;
       $("#name").required = $("#phone").required = register;
       showMsg("");
@@ -56,10 +56,10 @@
         : await db.auth.signInWithPassword({ email, password });
       $("#go").disabled = false;
       if (error) {
-        showMsg(/already|registered/i.test(error.message) ? "อีเมลนี้ถูกใช้แล้ว กรุณาเข้าสู่ระบบหรือใช้อีเมลอื่น"
-          : /invalid login/i.test(error.message) ? "อีเมลหรือรหัสผ่านไม่ถูกต้อง" : errText(error));
+        showMsg(/already|registered/i.test(error.message) ? "This email is already registered. Log in or use another email."
+          : /invalid login/i.test(error.message) ? "Wrong email or password" : errText(error));
       } else if (!data.session) {
-        showMsg("สมัครสำเร็จ กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ");
+        showMsg("Signed up. Please confirm your email, then log in.");
       } else {
         location.replace("orders.html");
       }
