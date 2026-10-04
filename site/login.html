@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>เข้าสู่ระบบ · ICEFLOW</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <main style="max-width:440px">
+    <h1 id="title">เข้าสู่ระบบ</h1>
+    <p class="muted" style="margin-bottom:20px">สั่งผลิตเครื่องทำน้ำแข็งและติดตามสถานะได้ในที่เดียว</p>
+    <form id="form" class="card stack">
+      <div id="extra" hidden class="stack">
+        <div><label>ชื่อ-นามสกุล</label><input id="name"></div>
+        <div><label>เบอร์โทร</label><input id="phone" inputmode="tel"></div>
+      </div>
+      <div><label>อีเมล</label><input id="email" type="email" required></div>
+      <div><label>รหัสผ่าน</label><input id="password" type="password" required minlength="6"></div>
+      <div id="msg" class="err" hidden></div>
+      <button id="go" class="btn block">เข้าสู่ระบบ</button>
+    </form>
+    <p class="center muted small" style="margin-top:16px"><span id="q">ยังไม่มีบัญชี?</span>
+      <button id="toggle" class="link-red" style="color:var(--brand-dark)">สมัครสมาชิก</button></p>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="app.js"></script>
+  <script>
+    // UC8: register / log in (Supabase Auth; the customers row is created by a DB trigger)
+    mountHeader(false);
+    db.auth.getSession().then(({ data }) => { if (data.session) location.replace("orders.html"); });
+
+    let register = false;
+    const msg = $("#msg");
+    const showMsg = (t) => { msg.textContent = t; msg.hidden = !t; };
+
+    $("#toggle").onclick = () => {
+      register = !register;
+      $("#title").textContent = register ? "สมัครสมาชิก" : "เข้าสู่ระบบ";
+      $("#go").textContent = register ? "สมัครสมาชิก" : "เข้าสู่ระบบ";
+      $("#q").textContent = register ? "มีบัญชีแล้ว?" : "ยังไม่มีบัญชี?";
+      $("#toggle").textContent = register ? "เข้าสู่ระบบ" : "สมัครสมาชิก";
+      $("#extra").hidden = !register;
+      $("#name").required = $("#phone").required = register;
+      showMsg("");
+    };
+
+    $("#form").onsubmit = async (e) => {
+      e.preventDefault();
+      const email = $("#email").value, password = $("#password").value;
+      $("#go").disabled = true;
+      showMsg("");
+      const { data, error } = register
+        ? await db.auth.signUp({ email, password, options: { data: { name: $("#name").value, phone: $("#phone").value } } })
+        : await db.auth.signInWithPassword({ email, password });
+      $("#go").disabled = false;
+      if (error) {
+        showMsg(/already|registered/i.test(error.message) ? "อีเมลนี้ถูกใช้แล้ว กรุณาเข้าสู่ระบบหรือใช้อีเมลอื่น"
+          : /invalid login/i.test(error.message) ? "อีเมลหรือรหัสผ่านไม่ถูกต้อง" : errText(error));
+      } else if (!data.session) {
+        showMsg("สมัครสำเร็จ กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ");
+      } else {
+        location.replace("orders.html");
+      }
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ICEFLOW · สั่งผลิตเครื่องทำน้ำแข็ง</title>
+  <meta name="description" content="สั่งผลิตเครื่องทำน้ำแข็ง รับใบเสนอราคา จ่ายมัดจำ และติดตามทุกขั้นตอนในที่เดียว">
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <section class="hero" aria-labelledby="h">
+    <div class="cloud" style="--w:220px;top:6%;--t:80s;--d:-10s" aria-hidden="true"></div>
+    <div class="cloud" style="--w:300px;top:44%;--t:110s;--d:-60s" aria-hidden="true"></div>
+    <div class="cloud" style="--w:170px;top:78%;--t:70s;--d:-35s" aria-hidden="true"></div>
+    <div class="in">
+      <div>
+        <span class="eyebrow">ORDER → QUOTE → BUILD → DONE</span>
+        <h1 id="h">สั่งผลิต<br>เครื่องทำน้ำแข็ง<br>แบบ <mark>เห็นทุกขั้น</mark></h1>
+        <p class="lead">เลือกรุ่น รับราคา จ่ายมัดจำ แล้วตามดูตั้งแต่โรงงานผลิตจนถึงวันติดตั้ง ในที่เดียว</p>
+        <div class="cta">
+          <a class="btn big" id="cta" href="login.html">เริ่มสั่งผลิต →</a>
+          <a class="btn big ghost" href="#how">ดูวิธีใช้งาน</a>
+        </div>
+      </div>
+
+      <div class="receipt-wrap">
+        <article class="receipt" aria-label="ตัวอย่างใบสั่งผลิต">
+          <div class="brand">❄ ICEFLOW</div>
+          <div class="sub">ร้านเครื่องทำน้ำแข็ง · สั่งผลิตออนไลน์</div>
+          <hr>
+          <div class="li"><span>ORDER</span><i></i><b>ORD-0001</b></div>
+          <div class="li"><span>DATE</span><i></i><b id="today"></b></div>
+          <hr>
+          <div class="li"><span>01 เลือกรุ่นจากแคตตาล็อก</span><i></i><b>ฟรี</b></div>
+          <div class="li"><span>02 ใบเสนอราคา + มัดจำ 30%</span><i></i><b>ชัดเจน</b></div>
+          <div class="li"><span>03 ติดตามการผลิต</span><i></i><b>ทุกขั้น</b></div>
+          <div class="li"><span>04 ตรวจรับ + จ่ายส่วนที่เหลือ</span><i></i><b>จบงาน</b></div>
+          <hr>
+          <div class="li total"><span>TOTAL</span><i></i><b>ครบในที่เดียว</b></div>
+          <div class="center" style="margin:16px 0 4px"><span class="stamp">สั่งเลย!</span></div>
+          <div id="bc"></div>
+          <div class="bc-text">ICEFLOW 2569</div>
+          <div class="center small" style="margin-top:8px">*** ขอบคุณที่ใช้บริการ ***</div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <div class="marquee" aria-hidden="true">
+    <div>
+      <span>❄ ผลิตตามสั่ง</span><span>❄ ใบเสนอราคาชัดเจน</span><span>❄ ติดตามสถานะ</span><span>❄ มัดจำ 30%</span><span>❄ แจ้งเตือนทุกขั้น</span><span>❄ ตรวจรับก่อนจ่ายส่วนที่เหลือ</span>
+      <span>❄ ผลิตตามสั่ง</span><span>❄ ใบเสนอราคาชัดเจน</span><span>❄ ติดตามสถานะ</span><span>❄ มัดจำ 30%</span><span>❄ แจ้งเตือนทุกขั้น</span><span>❄ ตรวจรับก่อนจ่ายส่วนที่เหลือ</span>
+    </div>
+  </div>
+
+  <section class="section" id="how" aria-labelledby="how-h">
+    <div class="in">
+      <h2 class="big" id="how-h">4 ขั้นตอน ไม่ซับซ้อน</h2>
+      <div class="grid-lines">
+        <div><span class="n">01</span><h3>เลือกรุ่น</h3><p>ดูแคตตาล็อก เลือกรุ่นที่ใช่ แล้วกรอกสถานที่ติดตั้งและรายละเอียดเพิ่มเติม</p></div>
+        <div><span class="n">02</span><h3>รับราคา จ่ายมัดจำ</h3><p>ร้านส่งใบเสนอราคา คุณยืนยันแล้วแนบสลิปมัดจำ</p></div>
+        <div><span class="n">03</span><h3>ตามดูการผลิต</h3><p>ผลิต ตรวจคุณภาพ และนัดวันติดตั้ง มีไทม์ไลน์และแจ้งเตือนทุกขั้น</p></div>
+        <div><span class="n">04</span><h3>ตรวจรับ จ่ายที่เหลือ</h3><p>ตรวจเครื่องก่อน ผ่านแล้วค่อยชำระส่วนที่เหลือ รับใบเสร็จ</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="in">
+      <h2>พร้อมสั่งเครื่องแรกของคุณ?</h2>
+      <a class="btn big ghost" id="cta2" href="login.html">สมัครสมาชิก / เข้าสู่ระบบ</a>
+    </div>
+  </section>
+
+  <footer class="foot"><div class="in"><span>❄ ICEFLOW</span><span>โปรเจกต์สาธิตวิชา System Analysis &amp; Design</span></div></footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="app.js"></script>
+  <script>
+    mountHeader(false);
+    $("#bc").innerHTML = barcode("ICEFLOW-2569");
+    $("#today").textContent = new Date().toLocaleDateString("th-TH");
+    // signed-in visitors go straight to their orders
+    db.auth.getSession().then(({ data }) => {
+      if (!data.session) return;
+      $("#cta").textContent = "ไปที่คำสั่งซื้อของฉัน →";
+      $("#cta2").textContent = "ไปที่คำสั่งซื้อของฉัน";
+      $("#cta").href = $("#cta2").href = "orders.html";
+    });
+  </script>
+</body>
+</html>

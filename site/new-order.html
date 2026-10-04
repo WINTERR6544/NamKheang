@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>รายละเอียดการสั่งผลิต · ICEFLOW</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <main>
+    <span class="eyebrow">STEP 2 / 2 · รายละเอียด</span>
+    <h1>รายละเอียดการสั่งผลิต</h1>
+    <p class="muted" style="margin-bottom:20px">กรอกข้อมูลเพิ่มเติม ร้านจะเสนอราคาให้ในขั้นถัดไป</p>
+
+    <div id="model" class="card info" style="margin-bottom:20px"><p class="muted">กำลังโหลด...</p></div>
+
+    <form id="form" class="card stack" hidden>
+      <div><label>สถานที่ติดตั้ง *</label><textarea id="install_address" rows="3"></textarea></div>
+      <div class="grid2">
+        <div><label>ระบบไฟฟ้า (ไม่บังคับ)</label><input id="install_power" placeholder="เช่น 3 เฟส 380V"></div>
+        <div><label>พื้นที่ติดตั้ง (ไม่บังคับ)</label><input id="install_space" placeholder="เช่น 4 x 6 เมตร"></div>
+      </div>
+      <div id="err" class="err" hidden></div>
+      <button id="go" class="btn block">ส่งคำสั่งซื้อ</button>
+    </form>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="app.js"></script>
+  <script>
+    // UC1 step 2: model comes from the catalog (?model=id); customer adds install details
+    const MODEL_ID = Number(new URLSearchParams(location.search).get("model"));
+    let model;
+    const err = $("#err");
+    const fail = (t) => { err.textContent = t; err.hidden = false; };
+
+    (async () => {
+      if (!(await requireSession())) return;
+      if (!MODEL_ID) return location.replace("catalog.html");
+      const { data } = await db.from("machine_models")
+        .select("model_id, code, name, machine_type, capacity, price").eq("model_id", MODEL_ID).maybeSingle();
+      if (!data) return location.replace("catalog.html");
+      model = data;
+      $("#model").innerHTML = `
+        <div class="row"><div><span class="stamp" style="transform:rotate(-4deg)">${esc(model.code)}</span>
+          <h2 style="margin-top:12px">${esc(model.name)}</h2>
+          <div class="small">${esc(model.machine_type)} · ${esc(model.capacity)}</div></div>
+          <div style="text-align:right"><b>${baht(model.price)}</b><div class="small muted">ก่อน VAT 7%</div>
+          <a href="catalog.html" class="small">เปลี่ยนรุ่น</a></div></div>`;
+      $("#form").hidden = false;
+    })();
+
+    $("#form").onsubmit = async (e) => {
+      e.preventDefault();
+      err.hidden = true;
+      const address = $("#install_address").value.trim();
+      if (!address) return fail("กรุณากรอกสถานที่ติดตั้ง");
+      $("#go").disabled = true;
+      const { data: me } = await db.from("customers").select("customer_id").single();
+      if (!me) { $("#go").disabled = false; return fail("ไม่พบข้อมูลลูกค้า กรุณาเข้าสู่ระบบใหม่"); }
+      const { data, error } = await db.from("orders").insert({
+        customer_id: me.customer_id,
+        model_id: model.model_id,
+        machine_type: model.machine_type,
+        capacity: model.capacity,
+        install_address: address,
+        install_power: $("#install_power").value.trim() || null,
+        install_space: $("#install_space").value.trim() || null,
+        status: 0,
+      }).select("order_id").single();
+      $("#go").disabled = false;
+      if (error) return fail(errText(error));
+      location.replace(`order.html?id=${data.order_id}`);
+    };
+  </script>
+</body>
+</html>
