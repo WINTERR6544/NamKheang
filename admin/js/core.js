@@ -98,7 +98,7 @@ const FEATURES = [
   [/^\/orders$/, "orders-all"], [/^\/orders\/new$/, "orders-new"], [/^\/orders\/quotations$/, "orders-quotations"], [/^\/orders\/cancelled$/, "orders-cancelled"],
   [/^\/order\/\d+$/, "order-detail"],
   [/^\/mfg\/requests$/, "mfg-requests"], [/^\/mfg\/status$/, "mfg-status"],
-  [/^\/installation$/, "installation"],
+  [/^\/installation$/, "installation"], [/^\C:\/Program Files\/Git\/factories$/, "factories"],
   [/^\/payments\/deposit$/, "payments-deposit"], [/^\/payments\/final$/, "payments-final"], [/^\/payments\/refund$/, "payments-refund"],
 ];
 const loaded = {};
@@ -184,7 +184,7 @@ const NAV = [
   { label: "Deposit", href: "#/payments/deposit", sub: 1, key: "dep" }, { label: "Final Payment", href: "#/payments/final", sub: 1, key: "fin" },
   { label: "Refund", href: "#/payments/refund", sub: 1, key: "ref" },
   G("Admin"),
-  { label: "Customers", soon: 1 }, { label: "Factories", soon: 1 }, { label: "Notifications", soon: 1 },
+  { label: "Customers", soon: 1 }, { label: "Factories", href: "#C:/Program Files/Git/factories" }, { label: "Notifications", soon: 1 },
   { label: "Reports / History", soon: 1 }, { label: "Users & Roles", soon: 1, sub: 1 },
 ];
 function sidebar(user) {
