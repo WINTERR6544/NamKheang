@@ -97,7 +97,7 @@ const FEATURES = [
   [/^\/dashboard$/, "dashboard"],
   [/^\/orders$/, "orders-all"], [/^\/orders\/new$/, "orders-new"], [/^\/orders\/quotations$/, "orders-quotations"], [/^\/orders\/cancelled$/, "orders-cancelled"],
   [/^\/order\/\d+$/, "order-detail"],
-  [/^\/mfg\/requests$/, "mfg-requests"], [/^\/mfg\/production$/, "mfg-production"], [/^\/mfg\/qc$/, "mfg-qc"],
+  [/^\/mfg\/requests$/, "mfg-requests"], [/^\/mfg\/status$/, "mfg-status"],
   [/^\/installation$/, "installation"],
   [/^\/payments\/deposit$/, "payments-deposit"], [/^\/payments\/final$/, "payments-final"], [/^\/payments\/refund$/, "payments-refund"],
 ];
@@ -178,7 +178,7 @@ const NAV = [
   { label: "All Orders", href: "#/orders", sub: 1 }, { label: "New Orders", href: "#/orders/new", sub: 1, key: "new" },
   { label: "Quotations", href: "#/orders/quotations", sub: 1 }, { label: "Cancelled", href: "#/orders/cancelled", sub: 1 },
   G("Manufacturing"),
-  { label: "Factory Requests", href: "#/mfg/requests", sub: 1 }, { label: "Production", href: "#/mfg/production", sub: 1 }, { label: "QC", href: "#/mfg/qc", sub: 1 },
+  { label: "Factory Requests", href: "#/mfg/requests", sub: 1 }, { label: "Order Status", href: "#/mfg/status", sub: 1 },
   { label: "Installation", href: "#/installation" },
   G("Payments"),
   { label: "Deposit", href: "#/payments/deposit", sub: 1, key: "dep" }, { label: "Final Payment", href: "#/payments/final", sub: 1, key: "fin" },
