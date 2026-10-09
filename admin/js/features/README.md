@@ -11,6 +11,7 @@ One file per sidebar item. The shell (`../core.js`) loads a feature's file the f
 | `orders-cancelled.js` | Orders > Cancelled | `#/orders/cancelled` |
 | `order-detail.js` | (opened from any order) | `#/order/:id` |
 | `mfg-requests.js` | Manufacturing > Factory Requests | `#/mfg/requests` |
+| `reports-history.js` | Admin > Reports / History (view only) | `#C:/Program Files/Git/history` |
 | `mfg-status.js` | Manufacturing > Order Status (view only, reported by the factory) | `#/mfg/status` |
 | `installation.js` | Installation | `#/installation` |
 | `payments-deposit.js` | Payments > Deposit | `#/payments/deposit` |
