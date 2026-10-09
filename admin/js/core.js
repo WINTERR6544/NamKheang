@@ -98,7 +98,7 @@ const FEATURES = [
   [/^\/orders$/, "orders-all"], [/^\/orders\/new$/, "orders-new"], [/^\/orders\/quotations$/, "orders-quotations"], [/^\/orders\/cancelled$/, "orders-cancelled"],
   [/^\/order\/\d+$/, "order-detail"],
   [/^\/mfg\/requests$/, "mfg-requests"], [/^\/mfg\/status$/, "mfg-status"],
-  [/^\/installation$/, "installation"], [/^\/notifications$/, "notifications"], [/^\/customers$/, "customers"] [/^\/factories$/, "factories"] [/^\/history$/, "reports-history"] [/^\/users$/, "users-roles"]
+  [/^\/installation$/, "installation"], [/^\/notifications$/, "notifications"], [/^\/customers$/, "customers"], [/^\/factories$/, "factories"], [/^\/history$/, "reports-history"], [/^\/users$/, "users-roles"],
   [/^\/payments\/deposit$/, "payments-deposit"], [/^\/payments\/final$/, "payments-final"], [/^\/payments\/refund$/, "payments-refund"],
 ];
 const loaded = {};
