@@ -13,6 +13,7 @@ One file per sidebar item. The shell (`../core.js`) loads a feature's file the f
 | `mfg-requests.js` | Manufacturing > Factory Requests | `#/mfg/requests` |
 | `notifications.js` | Admin > Notifications (view only) | `#/notifications` |
 | `customers.js` | Admin > Customers (view only) | `#/customers` |
+| `factories.js` | Admin > Factories (view only) | `#/factories` |
 | `mfg-status.js` | Manufacturing > Order Status (view only, reported by the factory) | `#/mfg/status` |
 | `installation.js` | Installation | `#/installation` |
 | `payments-deposit.js` | Payments > Deposit | `#/payments/deposit` |

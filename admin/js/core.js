@@ -98,7 +98,7 @@ const FEATURES = [
   [/^\/orders$/, "orders-all"], [/^\/orders\/new$/, "orders-new"], [/^\/orders\/quotations$/, "orders-quotations"], [/^\/orders\/cancelled$/, "orders-cancelled"],
   [/^\/order\/\d+$/, "order-detail"],
   [/^\/mfg\/requests$/, "mfg-requests"], [/^\/mfg\/status$/, "mfg-status"],
-  [/^\/installation$/, "installation"], [/^\/notifications$/, "notifications"], [/^\/customers$/, "customers"]
+  [/^\/installation$/, "installation"], [/^\/notifications$/, "notifications"], [/^\/customers$/, "customers"] [/^\/factories$/, "factories"]
   [/^\/payments\/deposit$/, "payments-deposit"], [/^\/payments\/final$/, "payments-final"], [/^\/payments\/refund$/, "payments-refund"],
 ];
 const loaded = {};
@@ -184,7 +184,7 @@ const NAV = [
   { label: "Deposit", href: "#/payments/deposit", sub: 1, key: "dep" }, { label: "Final Payment", href: "#/payments/final", sub: 1, key: "fin" },
   { label: "Refund", href: "#/payments/refund", sub: 1, key: "ref" },
   G("Admin"),
-  { label: "Customers", href: "#/customers" }, { label: "Factories", soon: 1 }, { label: "Notifications", href: "#/notifications" },
+  { label: "Customers", href: "#/customers" }, { label: "Factories", href: "#/factories" }, { label: "Notifications", href: "#/notifications" },
   { label: "Reports / History", soon: 1 }, { label: "Users & Roles", soon: 1, sub: 1 },
 ];
 function sidebar(user) {
