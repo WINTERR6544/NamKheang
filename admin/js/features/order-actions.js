@@ -28,7 +28,8 @@ function orderNext(d, reload) {
   const lastAsg = d.asg[d.asg.length - 1];
   const sched = d.ap.find((a) => a.status === "scheduled");
   const lastAcc = d.ac[d.ac.length - 1];
-  const failedQc = (() => { const r = Math.max(0, ...d.qc.map((x) => x.round_no)); return d.qc.filter((x) => x.round_no === r && !x.passed); })();
+  const prodQc = d.qc.filter((x) => x.stage !== "onsite"); // manufacturing QC (the factory records it; the shop only views it)
+  const failedQc = (() => { const r = Math.max(0, ...prodQc.map((x) => x.round_no)); return prodQc.filter((x) => x.round_no === r && !x.passed); })();
   const canCancel = [0, 1, 2, 3].includes(o.status);
 
   /* ----- next-action panel ----- */
@@ -46,14 +47,20 @@ function orderNext(d, reload) {
       else panel = `<p><b>${esc(lastAsg?.factories?.name)}</b> accepted. Waiting for the factory to start production.</p>`;
       break;
     case 4: panel = `<p>In production at the factory · estimated finish ${dateTH(o.est_finish_date)}</p>`; break;
-    case 5: panel = `<p>QC round ${Math.max(0, ...d.qc.map((x) => x.round_no)) + 1} (up to ${d.rules.max_qc_rounds} rounds before considering another factory). Waiting for the QC result.</p>`; break;
+    case 5: panel = `<p>QC round ${Math.max(0, ...prodQc.map((x) => x.round_no)) + 1} (up to ${d.rules.max_qc_rounds} rounds before considering another factory). Waiting for the factory to record the QC result.</p>`; break;
     case 6: panel = `<p>QC failed: ${failedQc.map((x) => esc(x.qc_items?.item_name) + (x.note ? ` (${esc(x.note)})` : "")).join(", ")}. Waiting for the factory to fix it.</p>`; break;
     case 7: panel = `<p>QC passed. Arrange the install date with the customer and the factory.</p>${btn("schedule", "Schedule install")}`; break;
     case 8: panel = sched
-      ? `<p>Install scheduled for <b>${dateTH(sched.install_datetime, true)}</b> (the factory does the installation)</p><div class="row">${btn("schedule", "Reschedule", "ghost")}</div>`
+      ? `<p>Install scheduled for <b>${dateTH(sched.install_datetime, true)}</b> (the factory installs, does the on-site QC, then confirms the install)</p><div class="row">${btn("schedule", "Reschedule", "ghost")}</div>`
       : `<p class="err">The customer reported a problem after inspection: ${esc(lastAcc?.note ?? "-")}. Coordinate a fix with the factory, then set a new date.</p>${btn("schedule", "Schedule a new install date")}`; break;
     case 9: { const p = pay("final");
-      panel = p ? `<p>The customer accepted the machine and sent a slip for the balance of ${baht(p.amount)} THB.</p>${payBtns(p)}` : `<p class="muted">Waiting for the customer to accept the machine and pay the balance.</p>`; break; }
+      if (p) panel = `<p>The customer accepted the machine and sent a slip for the balance of ${baht(p.amount)} THB.</p>${payBtns(p)}`;
+      else if (lastAcc && !lastAcc.passed) // customer -> shop -> factory
+        panel = `<p class="err">The customer reported a problem after inspection: ${esc(lastAcc.note ?? "-")}</p>` +
+          (lastAcc.forwarded_at ? `<p class="small muted">Sent to the factory ${dateTH(lastAcc.forwarded_at, true)}. Agree a fix visit with the factory, then set the date.</p>` : `<p class="small muted">Contact the factory about it first.</p>`) +
+          `<div class="row">${lastAcc.forwarded_at ? "" : btn("forward", "Send problem to the factory")}${btn("schedule", "Schedule a fix visit", lastAcc.forwarded_at ? "" : "ghost")}</div>`;
+      else panel = `<p class="muted">Waiting for the customer to check the machine and pay the balance.</p>`;
+      break; }
     case 10: panel = `<p>✅ Completed · receipt <b class="mono">${esc(pay("final")?.receipt_no ?? "-")}</b></p>`; break;
     case 99: { const r = pay("refund");
       panel = `<p>Cancelled by ${esc({ customer: "the customer", shop: "the shop", system: "the system" }[o.cancelled_by] ?? "-")}: ${esc(o.cancel_reason)}</p>` +
@@ -93,7 +100,8 @@ function orderNext(d, reload) {
     },
     send: () => form(lastAsg?.response === "rejected" ? "Choose another factory" : "Send production order to a factory", `<label>Factory</label><select id="f">${facOptions}</select>`, "Send production order",
       (m) => rpc("staff_send_to_factory", { p_order: o.order_id, p_factory: Number($("#f", m).value) }, "Production order sent")),
-    schedule: () => form(sched ? "Reschedule install" : "Schedule install", `<label>Date and time</label>${dateInput()}${sched ? `<label style="margin-top:10px">Reason for rescheduling</label><input id="r">` : ""}`, "Save appointment",
+    forward: () => run(() => rpc("staff_forward_problem", { p_order: o.order_id }, "Problem sent to the factory")),
+    schedule: () => form(sched ? "Reschedule install" : o.status === 9 ? "Schedule a fix visit" : "Schedule install", `<label>Date and time</label>${dateInput()}${sched ? `<label style="margin-top:10px">Reason for rescheduling</label><input id="r">` : ""}`, "Save appointment",
       (m) => { if (!$("#dt", m).value) throw new Error("Please choose a date and time"); return rpc("staff_schedule_install", { p_order: o.order_id, p_datetime: new Date($("#dt", m).value).toISOString(), p_reason: $("#r", m)?.value || null }, "Appointment saved. The customer was notified"); }),
     cancel: cancelForm,
   };

@@ -15,7 +15,7 @@ Source: shared Claude chat (https://claude.ai/share/0e16fe06-1fd8-4ce1-8e63-af98
 | 2 | ส่งคำสั่งผลิตให้โรงงาน | ร้าน, โรงงาน |
 | 3 | ติดต่อโรงงานอื่น | ร้าน, โรงงาน |
 | 4 | ผลิตเครื่องทำน้ำแข็ง | โรงงาน |
-| 5 | QC | ร้าน, โรงงาน |
+| 5 | QC | โรงงาน (ร้านดูผลเท่านั้น) |
 | 6 | นัดหมายวันติดตั้ง | ร้าน, โรงงาน, ลูกค้า |
 | 7 | ตรวจรับงานและชำระเงิน | ลูกค้า, ร้าน |
 | 8 | สมัครสมาชิก / เข้าสู่ระบบ | ลูกค้า |
@@ -51,7 +51,7 @@ Every status change also inserts into `order_status_logs` and notifies the custo
 customers, users, factories, machine_models (catalog), orders, order_statuses, status_transitions, order_status_logs, quotations, quotation_items, payments, factory_assignments, production_updates, qc_items, qc_results, appointments, acceptance_checks, notifications, business_rules
 
 ## Open issues
-- Who does QC: shop or factory? (swimlane vs UC5/Figma disagree)
+- ~~Who does QC: shop or factory?~~ Decided 2026-10-10: manufacturing QC is checked by the factory only; installation is checked by the factory again (on-site QC); after install the customer rechecks, and if there is a problem the customer contacts the shop and the shop contacts the factory. Needs a `stage` column (`production`/`onsite`) on `qc_results` and a factory-portal on-site QC step; not built yet.
 - Figma still has Installation and Delivery screens; delivery is out of scope.
 - Catalog models and prices are sample data.
 - One machine per order (no quantity).
