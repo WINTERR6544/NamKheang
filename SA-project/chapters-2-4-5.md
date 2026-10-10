@@ -178,6 +178,8 @@ erDiagram
 | Q10.3 | 10 | ตรวจสลิป/ออกใบเสร็จ | `UPDATE payments SET verified = true, verified_by = :user_id, receipt_no = :receipt_no WHERE payment_id = :payment_id;` |
 | Q10.4 | 10 | ปิดคำสั่งซื้อ | `UPDATE orders SET status = 10, accepted_at = NOW() WHERE order_id = :order_id;` |
 | Q11.1 | 11 | ยกเลิกคำสั่งซื้อ | `UPDATE orders SET status = 99, cancel_reason = :reason, cancelled_by = :by, cancelled_at = NOW() WHERE order_id = :order_id;` |
+| Q11.2 | 11 | ลูกค้าไม่ยอมรับใบเสนอราคา (ยกเลิก) | `UPDATE quotations SET status = 'rejected', responded_at = NOW() WHERE order_id = :order_id AND status = 'sent';` |
+| Q11.3 | 11 | ใบเสนอราคาหมดอายุ (ทำอัตโนมัติทุกคืน) | `UPDATE quotations SET status = 'expired', responded_at = NOW() WHERE status = 'sent' AND valid_until < CURRENT_DATE;`  แล้ว `UPDATE orders SET status = 99, cancel_reason = 'Quotation expired', cancelled_by = 'system', cancelled_at = NOW() WHERE order_id = :order_id;` |
 | Q12.1 | 12 | คืนมัดจำ | `SELECT p.payment_id, p.amount FROM payments p WHERE p.order_id = :order_id AND p.pay_type = 'deposit' AND p.verified = true;` |
 | Q12.2 | 12 | คืนมัดจำ | `INSERT INTO payments (order_id, amount, pay_type, payment_method, slip_path, refund_account, verified, verified_by, paid_at) VALUES (:order_id, :amount, 'refund', 'transfer', :slip_path, :refund_account, true, :user_id, NOW());` |
 | Q13.1 | 13 | ติดตามสถานะ | `SELECT o.order_id, o.order_code, o.machine_type, os.name AS status_name, o.est_finish_date FROM orders o JOIN order_statuses os ON o.status = os.status_code WHERE o.customer_id = :customer_id;` |
@@ -523,8 +525,8 @@ stateDiagram-v2
 |---|---|---|---|---|
 | – | sent | ร้านออกใบเสนอราคา | UC3 | Q3.2 |
 | sent | accepted | ลูกค้ากดยอมรับ | UC3 | Q3.5 |
-| sent | rejected | ลูกค้าไม่ยอมรับ → UC11 | UC3, UC11 | [Q…] |
-| sent | expired | เกิน `valid_until` (7 วัน) | – | [Q…] |
+| sent | rejected | ลูกค้าไม่ยอมรับ = ยกเลิกคำสั่งซื้อ (ก่อนมีมัดจำ) | UC3, UC11 | Q11.2 |
+| sent | expired | เกิน `valid_until` (7 วัน) ไม่มีการตอบ ระบบยกเลิกคำสั่งซื้ออัตโนมัติ (`cancelled_by = system`) ทุกคืนเวลา 00:00 | UC11 (ระบบ) | Q11.3 |
 
 ตารางที่ 5.2 แสดง State Diagram ของใบเสนอราคา
 
@@ -626,7 +628,7 @@ flowchart LR
 2. ~~ใคร QC~~ **ตัดสินแล้ว (ผู้ใช้ยืนยัน):** QC ระหว่างผลิต = โรงงานเท่านั้น, ตรวจหลังติดตั้ง (On-site QC) = โรงงานอีกครั้ง, หลังติดตั้งเสร็จ **ลูกค้าตรวจรับ** หากมีปัญหา **ลูกค้าติดต่อร้าน ร้านติดต่อโรงงาน**
    - ต้องแก้ UC7, UC9, UC10 ใน Word และ swimlane ใน Figma ให้ตรง (พักไว้) UC10 Alternative Flow เดิมใน Word ("ลูกค้าแจ้งปัญหาแก่ร้าน ร้านประสานโรงงาน") ตรงกับกติกานี้อยู่แล้ว
    - DB: เสนอเพิ่มคอลัมน์ `stage` (`production` / `onsite`) ใน `qc_results` (ยังไม่ได้ทำ) ไม่ต้องเพิ่มอะไรใน `acceptance_checks`
-3. **ใบเสนอราคา `rejected` / `expired`**, **นัด `cancelled`** — มีใน DB แต่ UC ใน Word ยังไม่อธิบายวิธีเปลี่ยนสถานะ จึงเว้นเลข Query เป็น `[Q…]`
+3. ~~ใบเสนอราคา `rejected` / `expired`~~ **ตัดสินและทำแล้ว (2026-10-10):** ลูกค้าไม่ยอมรับ = ยกเลิก (quote เป็น `rejected`), หมดอายุ = ระบบยกเลิกอัตโนมัติทุกคืน (Q11.2, Q11.3) — ต้องเพิ่มใน Word UC3/UC11 ส่วน **นัด `cancelled`** ยังไม่มี flow จึงเว้นเลข Query เป็น `[Q…]`
 4. **การคืนมัดจำไม่มีสถานะแยกใน `orders`** — คืนเงินบันทึกเป็นแถวใน `payments` (`pay_type='refund'`) ร่างนี้เขียนตามนั้น
 5. **Query ในตาราง 4.3 เขียนเป็น SQL ตรงตามรูปแบบวิชา** ซึ่งระบบจริงบางส่วนทำผ่าน RPC/trigger — ถ้าอาจารย์ให้อ้างตามโค้ดจริง ต้องปรับ
 6. Mermaid ใช้ได้กับ ER/Class/State/DFD ส่วน Swimlane (บทที่ 2) ต้องวาดจาก Figma เดิมของโปรเจกต์

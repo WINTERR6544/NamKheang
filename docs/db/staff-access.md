@@ -17,6 +17,13 @@ Everything else goes through checked functions (security definer). Shop function
 - At installation the **factory** does an **on-site QC** (`qc_results.stage = 'onsite'`), then confirms the install. The install cannot be confirmed without a passing on-site QC recorded after the current install date was set.
 - The **customer** rechecks. A problem keeps the order at 9 and notifies the shop (`notifications`, `recipient_type = 'shop'`, `recipient_id = 0`). The shop forwards it to the factory (`staff_forward_problem`, sets `acceptance_checks.forwarded_at`, notifies the factory) and books a fix visit (`staff_schedule_install` from status 9, which moves it to 8 and notifies the factory). Then the factory does a new on-site QC and confirms the install again.
 
+## Quotation rejected and expired
+Migrations `20261010150000_quotation_rejected_and_expiry.sql` and `20261010150100_quotation_expiry_schedule.sql`.
+- A customer who cancels while the quote is still `sent` makes the quote `rejected` (`customer_cancel_order`).
+- `expire_quotes()` runs every night at 00:00 Bangkok time (`pg_cron` job `expire-quotes`, 17:00 UTC). For each order still at status 1 whose latest quote is `sent`, past `valid_until`, with no deposit slip, it marks the quote `expired`, cancels the order (`cancelled_by = 'system'`, reason "Quotation expired") and notifies the customer and the shop.
+- Quotes the customer already accepted (deposit slip sent) are never expired by the job.
+- The function is not callable from the app; only the scheduler can run it. To run it by hand: `select public.expire_quotes();` in the SQL editor.
+
 ### Shop functions (`is_staff()`: role `admin` or `shop`)
 
 | Function | Does | Allowed from status | Moves to |
