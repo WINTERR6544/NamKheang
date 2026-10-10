@@ -1,14 +1,16 @@
 // Sidebar: Dashboard
 route(/^\/dashboard$/, async (el) => {
-  const [orders, pays, pend, quotes, aps, rules] = await Promise.all([
+  const [orders, pays, pend, quotes, aps, rules, accs] = await Promise.all([
     fetchOrders(null),
     db.from("payments").select("pay_type, order_id, paid_at").eq("verified", false).then(must),
     db.from("factory_assignments").select("order_id, sent_at").eq("response", "pending").then(must),
     db.from("quotations").select("order_id, valid_until").eq("status", "sent").then(must),
     db.from("appointments").select("order_id, status").eq("status", "scheduled").then(must),
     db.from("business_rules").select("rule_key, value").then(must),
+    db.from("acceptance_checks").select("order_id, passed, forwarded_at, checked_at").order("checked_at", { ascending: false }).limit(500).then(must),
   ]);
   const rule = Object.fromEntries(rules.map((r) => [r.rule_key, Number(r.value)]));
+  const lastAcc = new Map(); accs.forEach((a) => { if (!lastAcc.has(a.order_id)) lastAcc.set(a.order_id, a); }); // newest customer check per order
   const by = (...s) => orders.filter((o) => s.includes(o.status));
   const cnt = (...s) => by(...s).length;
   const payN = (t) => pays.filter((p) => p.pay_type === t).length;
@@ -29,7 +31,11 @@ route(/^\/dashboard$/, async (el) => {
   const tasks = [];
   const add = (o, title, who, href, btn, late, note) => tasks.push({ o, title, who, href, btn, late, note });
   by(0).forEach((o) => add(o, "Review new customer order", o.customers?.name, `#/order/${o.order_id}`, "Review order"));
-  quotes.forEach((q) => { const o = oMap.get(q.order_id); if (o?.status === 1 && new Date(q.valid_until) < today) add(o, "Quote expired, follow up with the customer", o.customers?.name, `#/order/${o.order_id}`, "Open order", 1, `Expired ${dateTH(q.valid_until)}`); });
+  // an unanswered quote is cancelled by the system after its valid-until date (nightly job), so warn before that
+  quotes.forEach((q) => { const o = oMap.get(q.order_id); if (o?.status !== 1) return;
+    const left = Math.round((new Date(q.valid_until) - today) / 86400000);
+    if (left < 0) add(o, "Quote expired, the order is cancelled automatically tonight", o.customers?.name, `#/order/${o.order_id}`, "Open order", 1, `Expired ${dateTH(q.valid_until)}`);
+    else if (left <= 2) add(o, "Quote expires soon, follow up with the customer", o.customers?.name, `#/order/${o.order_id}`, "Open order", 0, left === 0 ? "Expires today" : `Expires in ${left} day${left > 1 ? "s" : ""}`); });
   pays.forEach((p) => { const o = oMap.get(p.order_id); if (!o) return;
     if (p.pay_type === "deposit") add(o, "Check deposit slip", o.customers?.name, "#/payments/deposit", "Check deposit", 0, dateTH(p.paid_at, true));
     if (p.pay_type === "final") add(o, "Check final payment and issue receipt", o.customers?.name, "#/payments/final", "Check final payment", 0, dateTH(p.paid_at, true));
@@ -38,10 +44,14 @@ route(/^\/dashboard$/, async (el) => {
   pend.forEach((a) => { const o = oMap.get(a.order_id); if (!o) return; const d = daysAgo(a.sent_at);
     add(o, "Follow up on factory reply", o.factories?.name, "#/mfg/requests", "View", d > rule.factory_reply_days, d > rule.factory_reply_days ? `${Math.floor(d - rule.factory_reply_days)} days overdue` : `Sent ${dateTH(a.sent_at, true)}`); });
   by(4).forEach((o) => { if (o.est_finish_date && new Date(o.est_finish_date) < today) add(o, "Production overdue, follow up with the factory", o.factories?.name, `#/order/${o.order_id}`, "View status", 1, `Past due ${dateTH(o.est_finish_date)}`); });
-  by(5).forEach((o) => add(o, "QC the finished machine", o.factories?.name, `#/order/${o.order_id}`, "View status"));
+  by(5).forEach((o) => add(o, "Waiting for the factory to QC the finished machine", o.factories?.name, `#/order/${o.order_id}`, "View status"));
   by(6).forEach((o) => add(o, "Follow up on QC fixes", o.factories?.name, `#/order/${o.order_id}`, "Follow up", 1));
   by(7).forEach((o) => add(o, "Set an install date with the customer", o.customers?.name, `#/order/${o.order_id}`, "Schedule install"));
   by(8).forEach((o) => { if (!scheduled.has(o.order_id)) add(o, "Customer asked for a new install date", o.customers?.name, `#/order/${o.order_id}`, "Schedule install", 1); });
+  // customer -> shop -> factory: a problem reported after the install
+  by(9).forEach((o) => { const a = lastAcc.get(o.order_id); if (!a || a.passed) return;
+    if (a.forwarded_at) add(o, "Problem sent to the factory: book a fix visit", o.customers?.name, `#/order/${o.order_id}`, "Schedule fix visit", 0, `Sent ${dateTH(a.forwarded_at, true)}`);
+    else add(o, "Customer reported a problem: send it to the factory", o.customers?.name, `#/order/${o.order_id}`, "Open order", 1, dateTH(a.checked_at, true)); });
   tasks.sort((x, y) => (y.late ? 1 : 0) - (x.late ? 1 : 0));
   const lateN = tasks.filter((x) => x.late).length;
   const stages = [["New Order", cnt(0)], ["Quotation", cnt(1)], ["Deposit", payN("deposit")], ["Factory", cnt(2) + pend.length], ["Production", cnt(4)],

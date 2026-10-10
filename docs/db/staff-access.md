@@ -37,7 +37,14 @@ Migrations `20261010160000_use_case_notifications_reminders.sql` and `2026101016
 | UC12 | A cancel with a verified deposit tells the shop a refund is pending (and, when the shop cancels, asks the customer for a bank account). `customer_set_refund_account(order, account)` lets the customer send or correct the account afterwards. |
 | UC14 | `factories` can be changed only by role `admin` (`is_admin()`). Shop users can still read them. |
 
-Not done on purpose: partial payments / "pay the shortfall" for the final payment (UC10), and the 7-day `final_payment_days` limit. Both need a policy decision.
+Also (migrations `20261010170000_withdraw_request_balance_reminder.sql` and `20261010170100_balance_reminder_schedule.sql`):
+
+| What | Behaviour |
+|---|---|
+| `staff_withdraw_request(order, reason)` | The shop withdraws a production request the factory has not answered for `factory_reply_days`. The request becomes `rejected` (reason "Withdrawn by the shop…"), the factory is told, and the shop can choose another factory. Refused while the factory still has time. |
+| `remind_final_payment()` (job `remind-balance`, daily 09:00 Bangkok) | An installed order (status 9) with no final payment `final_payment_days` after the install gets one reminder to the customer and one message to the shop (`orders.final_reminded_at`). Skipped while a customer problem is open. It is a reminder only; nothing is cancelled. |
+
+Not done on purpose: partial payments / "pay the shortfall" for the final payment (UC10). It needs a policy decision and a customer-portal change.
 
 ### Shop functions (`is_staff()`: role `admin` or `shop`)
 

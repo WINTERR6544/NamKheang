@@ -26,6 +26,7 @@ function orderNext(d, reload) {
   const { o } = d;
   const pay = (t) => d.pays.find((p) => p.pay_type === t);
   const lastAsg = d.asg[d.asg.length - 1];
+  const waited = lastAsg ? (Date.now() - new Date(lastAsg.sent_at).getTime()) / 86400000 : 0; // days since the request was sent
   const sched = d.ap.find((a) => a.status === "scheduled");
   const lastAcc = d.ac[d.ac.length - 1];
   const prodQc = d.qc.filter((x) => x.stage !== "onsite"); // manufacturing QC (the factory records it; the shop only views it)
@@ -42,7 +43,8 @@ function orderNext(d, reload) {
       panel = p ? `<p>The customer sent a deposit slip for ${baht(p.amount)} THB. Please verify it.</p>${payBtns(p)}` : `<p class="muted">Waiting for the customer to accept the quote and pay the deposit (quote valid until ${dateTH(d.quote?.valid_until)})</p>`; break; }
     case 2: panel = `<p>Deposit verified. Send the production order to a factory.</p>${btn("send", "Send production order")}`; break;
     case 3:
-      if (lastAsg?.response === "pending") panel = `<p>Waiting for <b>${esc(lastAsg.factories?.name)}</b> to reply (sent ${dateTH(lastAsg.sent_at, true)}). The factory replies in its own portal.</p>`;
+      if (lastAsg?.response === "pending") panel = `<p>Waiting for <b>${esc(lastAsg.factories?.name)}</b> to reply (sent ${dateTH(lastAsg.sent_at, true)}). The factory replies in its own portal.</p>` +
+        (waited >= d.rules.factory_reply_days ? `<p class="err">No reply for ${Math.floor(waited)} days (the limit is ${d.rules.factory_reply_days}).</p>${btn("withdraw", "Withdraw the request and choose another factory", "red sm")}` : "");
       else if (lastAsg?.response === "rejected") panel = `<p><b>${esc(lastAsg.factories?.name)}</b> declined: ${esc(lastAsg.reject_reason)}. Choose another factory.</p>${btn("send", "Choose another factory")}`;
       else panel = `<p><b>${esc(lastAsg?.factories?.name)}</b> accepted. Waiting for the factory to start production.</p>`;
       break;
@@ -101,6 +103,8 @@ function orderNext(d, reload) {
     send: () => form(lastAsg?.response === "rejected" ? "Choose another factory" : "Send production order to a factory", `<label>Factory</label><select id="f">${facOptions}</select>`, "Send production order",
       (m) => rpc("staff_send_to_factory", { p_order: o.order_id, p_factory: Number($("#f", m).value) }, "Production order sent")),
     forward: () => run(() => rpc("staff_forward_problem", { p_order: o.order_id }, "Problem sent to the factory")),
+    withdraw: () => form("Withdraw the production request", `<p>The factory has not replied. The request is withdrawn and the factory is told. You can then choose another factory.</p><label>Note (optional)</label><textarea id="r" rows="3"></textarea>`, "Withdraw request",
+      (m) => rpc("staff_withdraw_request", { p_order: o.order_id, p_reason: $("#r", m).value.trim() || null }, "Request withdrawn. Choose another factory")),
     schedule: () => form(sched ? "Reschedule install" : o.status === 9 ? "Schedule a fix visit" : "Schedule install", `<label>Date and time</label>${dateInput()}${sched ? `<label style="margin-top:10px">Reason for rescheduling</label><input id="r">` : ""}`, "Save appointment",
       (m) => { if (!$("#dt", m).value) throw new Error("Please choose a date and time"); return rpc("staff_schedule_install", { p_order: o.order_id, p_datetime: new Date($("#dt", m).value).toISOString(), p_reason: $("#r", m)?.value || null }, "Appointment saved. The customer was notified"); }),
     cancel: cancelForm,
