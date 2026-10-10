@@ -5,27 +5,52 @@ Source: shared Claude chat (https://claude.ai/share/0e16fe06-1fd8-4ce1-8e63-af98
 ## Scope
 - Actors: ลูกค้า, ร้านขายเครื่องทำน้ำแข็ง (admin), โรงงาน
 - System is a middleman. OUT of scope: after-sales/claims, and performing the installation or delivery. The system schedules the install date and records that the factory confirmed the install (status 9).
-- Flow: UC8 -> UC1 -> UC9 -> UC2 -> UC3 -> UC4 -> UC5 -> UC6 -> UC7 (-> UC12 refund when cancelled)
+- Flow: UC1 -> UC2 -> UC3 -> UC4 (-> UC5 if the factory declines) -> UC6 -> UC7 -> UC8 -> UC9 -> UC10. UC11 cancels (+ UC12 refund of a verified deposit). UC13 is tracking at any step.
 - Source of truth for numbers and tables is the live database: `supabase/migrations/`.
 
 ## Use cases (15)
+Numbering follows the Word report (SA เครื่องทำน้ำแข็ง). Use these numbers everywhere (code comments, docs, Figma).
+
 | UC | Name | Actor |
 |----|------|-------|
-| 1 | ส่งคำขอสั่งซื้อ | ลูกค้า |
-| 2 | ส่งคำสั่งผลิตให้โรงงาน | ร้าน, โรงงาน |
-| 3 | ติดต่อโรงงานอื่น | ร้าน, โรงงาน |
-| 4 | ผลิตเครื่องทำน้ำแข็ง | โรงงาน |
-| 5 | QC | โรงงาน (ร้านดูผลเท่านั้น) |
-| 6 | นัดหมายวันติดตั้ง | ร้าน, โรงงาน, ลูกค้า |
-| 7 | ตรวจรับงานและชำระเงิน | ลูกค้า, ร้าน |
-| 8 | สมัครสมาชิก / เข้าสู่ระบบ | ลูกค้า |
-| 9 | เสนอราคาและชำระมัดจำ | ร้าน/ลูกค้า |
-| 10 | ติดตามสถานะคำสั่งซื้อ | ลูกค้า |
-| 11 | ยกเลิกคำสั่งซื้อ | ลูกค้า/ร้าน |
-| 12 | ยืนยันการคืนมัดจำ | ร้าน |
-| 13 | จัดการข้อมูลโรงงาน | ร้าน |
-| 14 | ออกรายงาน | ร้าน |
-| 15 | จัดการผู้ใช้และสิทธิ์ | ร้าน |
+| 1 | สมัครสมาชิก / เข้าสู่ระบบ | ลูกค้า |
+| 2 | สร้างคำสั่งซื้อ | ลูกค้า |
+| 3 | ออกใบเสนอราคาและชำระมัดจำ | ร้าน, ลูกค้า |
+| 4 | ส่งคำสั่งผลิตให้โรงงาน | ร้าน, โรงงาน |
+| 5 | เลือกโรงงานใหม่ | ร้าน, โรงงาน |
+| 6 | เริ่มผลิตและแจ้งผลิตเสร็จ | โรงงาน |
+| 7 | ตรวจ QC และแก้ไขตามผล QC | โรงงาน (ร้านดูผลเท่านั้น) |
+| 8 | นัดวันติดตั้ง | ร้าน, ลูกค้า, โรงงาน |
+| 9 | ยืนยันติดตั้งเสร็จ (โรงงานตรวจ On-site QC ก่อน) | โรงงาน |
+| 10 | ตรวจรับ ชำระยอดคงเหลือ ออกใบเสร็จ | ลูกค้า, ร้าน |
+| 11 | ยกเลิกคำสั่งซื้อ | ลูกค้า, ร้าน, ระบบ (ใบเสนอราคาหมดอายุ) |
+| 12 | คืนมัดจำ | ร้าน |
+| 13 | ติดตามสถานะคำสั่งซื้อ | ลูกค้า |
+| 14 | จัดการข้อมูลโรงงาน | ร้าน (Admin) |
+| 15 | จัดการผู้ใช้และสิทธิ์ | ร้าน (Admin) |
+
+### Old numbering (before 2026-10-10)
+Older notes, the first migration comments and early commits used a different order. The reports UC was dropped (`20260930161349_remove_uc15_report_view`) and UC9 (confirm install) was added.
+
+| Old | Name | New |
+|---|---|---|
+| 1 | submit order | 2 |
+| 2 | send production order | 4 |
+| 3 | contact another factory | 5 |
+| 4 | produce | 6 |
+| 5 | QC | 7 |
+| 6 | schedule install | 8 |
+| 7 | accept and pay | 10 |
+| 8 | register / log in | 1 |
+| 9 | quote and deposit | 3 |
+| 10 | track status | 13 |
+| 11 | cancel | 11 |
+| 12 | refund | 12 |
+| 13 | manage factories | 14 |
+| 14 | reports | removed |
+| 15 | users and roles | 15 |
+
+Comments inside already-applied migration files still use the old numbers. They are not edited, because applied migrations should stay byte-for-byte as run.
 
 ## Status codes
 Match `order_statuses` in the database. Allowed moves are in `status_transitions` (enforced by a trigger).

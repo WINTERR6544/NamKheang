@@ -19,11 +19,13 @@ Plain HTML/CSS/JS, one Supabase client (`customer/app.js`).
 | Page | UC | Notes |
 |---|---|---|
 | `index.html` | – | landing page (receipt-on-clouds style) |
-| `login.html` | UC8 | Supabase Auth; a DB trigger creates the `customers` row |
-| `catalog.html` | UC1 step 1 | models from `machine_models` |
-| `new-order.html` | UC1 step 2 | install address/power/space for the chosen model |
-| `orders.html` | UC10 | my orders |
-| `order.html` | UC9, UC10, UC7, UC11 | quote + deposit slip, timeline, acceptance + final payment, cancel, demo controls |
+| `login.html` | UC1 | Supabase Auth; a DB trigger creates the `customers` row |
+| `catalog.html` | UC2 step 1 | models from `machine_models` |
+| `new-order.html` | UC2 step 2 | install address/power/space for the chosen model |
+| `orders.html` | UC13 | my orders |
+| `order.html` | UC3, UC13, UC10, UC11 | quote + deposit slip, timeline, acceptance + final payment, cancel, demo controls |
+
+UC numbers follow the Word report (see `SA-project/README.md` for the full list and the old-to-new table).
 
 The order moves through statuses 0 to 10 (99 = cancelled). See `SA-project/README.md` for the status table and `supabase/migrations/` for the exact rules.
 
