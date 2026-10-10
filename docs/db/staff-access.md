@@ -24,6 +24,21 @@ Migrations `20261010150000_quotation_rejected_and_expiry.sql` and `2026101015010
 - Quotes the customer already accepted (deposit slip sent) are never expired by the job.
 - The function is not callable from the app; only the scheduler can run it. To run it by hand: `select public.expire_quotes();` in the SQL editor.
 
+## Notifications, reminders and permissions (use case descriptions)
+Migrations `20261010160000_use_case_notifications_reminders.sql` and `20261010160100_reminder_schedule.sql`.
+
+| UC | What the database now does |
+|---|---|
+| UC4 / UC5 | `staff_send_to_factory` notifies the factory (`recipient_type = 'factory'`, `recipient_id = factory_id`). `staff_factory_response` notifies the shop (`recipient_id = 0`) with the factory's reply and reason. |
+| UC4 exception | `remind_factories()` (job `remind-factories`, daily 09:00 Bangkok): an assignment still `pending` after `factory_reply_days` gets one reminder to the factory and one message to the shop (`factory_assignments.reminded_at`). |
+| UC6 | The customer's "In production" message carries the estimated finish date. `remind_production_deadlines()` (job `remind-deadlines`, daily 09:00) reminds the factory once when the finish date is today or tomorrow (`orders.finish_reminded_at`, cleared when the date changes). |
+| UC8 | `staff_schedule_install` also notifies the factory, and refuses to move an install date that is less than `reschedule_notice_days` away. |
+| UC11 | The customer's "Cancelled" message includes the reason. `customer_cancel_order` requires a reason. |
+| UC12 | A cancel with a verified deposit tells the shop a refund is pending (and, when the shop cancels, asks the customer for a bank account). `customer_set_refund_account(order, account)` lets the customer send or correct the account afterwards. |
+| UC14 | `factories` can be changed only by role `admin` (`is_admin()`). Shop users can still read them. |
+
+Not done on purpose: partial payments / "pay the shortfall" for the final payment (UC10), and the 7-day `final_payment_days` limit. Both need a policy decision.
+
 ### Shop functions (`is_staff()`: role `admin` or `shop`)
 
 | Function | Does | Allowed from status | Moves to |
