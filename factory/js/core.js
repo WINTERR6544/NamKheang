@@ -38,7 +38,6 @@ const ICONS = {
   info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
   clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
   send: '<path d="m22 2-7 20-4-9-9-4ZM22 2 11 13"/>',
-  file: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4M10 9H8M16 13H8M16 17H8"/>',
   chevronRight: '<path d="m9 18 6-6-6-6"/>', chevronLeft: '<path d="m15 18-6-6 6-6"/>', chevronDown: '<path d="m6 9 6 6 6-6"/>',
   logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',
 };
@@ -75,7 +74,7 @@ function setCrumbs(...parts) {
 // A feature file calls route(...) when it loads. If a file is missing (not built yet) the page says so.
 const FEATURES = [
   [/^\/dashboard$/, "dashboard"],
-  [/^\/requests$/, "requests"], [/^\/requests\/\d+$/, "request-detail"], [/^\/requests\/\d+\/evaluate$/, "request-evaluate"],
+  [/^\/requests$/, "requests"], [/^\/requests\/\d+\/evaluate$/, "request-evaluate"],
   [/^\/production$/, "production"], [/^\/qc$/, "qc"], [/^\/installation$/, "installation"],
   [/^\/notifications$/, "notifications"], [/^\/profile$/, "profile"],
 ];

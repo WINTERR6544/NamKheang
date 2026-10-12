@@ -19,16 +19,16 @@ route(/^\/requests$/, async (el) => {
       <label class="selbtn">${icon("sort", 16)}<span>เรียง:</span><select id="so" aria-label="เรียงลำดับ"><option value="new">ล่าสุดก่อน</option><option value="old">เก่าสุดก่อน</option></select></label>
     </div>
     <div class="card flush"><div id="tb"></div></div>
-    <p class="hint"><b>ขั้นตอนประเมินคำขอ</b> ดูรายละเอียด → ตรวจสอบสเปกและกำลังผลิต → รับผลิต / ปฏิเสธ → ยืนยันส่งผลให้ร้าน</p>`;
+    <p class="hint"><b>ขั้นตอนประเมินคำขอ</b> เปิดคำขอ → ตรวจสอบกำลังผลิต → รับผลิต / ปฏิเสธ → ยืนยันส่งผลให้ร้าน</p>`;
 
   const row = (r) => {
     const o = r.orders;
-    return `<tr>
+    return `<tr class="click" data-href="#/requests/${o.order_id}/evaluate">
       <td><b class="mono">${esc(o.order_code)}</b><div class="small muted">${esc(o.customers?.name ?? "-")}</div></td>
       <td><b>${esc(modelName(o))}</b><div class="small muted">${esc(o.machine_type)} · ${esc(o.capacity)}</div></td>
       <td>${dateTH(r.sent_at)}</td>
       <td>${statePill(r.state)}</td>
-      <td><div class="acts"><a class="btn ghost" href="#/requests/${o.order_id}">ดูรายละเอียด</a>${r.state === "pending" ? `<a class="btn ghost eval" href="#/requests/${o.order_id}/evaluate">${icon("arrowUpRight", 16)}ประเมินงาน</a>` : ""}</div></td>
+      <td><div class="acts"><a class="btn ghost eval" href="#/requests/${o.order_id}/evaluate">${r.state === "pending" ? `${icon("arrowUpRight", 16)}ประเมินงาน` : "ดูผลการประเมิน"}</a></div></td>
     </tr>`;
   };
   const draw = () => {
@@ -51,9 +51,10 @@ route(/^\/requests$/, async (el) => {
   const reset = () => { page = 1; draw(); };
   $("#q").oninput = reset; $("#mo").onchange = reset; $("#so").onchange = reset;
   el.onclick = (e) => {
-    const t = e.target.closest("[data-tab]"), p = e.target.closest("[data-pg]");
+    const t = e.target.closest("[data-tab]"), p = e.target.closest("[data-pg]"), tr = e.target.closest("tr[data-href]");
     if (t) { tab = t.dataset.tab; history.replaceState(null, "", `#/requests${tab === "all" ? "" : "?tab=" + tab}`); reset(); }
     else if (p && !p.disabled) { page = Number(p.dataset.pg); draw(); }
+    else if (tr && !e.target.closest("a, button")) location.hash = tr.dataset.href; // the whole row opens the request
   };
   draw();
 });

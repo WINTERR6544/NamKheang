@@ -7,13 +7,7 @@ The policies read through security-definer helpers (`my_factory_orders()`, `my_f
 ## Who is a factory user
 A Supabase account with an active row in `users` where `role = 'factory'` and `factory_id` is set (the table already requires the pair). `my_factory_id()` returns that factory for the signed-in user.
 
-Add one: register the account on the customer site, then:
-
-```sql
-insert into users (auth_id, name, email, role, factory_id)
-select id, 'Factory manager name', email, 'factory', 1   -- 1 = factories.factory_id
-from auth.users where email = 'factory@example.com';
-```
+Add one from **Admin > Users & Roles** (an admin account, `admin_add_user`): role Factory, pick the factory. The person signs in with a Supabase Auth account with the same email; it is linked now if it exists, or when it is created (`link_user_on_signup`). An existing account can also be turned into a factory user with **Edit** (`admin_update_user`). See `20261010120000_admin_manage_users.sql`.
 
 ## What a factory can read
 Only what was sent to it (`my_factory_orders()` = orders with a `factory_assignments` row for my factory):
@@ -28,4 +22,4 @@ Only what was sent to it (`my_factory_orders()` = orders with a `factory_assignm
 |---|---|---|---|
 | `factory_respond(p_order, p_accept, p_reason)` | accept, or decline with a reason (required); notifies the shop user who sent the request | my assignment is `pending` and the order is at 3 | stays 3 |
 
-Same rules as `staff_factory_response` (the shop recording on the factory's behalf), which still works. After a decline the shop sends the order to another factory from `admin/` (Factory Requests). Production (3 → 4) is the next phase.
+Same rules as `staff_factory_response`. The shop site no longer records replies for the factory, so this is the only way a request gets answered. After a decline the shop sends the order to another factory from `admin/` (Factory Requests). Production (3 → 4) is the next phase.

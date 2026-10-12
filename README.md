@@ -30,7 +30,7 @@ Supabase Auth: turn off *Confirm email* (Authentication → Sign In / Providers 
 Staff sign in with a Supabase account that has a row in `users` (role `admin` or `shop`). Register the account on the customer site first, then add the `users` row (see `docs/db/staff-access.md`).
 
 ## Factory login
-A `users` row with role `factory` and a `factory_id` (see `docs/db/factory-access.md`).
+A `users` row with role `factory` and a `factory_id`, added by an admin in Admin > Users & Roles (see `docs/db/factory-access.md`).
 
 ## Demo controls
 On a customer order page, the collapsed "โหมดสาธิต" box plays the shop and factory. Remove `demo_step` / `demo_advance_to` in Supabase before any real use.

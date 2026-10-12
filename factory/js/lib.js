@@ -6,8 +6,7 @@
 //   accepted = I accepted (moves on to Production, not listed on Manufacturing Requests)
 //   closed   = still pending but the shop cancelled the order, so it can no longer be answered
 const REQ_SEL = "assignment_id, order_id, response, reject_reason, sent_at, responded_at, " +
-  "orders(order_id, order_code, status, machine_type, capacity, install_address, install_power, install_space, created_at, " +
-  "customers(name, phone, email), machine_models(name, code, description))";
+  "orders(order_id, order_code, status, machine_type, capacity, customers(name), machine_models(name))";
 const reqState = (a) => (a.response === "pending" ? (a.orders?.status === 3 ? "pending" : "closed") : a.response);
 
 async function fetchRequests() {
@@ -41,7 +40,7 @@ function capacityCard(fac, reqs) {
     <div class="small">${load} / ${fac.capacity_per_month} เครื่องต่อเดือน · ${load < fac.capacity_per_month ? "ยังรับงานได้" : "เต็มกำลังผลิต"}</div></div>`;
 }
 
-// "สรุปคำขอผลิต" card, shared by the detail page and the accept / decline page
+// "สรุปงานที่ประเมิน" card on the accept / decline page
 function summaryCard(title, a) {
   const o = a.orders;
   return `<div class="card"><h2>${title}</h2>

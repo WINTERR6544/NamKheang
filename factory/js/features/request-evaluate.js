@@ -1,14 +1,16 @@
-// Manufacturing Requests > ประเมินงาน (รับผลิต / ปฏิเสธงาน). The factory picks accept or decline (with a reason),
-// reviews what the shop will receive, then confirms. Calls factory_respond; the order stays at 3 until production starts.
+// Manufacturing Requests > ประเมินงาน (รับผลิต / ปฏิเสธงาน), opened straight from the list. The factory picks accept or decline
+// (with a reason), reviews what the shop will receive, then confirms. An answered request shows its summary and result. Calls factory_respond; the order stays at 3 until production starts.
 route(/^\/requests\/(\d+)\/evaluate$/, async (el, [id]) => {
   const [a, all, fac] = await Promise.all([fetchRequest(Number(id)), fetchRequests(), fetchFactory()]);
-  const o = a.orders, c = o.customers ?? {};
-  setCrumbs("Manufacturing Requests", "ประเมินงาน");
+  const o = a.orders;
+  setCrumbs("Manufacturing Requests", o.order_code);
   el.onclick = null;
-  const back = `<a class="btn ghost" href="#/requests/${o.order_id}">${icon("arrowLeft", 16)}กลับดูรายละเอียด</a>`;
+  const back = `<a class="btn ghost" href="#/requests">${icon("arrowLeft", 16)}กลับรายการคำขอ</a>`;
   if (a.state !== "pending") {
-    el.innerHTML = `<div class="head"><div><h1>รับผลิต / ปฏิเสธงาน</h1><div class="muted">${esc(o.order_code)}</div></div>${back}</div>
-      <div class="card empty">คำขอนี้ไม่ได้รอการประเมินแล้ว (${STATE[a.state][0]})</div>`;
+    const result = { rejected: "คุณปฏิเสธคำขอนี้แล้ว ร้านจะติดต่อโรงงานอื่นต่อไป", accepted: "คุณรับผลิตคำขอนี้แล้ว งานนี้ไปต่อที่หน้า Production",
+      closed: "ร้านยกเลิกคำสั่งซื้อนี้แล้ว จึงไม่ต้องประเมินงาน" }[a.state];
+    el.innerHTML = `<div class="head"><div><h1>ผลการประเมินงาน</h1><div class="muted">${esc(o.order_code)}</div></div>${back}</div>
+      <div class="grid cols-eval"><div>${summaryCard("สรุปงานที่ประเมิน", a)}</div><div class="card"><h2>ผลการประเมินงาน</h2><p>${result}</p></div></div>`;
     return;
   }
   const load = all.filter((r) => r.response === "accepted" && [3, 4, 5, 6].includes(r.orders?.status)).length;
@@ -17,20 +19,11 @@ route(/^\/requests\/(\d+)\/evaluate$/, async (el, [id]) => {
   el.innerHTML = `<div class="head"><div><h1>รับผลิต / ปฏิเสธงาน</h1>
       <div class="muted">${esc(o.order_code)} · ตรวจสอบผลการประเมินและยืนยันก่อนส่งให้ร้าน ICEFLOW</div></div>${back}</div>
     <div class="card steps"><ol id="steps">
-      <li class="done">${icon("circleCheck")}ตรวจสอบรายละเอียด</li>${icon("chevronRight", 16)}
+      <li class="done">${icon("circleCheck")}เปิดคำขอ</li>${icon("chevronRight", 16)}
       <li data-s="2">เลือกผลการประเมิน</li>${icon("chevronRight", 16)}
       <li data-s="3">ตรวจสอบและยืนยันก่อนส่ง</li></ol><span class="small muted">ยังไม่ได้ส่งผลให้ร้าน</span></div>
     <div class="grid cols-eval">
-      <div class="stack">
-        ${summaryCard("สรุปงานที่ประเมิน", a)}
-        <div class="card"><h2>ข้อกำหนดสำคัญ</h2>
-          <div class="info"><div class="lbl">สเปกเครื่อง</div><div class="val">${esc(modelName(o))} · ${esc(o.capacity)}</div><div class="small muted">${esc(o.machine_type)}</div></div>
-          <div class="info"><div class="lbl">สถานที่ติดตั้ง</div><div class="val">${esc(o.install_address)}</div>
-            <div class="small muted">${[o.install_space && "พื้นที่: " + o.install_space, o.install_power && "ไฟฟ้า: " + o.install_power].filter(Boolean).map(esc).join(" · ") || "-"}</div></div>
-          <hr><p class="small muted">ติดต่อลูกค้า: ${esc(c.name ?? "-")} ${esc(c.phone ?? "")}</p>
-          <a class="btn ghost wide" href="#/requests/${o.order_id}">${icon("file", 16)}ดูรายละเอียดทั้งหมด</a>
-        </div>
-      </div>
+      <div>${summaryCard("สรุปงานที่ประเมิน", a)}</div>
       <div class="stack">
         <div class="card" id="choose"><h2>ผลการประเมินงาน</h2><div class="muted small">เลือกการดำเนินการสำหรับคำขอนี้</div>
           <label class="choice acc" data-c="accept"><input type="radio" name="c" value="accept">

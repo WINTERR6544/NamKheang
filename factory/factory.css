@@ -3,7 +3,7 @@
    what the factory screens do differently. Buttons keep a deeper teal than the Figma swatch so white text stays readable. */
 :root {
   --f-teal: #2a8a85; --f-teal-h: #21716d; --f-teal-soft: #e7f5f4; --f-teal-note: #f0f8f8;
-  --f-side: #0e1312; --f-side-2: #1a2120; --f-line: #e6e9e8; --f-red: #b5473f; --f-red-line: #e3a29d;
+  --f-side: #0e1312; --f-side-2: #1a2120; --f-line: #e6e9e8; --f-red: #b5473f;
   --teal-btn: var(--f-teal); --teal-btn-h: var(--f-teal-h); --teal-soft: var(--f-teal-soft); --teal-note: var(--f-teal-note);
   --bg: #f4f5f4; --line: var(--f-line); --r: 10px;
 }
@@ -51,7 +51,7 @@ main { padding: 32px 30px; }
 h1 { font-size: 1.85rem; margin-bottom: 6px; } h2 { font-size: 1.12rem; margin-bottom: 4px; }
 .head { margin-bottom: 24px; } .head .muted { font-size: .85rem; }
 .card { border-color: var(--f-line); padding: 22px; box-shadow: none; }
-.card h2 + .muted { margin-bottom: 16px; } .card h2 + .info { margin-top: 14px; }
+.card h2 + .muted { margin-bottom: 16px; }
 .card.flush { padding: 0; overflow: hidden; }
 .stack > * + * { margin-top: 18px; }
 .banner { display: flex; gap: 12px; align-items: flex-start; background: var(--f-teal-note); border-radius: var(--r); padding: 16px 20px; margin-bottom: 22px; color: var(--f-teal); }
@@ -62,9 +62,6 @@ h1 { font-size: 1.85rem; margin-bottom: 6px; } h2 { font-size: 1.12rem; margin-b
 .btn { border-radius: 6px; min-height: 38px; padding: 0 14px; font-size: .84rem; }
 .btn.ghost { border-color: #d9dedd; }
 .btn.red { background: var(--f-red); border-color: var(--f-red); } .btn.red:hover { background: #963830; border-color: #963830; }
-.btn.outline-red { background: #fff; color: var(--f-red); border-color: var(--f-red-line); } .btn.outline-red:hover { background: var(--red-soft); border-color: var(--f-red); }
-.btn.wide { width: 100%; }
-.stack-btns { display: grid; gap: 10px; margin: 14px 0; }
 .pill { font-size: .72rem; padding: 3px 10px; }
 .pill.dot { background: var(--f-teal-soft); color: var(--f-teal-h); }
 .pill.dot::before { content: ""; display: inline-block; width: 5px; height: 5px; border-radius: 99px; background: currentColor; margin: 0 6px 1px 0; vertical-align: middle; }
@@ -88,6 +85,7 @@ table.req td .mono { white-space: nowrap; }
 table.req th { font-size: .8rem; font-weight: 500; color: #4b5856; padding: 16px 18px; }
 table.req td { padding: 16px 18px; vertical-align: middle; border-bottom-color: #eef0ef; }
 table.req tbody tr:hover td { background: #f3f9f9; }
+table.req tbody tr.click { cursor: pointer; }
 table.req td .small { margin-top: 3px; }
 .acts { display: flex; gap: 8px; flex-wrap: nowrap; }
 .acts .btn { white-space: nowrap; }
@@ -97,27 +95,17 @@ table.req tbody tr:hover .btn.eval { background: var(--f-teal); border-color: va
 .pg { min-width: 32px; height: 32px; border: 0; border-radius: 6px; background: none; font: inherit; font-size: .8rem; cursor: pointer; color: var(--muted); display: grid; place-items: center; }
 .pg:hover:not(:disabled) { background: #eceeed; } .pg.on { background: #111; color: #fff; font-weight: 600; } .pg:disabled { opacity: .35; cursor: default; }
 
-/* detail */
-.grid.cols-main { grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); align-items: start; }
+/* accept / decline */
 .grid.cols-eval { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); align-items: start; }
-@media (max-width: 1000px) { .grid.cols-main, .grid.cols-eval { grid-template-columns: 1fr; } }
-.model { display: flex; gap: 14px; align-items: center; padding: 6px 0 18px; border-bottom: 1px solid var(--f-line); }
-.tile { width: 52px; height: 52px; border-radius: 10px; background: var(--f-teal-note); color: var(--f-teal); display: grid; place-items: center; flex: none; }
+@media (max-width: 1000px) { .grid.cols-eval { grid-template-columns: 1fr; } }
+.tile { display: grid; place-items: center; flex: none; border-radius: 10px; }
 .tile.warm { width: 42px; height: 42px; background: #fdf1e3; color: #b86a1c; }
-.model-name { font-size: 1.35rem; font-weight: 700; line-height: 1.3; }
-dl.spec { display: grid; grid-template-columns: minmax(120px, 190px) 1fr; margin: 0; font-size: .86rem; }
-dl.spec dt, dl.spec dd { padding: 12px 0; border-bottom: 1px solid #eef0ef; margin: 0; }
-dl.spec dt { color: var(--muted); font-size: .8rem; } dl.spec dd { font-weight: 500; }
-dl.spec dt:last-of-type, dl.spec dd:last-of-type { border-bottom: 0; }
-.info { margin-bottom: 14px; } .grid.info { gap: 14px; }
-.lbl { font-size: .78rem; color: var(--muted); margin-bottom: 3px; } .val { font-weight: 500; }
 .eyebrow { font-size: .72rem; letter-spacing: .06em; color: var(--muted); }
 .code-lg { font-size: 1.4rem; font-weight: 700; }
 dl.kv2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 20px; margin: 0; }
 dl.kv2 dt { font-size: .78rem; color: var(--muted); margin-bottom: 3px; } dl.kv2 dd { margin: 0; font-weight: 500; }
 dl.kv2 .full { grid-column: 1 / -1; }
 
-/* accept / decline */
 .card.steps { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 22px; margin-bottom: 18px; }
 .steps ol { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; list-style: none; margin: 0; padding: 0; color: var(--muted); font-size: .84rem; }
 .steps li { display: flex; align-items: center; gap: 8px; padding: 4px 10px; border-radius: 99px; }
