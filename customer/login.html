@@ -1,69 +1,16 @@
 <!doctype html>
-<html lang="en">
+<html lang="th">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Log in · ICEFLOW</title>
+  <meta name="theme-color" content="#00afaf">
+  <title>ICEFLOW · login</title>
   <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 </head>
-<body>
-  <main style="max-width:440px">
-    <h1 id="title">Log in</h1>
-    <p class="muted" style="margin-bottom:20px">Order an ice machine and track it in one place</p>
-    <form id="form" class="card stack">
-      <div id="extra" hidden class="stack">
-        <div><label>Full name</label><input id="name"></div>
-        <div><label>Phone</label><input id="phone" inputmode="tel"></div>
-      </div>
-      <div><label>Email</label><input id="email" type="email" required></div>
-      <div><label>Password</label><input id="password" type="password" required minlength="6"></div>
-      <div id="msg" class="err" hidden></div>
-      <button id="go" class="btn block">Log in</button>
-    </form>
-    <p class="center muted small" style="margin-top:16px"><span id="q">No account yet?</span>
-      <button id="toggle" class="link-red" style="color:var(--brand-dark)">Sign up</button></p>
-  </main>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="app.js"></script>
-  <script>
-    // UC8: register / log in (Supabase Auth; the customers row is created by a DB trigger)
-    mountHeader(false);
-    db.auth.getSession().then(({ data }) => { if (data.session) location.replace("orders.html"); });
-
-    let register = false;
-    const msg = $("#msg");
-    const showMsg = (t) => { msg.textContent = t; msg.hidden = !t; };
-
-    $("#toggle").onclick = () => {
-      register = !register;
-      $("#title").textContent = register ? "Sign up" : "Log in";
-      $("#go").textContent = register ? "Sign up" : "Log in";
-      $("#q").textContent = register ? "Already have an account?" : "No account yet?";
-      $("#toggle").textContent = register ? "Log in" : "Sign up";
-      $("#extra").hidden = !register;
-      $("#name").required = $("#phone").required = register;
-      showMsg("");
-    };
-
-    $("#form").onsubmit = async (e) => {
-      e.preventDefault();
-      const email = $("#email").value, password = $("#password").value;
-      $("#go").disabled = true;
-      showMsg("");
-      const { data, error } = register
-        ? await db.auth.signUp({ email, password, options: { data: { name: $("#name").value, phone: $("#phone").value } } })
-        : await db.auth.signInWithPassword({ email, password });
-      $("#go").disabled = false;
-      if (error) {
-        showMsg(/already|registered/i.test(error.message) ? "This email is already registered. Log in or use another email."
-          : /invalid login/i.test(error.message) ? "Wrong email or password" : errText(error));
-      } else if (!data.session) {
-        showMsg("Signed up. Please confirm your email, then log in.");
-      } else {
-        location.replace("orders.html");
-      }
-    };
-  </script>
+<body data-page="login">
+  <div id="app"><main class="loading" role="status"><span class="spinner"></span><p>กำลังโหลด ICEFLOW…</p></main></div>
+  <noscript><p>กรุณาเปิด JavaScript เพื่อใช้งานระบบสั่งซื้อ</p></noscript>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.8/dist/umd/supabase.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>

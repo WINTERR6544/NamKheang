@@ -1,41 +1,16 @@
 <!doctype html>
-<html lang="en">
+<html lang="th">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>My orders · ICEFLOW</title>
+  <meta name="theme-color" content="#00afaf">
+  <title>ICEFLOW · orders</title>
   <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 </head>
-<body>
-  <main>
-    <div class="row" style="align-items:center;margin-bottom:20px">
-      <h1>My orders</h1>
-      <a class="btn" href="catalog.html">+ New order</a>
-    </div>
-    <div id="list"><p class="muted">Loading...</p></div>
-  </main>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-  <script src="app.js"></script>
-  <script>
-    // UC10 (list): my orders
-    (async () => {
-      if (!(await requireSession())) return;
-      const { data, error } = await db.from("orders")
-        .select("order_id, order_code, machine_type, capacity, status, created_at")
-        .order("created_at", { ascending: false });
-      const list = $("#list");
-      if (error) return (list.innerHTML = `<div class="err">${esc(errText(error))}</div>`);
-      if (!data.length) return (list.innerHTML = `<div class="card center muted">No orders yet. Click “New order” to start.</div>`);
-      list.innerHTML = `<ul class="plain">${data.map((o) => `
-        <li><a class="card order" href="order.html?id=${o.order_id}">
-          <div class="row">
-            <div><b>${esc(o.order_code)}</b>
-              <div class="muted small">${esc(o.machine_type)} · ${esc(o.capacity)}</div>
-              <div class="muted small" style="margin-top:4px">Ordered ${dateTH(o.created_at)}</div></div>
-            <span class="${pillClass(o.status)}">${esc(STATUS_LABEL[o.status] ?? o.status)}</span>
-          </div></a></li>`).join("")}</ul>`;
-    })();
-  </script>
+<body data-page="orders">
+  <div id="app"><main class="loading" role="status"><span class="spinner"></span><p>กำลังโหลด ICEFLOW…</p></main></div>
+  <noscript><p>กรุณาเปิด JavaScript เพื่อใช้งานระบบสั่งซื้อ</p></noscript>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.8/dist/umd/supabase.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>

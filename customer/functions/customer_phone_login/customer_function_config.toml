@@ -1,0 +1,5 @@
+# Merge this section into your deployment workspace's supabase/config.toml.
+# The function validates credentials itself; a logged-in JWT is unavailable at login.
+[functions.customer_phone_login]
+verify_jwt = false
+entrypoint = "./functions/customer_phone_login/customer_index.ts"
