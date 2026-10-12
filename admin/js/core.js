@@ -97,8 +97,8 @@ const FEATURES = [
   [/^\/dashboard$/, "dashboard"],
   [/^\/orders$/, "orders-all"], [/^\/orders\/new$/, "orders-new"], [/^\/orders\/quotations$/, "orders-quotations"], [/^\/orders\/cancelled$/, "orders-cancelled"],
   [/^\/order\/\d+$/, "order-detail"],
-  [/^\/mfg\/requests$/, "mfg-requests"], [/^\/mfg\/production$/, "mfg-production"], [/^\/mfg\/qc$/, "mfg-qc"],
-  [/^\/installation$/, "installation"],
+  [/^\/mfg\/requests$/, "mfg-requests"], [/^\/mfg\/status$/, "mfg-status"],
+  [/^\/installation$/, "installation"], [/^\/notifications$/, "notifications"], [/^\/customers$/, "customers"], [/^\/factories$/, "factories"], [/^\/history$/, "reports-history"], [/^\/users$/, "users-roles"],
   [/^\/payments\/deposit$/, "payments-deposit"], [/^\/payments\/final$/, "payments-final"], [/^\/payments\/refund$/, "payments-refund"],
 ];
 const loaded = {};
@@ -178,14 +178,14 @@ const NAV = [
   { label: "All Orders", href: "#/orders", sub: 1 }, { label: "New Orders", href: "#/orders/new", sub: 1, key: "new" },
   { label: "Quotations", href: "#/orders/quotations", sub: 1 }, { label: "Cancelled", href: "#/orders/cancelled", sub: 1 },
   G("Manufacturing"),
-  { label: "Factory Requests", href: "#/mfg/requests", sub: 1 }, { label: "Production", href: "#/mfg/production", sub: 1 }, { label: "QC", href: "#/mfg/qc", sub: 1 },
+  { label: "Factory Requests", href: "#/mfg/requests", sub: 1 }, { label: "Order Status", href: "#/mfg/status", sub: 1 },
   { label: "Installation", href: "#/installation" },
   G("Payments"),
   { label: "Deposit", href: "#/payments/deposit", sub: 1, key: "dep" }, { label: "Final Payment", href: "#/payments/final", sub: 1, key: "fin" },
   { label: "Refund", href: "#/payments/refund", sub: 1, key: "ref" },
   G("Admin"),
-  { label: "Customers", soon: 1 }, { label: "Factories", soon: 1 }, { label: "Notifications", soon: 1 },
-  { label: "Reports / History", soon: 1 }, { label: "Users & Roles", soon: 1, sub: 1 },
+  { label: "Customers", href: "#/customers" }, { label: "Factories", href: "#/factories" }, { label: "Notifications", href: "#/notifications" },
+  { label: "Reports / History", href: "#/history" }, { label: "Users & Roles", href: "#/users", sub: 1 },
 ];
 function sidebar(user) {
   return `<div class="brand">ICEFLOW</div><div class="sub-brand">SHOP &amp; ADMIN CRM</div>` +

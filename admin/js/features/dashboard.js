@@ -20,7 +20,7 @@ route(/^\/dashboard$/, async (el) => {
   const tiles = [
     ["New Order", cnt(0), "Review details", "#/orders/new", 1], ["Quotation", cnt(1), "To quote / awaiting reply", "#/orders/quotations"],
     ["Deposit", payN("deposit"), "Slips to check", "#/payments/deposit", 1], ["Factory", cnt(2) + pend.length, "Awaiting factory", "#/mfg/requests"],
-    ["Production", cnt(4), "In production", "#/mfg/production"], ["QC/Rework", cnt(5, 6), cnt(6) ? `${cnt(6)} to fix` : "Awaiting QC", "#/mfg/qc", cnt(6)],
+    ["Production", cnt(4), "In production", "#/mfg/status"], ["QC/Rework", cnt(5, 6), cnt(6) ? `${cnt(6)} to fix` : "Awaiting QC", "#/mfg/status", cnt(6)],
     ["Installation", cnt(7, 8), `${cnt(8)} scheduled`, "#/installation"], ["Customer Acceptance", cnt(9), "Awaiting customer", "#/installation"],
     ["Payment", payN("final"), "Final slips to check", "#/payments/final", 1], ["Completed", cnt(10), "Closed", "#/orders?status=10"],
   ];
@@ -36,9 +36,9 @@ route(/^\/dashboard$/, async (el) => {
     if (p.pay_type === "refund") add(o, "Transfer the deposit back to the customer", o.customers?.name, "#/payments/refund", "Refund", 0, dateTH(p.paid_at, true)); });
   by(2).forEach((o) => add(o, "Send production order to a factory", o.customers?.name, `#/order/${o.order_id}`, "Send to factory"));
   pend.forEach((a) => { const o = oMap.get(a.order_id); if (!o) return; const d = daysAgo(a.sent_at);
-    add(o, "Follow up on factory reply", o.factories?.name, "#/mfg/requests", "Record reply", d > rule.factory_reply_days, d > rule.factory_reply_days ? `${Math.floor(d - rule.factory_reply_days)} days overdue` : `Sent ${dateTH(a.sent_at, true)}`); });
-  by(4).forEach((o) => { if (o.est_finish_date && new Date(o.est_finish_date) < today) add(o, "Production overdue, follow up with the factory", o.factories?.name, `#/order/${o.order_id}`, "Update production", 1, `Past due ${dateTH(o.est_finish_date)}`); });
-  by(5).forEach((o) => add(o, "QC the finished machine", o.factories?.name, `#/order/${o.order_id}`, "Run QC"));
+    add(o, "Follow up on factory reply", o.factories?.name, "#/mfg/requests", "View", d > rule.factory_reply_days, d > rule.factory_reply_days ? `${Math.floor(d - rule.factory_reply_days)} days overdue` : `Sent ${dateTH(a.sent_at, true)}`); });
+  by(4).forEach((o) => { if (o.est_finish_date && new Date(o.est_finish_date) < today) add(o, "Production overdue, follow up with the factory", o.factories?.name, `#/order/${o.order_id}`, "View status", 1, `Past due ${dateTH(o.est_finish_date)}`); });
+  by(5).forEach((o) => add(o, "QC the finished machine", o.factories?.name, `#/order/${o.order_id}`, "View status"));
   by(6).forEach((o) => add(o, "Follow up on QC fixes", o.factories?.name, `#/order/${o.order_id}`, "Follow up", 1));
   by(7).forEach((o) => add(o, "Set an install date with the customer", o.customers?.name, `#/order/${o.order_id}`, "Schedule install"));
   by(8).forEach((o) => { if (!scheduled.has(o.order_id)) add(o, "Customer asked for a new install date", o.customers?.name, `#/order/${o.order_id}`, "Schedule install", 1); });
