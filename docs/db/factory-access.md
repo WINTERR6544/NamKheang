@@ -39,3 +39,29 @@ Each call adds a `production_updates` row. The customer is told by `notify_statu
 
 - `"factory reads own production updates"` on `production_updates` (the timeline on the job page)
 - trigger `trg_notify_shop_production` on `orders`: a shop message (`recipient_id` 0) when production starts, when the estimated finish date changes, and when it is finished
+
+## QC / Rework (UC7)
+Migration: `supabase/migrations/20261013120000_factory_qc.sql` (adds only; safe to re-run).
+
+Manufacturing QC is recorded by the factory (team decision in `docs/db/staff-access.md`; the UC document names the shop). Both functions are factory-only on the live database:
+
+| Function | Allowed when | Result |
+|---|---|---|
+| `staff_qc_submit(p_order, p_results, 'production')` (every active `qc_items` row, `{item_id, passed, note}`) | order at 5 | every item passed: 7 qc_passed; any failed: 6 rework |
+| `staff_rework_done(p_order)` | order at 6 | 5 waiting_qc (the next round) |
+
+`business_rules.max_qc_rounds` (3) is shown as a warning; the shop decides on another factory. The migration adds:
+
+- `"factory reads qc items"` on `qc_items` and `"factory reads own qc results"` on `qc_results` (the checklist and the rounds on the QC pages)
+- shop messages in `notify_shop_production` for QC passed, QC failed (with the failed items and what to fix) and fixed work sent back for QC
+
+### QC checklist text (Thai / English)
+Migration: `supabase/migrations/20261013130000_qc_items_thai.sql` adds nullable columns to `qc_items` and fills the three current items:
+
+| Column | Shown on the factory QC page |
+|---|---|
+| `item_name_th` | item title (the English `item_name` under it); empty = English name only |
+| `description_th`, `description_en` | what to check, under the title |
+| `fix_example_th` | placeholder of the "what to fix" box when an item fails |
+
+To add or edit an item, edit `qc_items` (Supabase Table Editor, or as staff: the "staff manages qc_items" policy). No code change is needed. Existing reads and inserts that name only `item_name` are unaffected.

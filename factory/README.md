@@ -18,8 +18,10 @@ Run from the repo root: `python -m http.server 5500`, then http://localhost:5500
 | `request-evaluate.js` | one request, opened from the list: summary, accept or decline (reason required), review, confirm → `factory_respond`; an answered request shows its result | `#/requests/:orderId/evaluate` |
 | `production.js` | Production: active jobs only (3 waiting to start, 4 in production; filtered in the query), metrics, tabs, search, sort, due-soon banner. A finished job (5 waiting_qc and later) leaves the list | `#/production` |
 | `production-detail.js` | one job, by stage: start with an estimated finish date; mark finished → 5 waiting_qc (main action); reschedule the estimated finish date in the plan card (later, or fixing a date before the start = delayed, customer told). All via `factory_production` | `#/production/:orderId` |
+| `qc.js` | QC / Rework: orders in QC (5 waiting, 6 failed and being fixed, 7 passed), metrics, tabs, search, latest round per order | `#/qc` |
+| `qc-detail.js` | one order, by status: record a QC round for every checklist item (fail needs what to fix) → `staff_qc_submit` → 7 or 6; fix and send back → `staff_rework_done` → 5; passed = read-only | `#/qc/:orderId` |
 
-Accepted requests leave this list; they continue on Production. Dashboard, QC / Rework, Installation, Notifications and Profile are in the sidebar but not built yet (the page says so).
+Accepted requests leave this list; they continue on Production. Dashboard, Installation, Notifications and Profile are in the sidebar but not built yet (the page says so).
 
 The shop site is view-only for manufacturing (Factory Requests, Order Status). The factory steps and the database function behind each (all factory-only):
 
@@ -27,7 +29,7 @@ The shop site is view-only for manufacturing (Factory Requests, Order Status). T
 |---|---|---|
 | Accept / decline a request | 1 (built) | `factory_respond` |
 | Start production + estimated finish date, progress, delay, finished | 2 Production (built) | `factory_production` |
-| Fix QC findings and resubmit | 3 QC / Rework | `staff_rework_done` |
+| Record QC, fix QC findings and resubmit | 3 QC / Rework (built) | `staff_qc_submit`, `staff_rework_done` |
 | Confirm the install is done | 4 Installation | `staff_confirm_installed` |
 
 ## Adding a page
