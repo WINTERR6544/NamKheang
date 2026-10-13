@@ -109,3 +109,59 @@ function stagePill(j) {
   if (j.stage === "making") return `<span class="pill dot">กำลังผลิต</span>`;
   return `<span class="pill dot ${j.o.status === 6 ? "bad" : "ok"}">${AFTER[j.o.status] ?? "ส่งตรวจ QC แล้ว"}</span>`;
 }
+
+// ---- QC / Rework (UC7) ----
+// The factory records manufacturing QC (staff_qc_submit) and sends fixed work back (staff_rework_done); the shop only views it.
+//   5 waiting_qc -> record a round: every item passes -> 7 qc_passed, any item fails -> 6 rework
+//   6 rework     -> fix the failed items, send back -> 5 waiting_qc (next round)
+//   7 qc_passed  -> read-only here; the shop books the install
+const QC_ACTIVE = [5, 6, 7];
+async function fetchQcJobs() {
+  const rows = must(await db.from("factory_assignments").select(PROD_SEL.replace("orders(", "orders!inner("))
+    .eq("factory_id", ME.factory_id).eq("response", "accepted").in("orders.status", QC_ACTIVE)
+    .order("responded_at", { ascending: false }).limit(1000));
+  return rows.map(toJob);
+}
+async function fetchQcJob(orderId) {
+  const j = await fetchJob(orderId);
+  if (!QC_ACTIVE.includes(j.o.status)) throw new Error("งานนี้ไม่ได้อยู่ในขั้นตอน QC");
+  return j;
+}
+// production-stage QC rounds of some orders, grouped: Map(order_id -> [{ round_no, at, items: [...] }] newest first).
+// Empty until the factory_qc migration lets the factory read qc_results.
+async function fetchQcRounds(orderIds) {
+  const byOrder = new Map(orderIds.map((id) => [id, []]));
+  if (!orderIds.length) return byOrder;
+  const r = await db.from("qc_results").select("order_id, round_no, item_id, passed, note, checked_at, qc_items(item_name, item_name_th)")
+    .eq("stage", "production").in("order_id", orderIds).order("round_no", { ascending: false }).order("item_id");
+  for (const x of r.error ? [] : r.data) {
+    const list = byOrder.get(x.order_id);
+    let round = list.find((k) => k.round_no === x.round_no);
+    if (!round) list.push(round = { round_no: x.round_no, at: x.checked_at, items: [] });
+    round.items.push(x);
+  }
+  for (const list of byOrder.values()) for (const k of list) k.failed = k.items.filter((i) => !i.passed);
+  return byOrder;
+}
+async function fetchQcItems() {
+  const r = await db.from("qc_items").select("item_id, item_name, item_name_th, description_th, description_en, fix_example_th").eq("is_active", true).order("item_id");
+  return r.error ? [] : r.data;
+}
+let maxRoundsP;
+const qcMaxRounds = () => (maxRoundsP ??= db.from("business_rules").select("value").eq("rule_key", "max_qc_rounds").maybeSingle()
+  .then((r) => Number(r.data?.value ?? 3)).catch(() => 3));
+// state of a QC job for the list: pending (first check), recheck (sent back after a fix), fail (6), pass (7)
+function qcState(j, rounds) {
+  if (j.o.status === 6) return "fail";
+  if (j.o.status === 7) return "pass";
+  return rounds.length ? "recheck" : "pending";
+}
+const QC_STATE = { pending: ["รอตรวจ QC", "warn"], recheck: ["รอตรวจซ้ำหลังแก้ไข", "warn"], fail: ["ไม่ผ่าน · รอแก้ไข", "bad"], pass: ["ผ่าน QC", "ok"] };
+const qcPill = (s) => `<span class="pill dot ${QC_STATE[s][1]}">${QC_STATE[s][0]}</span>`;
+// "ระบบทำความเย็นและการผลิตน้ำแข็ง" over "Cooling system and ice production", and what to check (Thai / English) under it.
+// The Thai name, descriptions and the fix example live in qc_items (migration qc_items_thai), so an admin edits them in the database;
+// an item without a Thai name shows its English name only.
+function qcTitle(it, withDesc) {
+  return `<b>${esc(it.item_name_th || it.item_name)}</b>${it.item_name_th ? `<div class="small muted">${esc(it.item_name)}</div>` : ""}` +
+    (withDesc && (it.description_th || it.description_en) ? `<div class="small desc">${esc(it.description_th ?? "")}${it.description_th && it.description_en ? "<br>" : ""}<span class="muted">${esc(it.description_en ?? "")}</span></div>` : "");
+}

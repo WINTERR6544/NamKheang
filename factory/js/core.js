@@ -77,7 +77,7 @@ function setCrumbs(...parts) {
 const FEATURES = [
   [/^\/dashboard$/, "dashboard"],
   [/^\/requests$/, "requests"], [/^\/requests\/\d+\/evaluate$/, "request-evaluate"],
-  [/^\/production$/, "production"], [/^\/production\/\d+$/, "production-detail"], [/^\/qc$/, "qc"], [/^\/installation$/, "installation"],
+  [/^\/production$/, "production"], [/^\/production\/\d+$/, "production-detail"], [/^\/qc$/, "qc"], [/^\/qc\/\d+$/, "qc-detail"], [/^\/installation$/, "installation"],
   [/^\/notifications$/, "notifications"], [/^\/profile$/, "profile"],
 ];
 const loaded = {};
