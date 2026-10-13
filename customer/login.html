@@ -27,7 +27,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="app.js"></script>
   <script>
-    // UC8: register / log in (Supabase Auth; the customers row is created by a DB trigger)
+    // UC1: register / log in (Supabase Auth; the customers row is created by a DB trigger)
     mountHeader(false);
     db.auth.getSession().then(({ data }) => { if (data.session) location.replace("orders.html"); });
 

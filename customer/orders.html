@@ -18,7 +18,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="app.js"></script>
   <script>
-    // UC10 (list): my orders
+    // UC13 (list): my orders
     (async () => {
       if (!(await requireSession())) return;
       const { data, error } = await db.from("orders")

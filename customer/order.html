@@ -65,7 +65,7 @@
       demo();
     }
 
-    /* UC10: timeline */
+    /* UC13: timeline */
     function timeline() {
       const { o, logs } = d, at = new Map();
       logs.forEach((l) => at.set(l.status, l.changed_at)); // last time each status was reached
@@ -77,7 +77,7 @@
       }).join("")}</ol></div>`;
     }
 
-    /* UC9 / UC7 / UC11: what the customer can do now */
+    /* UC3 / UC10 / UC11: what the customer can do now */
     function actions() {
       const { o, quote: q, pays, appt } = d, box = $("#actions");
       const deposit = pays.find((p) => p.pay_type === "deposit");
@@ -121,7 +121,7 @@
       if ($("#cancel")) cancelBox(!!deposit?.verified);
     }
 
-    /* slip upload + payment method, shared by UC9 (deposit) and UC7 (final) */
+    /* slip upload + payment method, shared by UC3 (deposit) and UC10 (final) */
     function payForm(el, label, prefix, call) {
       el.innerHTML = `<div class="stack">
         <div class="grid2">
@@ -150,7 +150,7 @@
       };
     }
 
-    /* UC7: acceptance + final payment */
+    /* UC10: acceptance + final payment */
     function acceptance(pays, q) {
       const paid = pays.filter((p) => p.pay_type === "deposit" && p.verified).reduce((s, p) => s + Number(p.amount), 0);
       const el = $("#accept");
