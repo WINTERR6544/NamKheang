@@ -118,10 +118,12 @@ const BOARD_OF = [[/^\/orders(\/|$)/, "order"], [/^\/payments\//, "payments"], [
 const boardProbe = {};
 const boardInstalled = (g) => (boardProbe[g] ??= fetch(`js/features/board-${g}.js`, { method: "HEAD" }).then((r) => r.ok).catch(() => false));
 // The List | Board choice is remembered per sidebar group (browser storage, so it survives reloads).
-// A link with an explicit ?view=list|board wins and is saved; a plain link (sidebar, breadcrumb) uses the saved choice.
+// A link with an explicit ?view=list|board wins and is saved; a plain link (breadcrumb) uses the saved choice.
+// ?view=page (sidebar sub-links) opens the list page once and leaves the saved choice alone.
 const viewKey = (g) => "iceflow.view." + g;
 async function currentView(g) {
   const asked = hashParams().get("view");
+  if (asked === "page") return "list";
   if (asked === "board" || asked === "list") { try { localStorage.setItem(viewKey(g), asked); } catch {} return asked; }
   let saved = null;
   try { saved = localStorage.getItem(viewKey(g)); } catch {}
@@ -132,6 +134,8 @@ function syncViewSwitches() {
   $$("aside .seg[data-view]").forEach((seg) => {
     let v = null;
     try { v = localStorage.getItem(viewKey(seg.dataset.view)); } catch {}
+    const here = BOARD_OF.find(([re]) => re.test((location.hash || "").slice(1).split("?")[0]))?.[1] === seg.dataset.view;
+    if (here && hashParams().get("view") === "page") v = "list"; // this page is a list even though Board is saved
     seg.querySelectorAll("a").forEach((a) => a.classList.toggle("on", a.dataset.v === (v === "board" ? "board" : "list")));
   });
 }
@@ -154,7 +158,7 @@ document.addEventListener("click", (e) => {
 async function navigate() {
   const path = (location.hash || "#/dashboard").slice(1).split("?")[0];
   $("#crumbs").innerHTML = crumbsFor(path);
-  $$("aside a.nav").forEach((a) => a.classList.toggle("on", a.getAttribute("href") === "#" + path));
+  $$("aside a.nav").forEach((a) => a.classList.toggle("on", a.getAttribute("href").split("?")[0] === "#" + path));
   const group = BOARD_OF.find(([re]) => re.test(path))?.[1];
   const view = group ? await currentView(group) : null;
   syncViewSwitches();
@@ -206,7 +210,7 @@ function sidebar(user) {
     NAV.map((n) =>
       n.group ? `<div class="group">${n.group}${n.view ? `<span class="seg" data-view="${n.view}" role="group" aria-label="View" hidden><a href="#" data-v="list">List</a><a href="#" data-v="board">Board</a></span>` : ""}</div>` :
       n.soon ? `<a class="nav soon ${n.sub ? "sub" : ""}" aria-disabled="true">${n.label}<span class="small">soon</span></a>` :
-      `<a class="nav ${n.sub ? "sub" : ""}" href="${n.href}">${n.label}${n.key ? `<span class="count" id="c-${n.key}" hidden></span>` : ""}</a>`).join("") +
+      `<a class="nav ${n.sub ? "sub" : ""}" href="${n.href}${BOARD_OF.some(([re]) => re.test(n.href.slice(1))) ? "?view=page" : ""}">${n.label}${n.key ? `<span class="count" id="c-${n.key}" hidden></span>` : ""}</a>`).join("") +
     `<div class="who">${esc(user.name)} · ${esc(user.role)}<br><button class="btn sm ghost" id="logout" style="margin-top:8px">Log out</button></div>`;
 }
 async function refreshCounts() {
