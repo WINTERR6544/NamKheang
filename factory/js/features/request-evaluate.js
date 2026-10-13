@@ -7,7 +7,7 @@ route(/^\/requests\/(\d+)\/evaluate$/, async (el, [id]) => {
   el.onclick = null;
   const back = `<a class="btn ghost" href="#/requests">${icon("arrowLeft", 16)}กลับรายการคำขอ</a>`;
   if (a.state !== "pending") {
-    const result = { rejected: "คุณปฏิเสธคำขอนี้แล้ว ร้านจะติดต่อโรงงานอื่นต่อไป", accepted: "คุณรับผลิตคำขอนี้แล้ว งานนี้ไปต่อที่หน้า Production",
+    const result = { rejected: "คุณปฏิเสธคำขอนี้แล้ว ร้านจะติดต่อโรงงานอื่นต่อไป", accepted: `คุณรับผลิตคำขอนี้แล้ว งานนี้ไปต่อที่หน้า Production</p><p><a class="btn" href="#/production/${o.order_id}">${icon("factory", 16)}ไปที่งานผลิต</a>`,
       closed: "ร้านยกเลิกคำสั่งซื้อนี้แล้ว จึงไม่ต้องประเมินงาน" }[a.state];
     el.innerHTML = `<div class="head"><div><h1>ผลการประเมินงาน</h1><div class="muted">${esc(o.order_code)}</div></div>${back}</div>
       <div class="grid cols-eval"><div>${summaryCard("สรุปงานที่ประเมิน", a)}</div><div class="card"><h2>ผลการประเมินงาน</h2><p>${result}</p></div></div>`;
