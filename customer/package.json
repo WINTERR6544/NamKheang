@@ -1,1 +1,0 @@
-{"name":"iceflow-customer","private":true,"type":"module","scripts":{"test":"node --test tests/customer_unit.test.mjs"}}
