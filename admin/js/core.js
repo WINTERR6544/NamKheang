@@ -98,7 +98,7 @@ const FEATURES = [
   [/^\/orders$/, "orders-all"], [/^\/orders\/new$/, "orders-new"], [/^\/orders\/quotations$/, "orders-quotations"], [/^\/orders\/cancelled$/, "orders-cancelled"],
   [/^\/order\/\d+$/, "order-detail"],
   [/^\/mfg\/requests$/, "mfg-requests"], [/^\/mfg\/status$/, "mfg-status"],
-  [/^\/installation$/, "installation"], [/^\/notifications$/, "notifications"], [/^\/customers$/, "customers"], [/^\/factories$/, "factories"], [/^\/history$/, "reports-history"], [/^\/users$/, "users-roles"],
+  [/^\/installation$/, "installation"], [/^\/customers$/, "customers"], [/^\/factories$/, "factories"], [/^\/users$/, "users-roles"],
   [/^\/payments\/deposit$/, "payments-deposit"], [/^\/payments\/final$/, "payments-final"], [/^\/payments\/refund$/, "payments-refund"],
 ];
 const loaded = {};
@@ -112,45 +112,10 @@ function loadFeature(name) {
   });
   return loaded[name];
 }
-// ---- boards: a sidebar group's pages can also be shown as a board (List | Board switch) ----
-// Each group's board is js/features/board-<group>.js; the shared renderer is features/board.js. Missing files hide the switch.
-const BOARD_OF = [[/^\/orders(\/|$)/, "order"], [/^\/payments\//, "payments"], [/^\/(mfg\/|installation$)/, "mfg"]];
-const boardProbe = {};
-const boardInstalled = (g) => (boardProbe[g] ??= fetch(`js/features/board-${g}.js`, { method: "HEAD" }).then((r) => r.ok).catch(() => false));
-// The List | Board choice is remembered per sidebar group (browser storage, so it survives reloads).
-// A link with an explicit ?view=list|board wins and is saved; a plain link (sidebar, breadcrumb) uses the saved choice.
-const viewKey = (g) => "iceflow.view." + g;
-async function currentView(g) {
-  const asked = hashParams().get("view");
-  if (asked === "board" || asked === "list") { try { localStorage.setItem(viewKey(g), asked); } catch {} return asked; }
-  let saved = null;
-  try { saved = localStorage.getItem(viewKey(g)); } catch {}
-  return saved === "board" && (await boardInstalled(g)) ? "board" : "list";
-}
-async function addViewToggle(path, group, isBoard) {
-  if (!(await boardInstalled(group))) return;
-  const head = main().querySelector(".head");
-  if (!head || head.querySelector(".seg") || (location.hash || "").slice(1).split("?")[0] !== path) return;
-  const seg = document.createElement("div");
-  seg.className = "seg"; seg.setAttribute("role", "group"); seg.setAttribute("aria-label", "View");
-  seg.innerHTML = `<a href="#${path}?view=list" class="${isBoard ? "" : "on"}">List</a><a href="#${path}?view=board" class="${isBoard ? "on" : ""}">Board</a>`;
-  head.append(seg);
-}
-
 async function navigate() {
   const path = (location.hash || "#/dashboard").slice(1).split("?")[0];
   $("#crumbs").innerHTML = crumbsFor(path);
   $$("aside a.nav").forEach((a) => a.classList.toggle("on", a.getAttribute("href") === "#" + path));
-  const group = BOARD_OF.find(([re]) => re.test(path))?.[1];
-  if (group && (await currentView(group)) === "board") {
-    main().innerHTML = `<p class="muted">Loading...</p>`;
-    try { await loadFeature("board"); await loadFeature("board-" + group); }
-    catch { main().innerHTML = `<div class="card empty">The board view is not installed in this build.<div class="small">Missing: js/features/board-${group}.js</div></div>`; return; }
-    try { await renderBoard(main(), group); } catch (e) { main().innerHTML = `<div class="err">${esc(errText(e))}</div>`; }
-    addViewToggle(path, group, true);
-    window.scrollTo(0, 0);
-    return;
-  }
   const feature = FEATURES.find(([re]) => re.test(path));
   if (feature) {
     try { await loadFeature(feature[1]); }
@@ -161,7 +126,6 @@ async function navigate() {
     if (m) {
       main().innerHTML = `<p class="muted">Loading...</p>`;
       try { await r.fn(main(), m.slice(1)); } catch (e) { main().innerHTML = `<div class="err">${esc(errText(e))}</div>`; }
-      if (group) addViewToggle(path, group, false);
       window.scrollTo(0, 0);
       return;
     }
@@ -184,8 +148,8 @@ const NAV = [
   { label: "Deposit", href: "#/payments/deposit", sub: 1, key: "dep" }, { label: "Final Payment", href: "#/payments/final", sub: 1, key: "fin" },
   { label: "Refund", href: "#/payments/refund", sub: 1, key: "ref" },
   G("Admin"),
-  { label: "Customers", href: "#/customers" }, { label: "Factories", href: "#/factories" }, { label: "Notifications", href: "#/notifications" },
-  { label: "Reports / History", href: "#/history" }, { label: "Users & Roles", href: "#/users", sub: 1 },
+  { label: "Customers", href: "#/customers" }, { label: "Factories", href: "#/factories" },
+  { label: "Users & Roles", href: "#/users", sub: 1 },
 ];
 function sidebar(user) {
   return `<div class="brand">ICEFLOW</div><div class="sub-brand">SHOP &amp; ADMIN CRM</div>` +

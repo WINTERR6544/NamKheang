@@ -2,7 +2,7 @@
 
 Status: confirmed by user (2026-10-04)
 
-- **Outcome:** A plain HTML/CSS/JS + Supabase customer website for ICEFLOW covering six UCs: register and log in (UC8), create an order (UC1), quotation and deposit slip (UC9), order tracking (UC10), accept and pay the balance (UC7), and cancel (UC11).
+- **Outcome:** A plain HTML/CSS/JS + Supabase customer website for ICEFLOW covering six UCs: register and log in (UC1), create an order (UC2), quotation and deposit slip (UC3), order tracking (UC13), accept and pay the balance (UC10), and cancel (UC11).
 - **User:** The ice-machine buyer. The audience is the SA instructor and classmates seeing a demo.
 - **Why now:** Course demo of the SA project (UC doc, swimlane, Figma) turned into a working system.
 - **Success:** All six UCs run end to end on real ICEFLOW Supabase data. A hidden demo-controls panel moves an order to any status, so the whole flow can be shown in minutes.
