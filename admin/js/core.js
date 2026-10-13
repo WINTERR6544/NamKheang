@@ -127,27 +127,42 @@ async function currentView(g) {
   try { saved = localStorage.getItem(viewKey(g)); } catch {}
   return saved === "board" && (await boardInstalled(g)) ? "board" : "list";
 }
-async function addViewToggle(path, group, isBoard) {
-  if (!(await boardInstalled(group))) return;
-  const head = main().querySelector(".head");
-  if (!head || head.querySelector(".seg") || (location.hash || "").slice(1).split("?")[0] !== path) return;
-  const seg = document.createElement("div");
-  seg.className = "seg"; seg.setAttribute("role", "group"); seg.setAttribute("aria-label", "View");
-  seg.innerHTML = `<a href="#${path}?view=list" class="${isBoard ? "" : "on"}">List</a><a href="#${path}?view=board" class="${isBoard ? "on" : ""}">Board</a>`;
-  head.append(seg);
+// The List | Board switch lives in the sidebar, under each group's heading (see sidebar()).
+function syncViewSwitches() {
+  $$("aside .seg[data-view]").forEach((seg) => {
+    let v = null;
+    try { v = localStorage.getItem(viewKey(seg.dataset.view)); } catch {}
+    seg.querySelectorAll("a").forEach((a) => a.classList.toggle("on", a.dataset.v === (v === "board" ? "board" : "list")));
+  });
 }
+async function showViewSwitches() {
+  for (const seg of $$("aside .seg[data-view]")) seg.hidden = !(await boardInstalled(seg.dataset.view));
+  syncViewSwitches();
+}
+document.addEventListener("click", (e) => {
+  const a = e.target.closest("aside .seg a");
+  if (!a) return;
+  e.preventDefault();
+  try { localStorage.setItem(viewKey(a.closest(".seg").dataset.view), a.dataset.v); } catch {}
+  syncViewSwitches();
+  const path = (location.hash || "").slice(1).split("?")[0];
+  if (BOARD_OF.find(([re]) => re.test(path))?.[1] === a.closest(".seg").dataset.view) {
+    if (location.hash.includes("?")) location.hash = "#" + path; else navigate();
+  }
+});
 
 async function navigate() {
   const path = (location.hash || "#/dashboard").slice(1).split("?")[0];
   $("#crumbs").innerHTML = crumbsFor(path);
   $$("aside a.nav").forEach((a) => a.classList.toggle("on", a.getAttribute("href") === "#" + path));
   const group = BOARD_OF.find(([re]) => re.test(path))?.[1];
-  if (group && (await currentView(group)) === "board") {
+  const view = group ? await currentView(group) : null;
+  syncViewSwitches();
+  if (view === "board") {
     main().innerHTML = `<p class="muted">Loading...</p>`;
     try { await loadFeature("board"); await loadFeature("board-" + group); }
     catch { main().innerHTML = `<div class="card empty">The board view is not installed in this build.<div class="small">Missing: js/features/board-${group}.js</div></div>`; return; }
     try { await renderBoard(main(), group); } catch (e) { main().innerHTML = `<div class="err">${esc(errText(e))}</div>`; }
-    addViewToggle(path, group, true);
     window.scrollTo(0, 0);
     return;
   }
@@ -161,7 +176,6 @@ async function navigate() {
     if (m) {
       main().innerHTML = `<p class="muted">Loading...</p>`;
       try { await r.fn(main(), m.slice(1)); } catch (e) { main().innerHTML = `<div class="err">${esc(errText(e))}</div>`; }
-      if (group) addViewToggle(path, group, false);
       window.scrollTo(0, 0);
       return;
     }
@@ -171,16 +185,16 @@ async function navigate() {
 window.addEventListener("hashchange", navigate);
 
 // ---- sidebar ----
-const G = (label) => ({ group: label });
+const G = (label, view) => ({ group: label, view });
 const NAV = [
   { label: "Dashboard", href: "#/dashboard" },
-  G("Orders"),
+  G("Orders", "order"),
   { label: "All Orders", href: "#/orders", sub: 1 }, { label: "New Orders", href: "#/orders/new", sub: 1, key: "new" },
   { label: "Quotations", href: "#/orders/quotations", sub: 1 }, { label: "Cancelled", href: "#/orders/cancelled", sub: 1 },
-  G("Manufacturing"),
+  G("Manufacturing", "mfg"),
   { label: "Factory Requests", href: "#/mfg/requests", sub: 1 }, { label: "Order Status", href: "#/mfg/status", sub: 1 },
   { label: "Installation", href: "#/installation" },
-  G("Payments"),
+  G("Payments", "payments"),
   { label: "Deposit", href: "#/payments/deposit", sub: 1, key: "dep" }, { label: "Final Payment", href: "#/payments/final", sub: 1, key: "fin" },
   { label: "Refund", href: "#/payments/refund", sub: 1, key: "ref" },
   G("Admin"),
@@ -190,7 +204,7 @@ const NAV = [
 function sidebar(user) {
   return `<div class="brand">ICEFLOW</div><div class="sub-brand">SHOP &amp; ADMIN CRM</div>` +
     NAV.map((n) =>
-      n.group ? `<div class="group">${n.group}</div>` :
+      n.group ? `<div class="group">${n.group}${n.view ? `<span class="seg" data-view="${n.view}" role="group" aria-label="View" hidden><a href="#" data-v="list">List</a><a href="#" data-v="board">Board</a></span>` : ""}</div>` :
       n.soon ? `<a class="nav soon ${n.sub ? "sub" : ""}" aria-disabled="true">${n.label}<span class="small">soon</span></a>` :
       `<a class="nav ${n.sub ? "sub" : ""}" href="${n.href}">${n.label}${n.key ? `<span class="count" id="c-${n.key}" hidden></span>` : ""}</a>`).join("") +
     `<div class="who">${esc(user.name)} · ${esc(user.role)}<br><button class="btn sm ghost" id="logout" style="margin-top:8px">Log out</button></div>`;
@@ -221,6 +235,7 @@ async function boot() {
   $("#upd").textContent = "Last updated " + dateTH(new Date(), true);
   $("#logout").onclick = async () => { await db.auth.signOut(); location.hash = ""; location.reload(); };
   await navigate();
+  showViewSwitches();
   refreshCounts();
 }
 function showLogin(msg) {

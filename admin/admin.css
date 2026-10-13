@@ -108,8 +108,10 @@ ol.tl .d { width: 10px; height: 10px; border-radius: 99px; background: var(--tea
 .toast.bad { border-left-color: var(--red); }
 img.slip { max-width: 100%; border-radius: 8px; border: 1px solid var(--line); }
 
-/* List | Board switch */
-.seg { display: inline-flex; border: 1px solid #cfd8d6; border-radius: 8px; overflow: hidden; align-self: center; }
-.seg a { padding: 6px 16px; font-size: .88rem; text-decoration: none; color: var(--text); background: #fff; }
-.seg a.on { background: var(--teal-btn); color: #fff; font-weight: 600; }
-.seg a:not(.on):hover { background: var(--teal-soft); }
+/* List | Board switch (sidebar, one per group heading) */
+aside .group { padding-right: 6px; display: flex; justify-content: space-between; align-items: center; gap: 6px; white-space: nowrap; letter-spacing: .04em; }
+.seg { flex-shrink: 0; display: inline-flex; border: 1px solid #3a4f4d; border-radius: 6px; overflow: hidden; text-transform: none; letter-spacing: 0; }
+.seg[hidden] { display: none; }
+.seg a { padding: 2px 6px; font-size: .7rem; text-decoration: none; color: #c3d0ce; background: transparent; }
+.seg a.on { background: var(--teal); color: #031a1a; font-weight: 700; }
+.seg a:not(.on):hover { background: var(--side-2); }
