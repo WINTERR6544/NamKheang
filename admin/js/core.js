@@ -133,13 +133,6 @@ function syncViewSwitches() {
     let v = null;
     try { v = localStorage.getItem(viewKey(seg.dataset.view)); } catch {}
     seg.querySelectorAll("a").forEach((a) => a.classList.toggle("on", a.dataset.v === (v === "board" ? "board" : "list")));
-    // In Board mode the group's sub-links all open the same board, so hide them and show their total on the heading.
-    const board = !seg.hidden && v === "board", g = seg.dataset.view;
-    const links = $$(`aside a.nav[data-g="${g}"]`);
-    links.forEach((a) => { a.hidden = board; });
-    const total = links.reduce((n, a) => n + (Number(a.querySelector(".count")?.textContent) || 0), 0);
-    const badge = $("#gc-" + g);
-    if (badge) { badge.textContent = total; badge.hidden = !(board && total); }
   });
 }
 async function showViewSwitches() {
@@ -209,14 +202,11 @@ const NAV = [
   { label: "Users & Roles", href: "#/users", sub: 1 },
 ];
 function sidebar(user) {
-  let cur = ""; // view key of the group heading above, so links can be hidden with it in Board mode
   return `<div class="brand">ICEFLOW</div><div class="sub-brand">SHOP &amp; ADMIN CRM</div>` +
-    NAV.map((n) => {
-      if (n.group) cur = n.view || "";
-      return n.group ? `<div class="group"><span>${n.group}${n.view ? `<span class="count" id="gc-${n.view}" hidden></span>` : ""}</span>${n.view ? `<span class="seg" data-view="${n.view}" role="group" aria-label="View" hidden><a href="#" data-v="list">List</a><a href="#" data-v="board">Board</a></span>` : ""}</div>` :
+    NAV.map((n) =>
+      n.group ? `<div class="group">${n.group}${n.view ? `<span class="seg" data-view="${n.view}" role="group" aria-label="View" hidden><a href="#" data-v="list">List</a><a href="#" data-v="board">Board</a></span>` : ""}</div>` :
       n.soon ? `<a class="nav soon ${n.sub ? "sub" : ""}" aria-disabled="true">${n.label}<span class="small">soon</span></a>` :
-      `<a class="nav ${n.sub ? "sub" : ""}" href="${n.href}"${cur ? ` data-g="${cur}"` : ""}>${n.label}${n.key ? `<span class="count" id="c-${n.key}" hidden></span>` : ""}</a>`;
-    }).join("") +
+      `<a class="nav ${n.sub ? "sub" : ""}" href="${n.href}">${n.label}${n.key ? `<span class="count" id="c-${n.key}" hidden></span>` : ""}</a>`).join("") +
     `<div class="who">${esc(user.name)} · ${esc(user.role)}<br><button class="btn sm ghost" id="logout" style="margin-top:8px">Log out</button></div>`;
 }
 async function refreshCounts() {
@@ -229,7 +219,6 @@ async function refreshCounts() {
   for (const [k, v] of Object.entries(c)) { const el = $("#c-" + k); if (el) { el.textContent = v; el.hidden = !v; } }
   const total = Object.values(c).reduce((a, b) => a + b, 0);
   $("#bellc").textContent = total; $("#bellc").hidden = !total;
-  syncViewSwitches();
 }
 
 // ---- login gate ----
