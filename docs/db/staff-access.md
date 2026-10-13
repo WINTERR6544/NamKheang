@@ -63,7 +63,7 @@ Not done on purpose: partial payments / "pay the shortfall" for the final paymen
 | Function | Does | Allowed from status | Moves to |
 |---|---|---|---|
 | `staff_factory_response` | accept or decline a production order | 3 | stays 3 |
-| `staff_production` | started / in progress / delayed / finished | 3, 4 | 4, 5 |
+| `factory_production` | started / in progress / delayed / finished | 3, 4 | 4, 5 |
 | `staff_qc_submit(order, results, stage)` | record a QC round for every active item. `stage` is `production` (default) or `onsite` | 5 (production), 8 (onsite) | 7 or 6; on-site stays 8 |
 | `staff_rework_done` | the factory fixed the QC findings | 6 | 5 |
 | `staff_confirm_installed` | the factory confirms the install, after a passing on-site QC | 8 | 9 |

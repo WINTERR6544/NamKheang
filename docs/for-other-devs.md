@@ -20,7 +20,7 @@ Moves are enforced by a trigger (`status_transitions`). You cannot skip a step.
 2. After installing, the **factory** records an **on-site QC** (stage `onsite`), then confirms the install (status 9).
 3. The **customer** rechecks. If there is a problem: customer -> **shop** -> factory (never customer -> factory directly).
 
-**Who may call what:** the functions named `staff_production`, `staff_qc_submit`, `staff_rework_done`,
+**Who may call what:** the functions named `factory_production`, `staff_qc_submit`, `staff_rework_done`,
 `staff_factory_response` and `staff_confirm_installed` are **factory-only** (role `factory`, and only for orders assigned to
 that user's factory). The `staff_` prefix is a leftover name. A shop login gets "Only the factory can ...".
 
@@ -70,7 +70,7 @@ factory -> `factories.factory_id`, shop -> `0`.
    - It **fails** with "Record the on-site QC before confirming the install" unless a **passing** on-site QC was recorded
      **after the current install appointment was created**. A fix visit (a new appointment) needs a new on-site QC.
 
-4. **Production updates (UC6):** `staff_production(p_order, p_stage, p_est date, p_note)`.
+4. **Production updates (UC6):** `factory_production(p_order, p_stage, p_est date, p_note)`.
    Stages: `started` (needs `p_est`, moves 3 -> 4), `in_progress`, `delayed` (notifies the customer),
    `finished` (4 -> 5, opens QC). Changing `p_est` re-arms the deadline reminder.
 

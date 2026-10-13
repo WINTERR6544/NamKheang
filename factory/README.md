@@ -24,7 +24,7 @@ The shop site is view-only for manufacturing (Factory Requests, Order Status), s
 | Factory action | Phase | Database today |
 |---|---|---|
 | Accept / decline a request | 1 (built) | `factory_respond` |
-| Start production + estimated finish date, progress, delay, finished | 2 Production | `staff_production` |
+| Start production + estimated finish date, progress, delay, finished | 2 Production | `factory_production` |
 | Fix QC findings and resubmit | 3 QC / Rework | `staff_rework_done` |
 | Confirm the install is done | 4 Installation | `staff_confirm_installed` |
 
