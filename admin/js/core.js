@@ -112,64 +112,10 @@ function loadFeature(name) {
   });
   return loaded[name];
 }
-// ---- boards: a sidebar group's pages can also be shown as a board (List | Board switch) ----
-// Each group's board is js/features/board-<group>.js; the shared renderer is features/board.js. Missing files hide the switch.
-const BOARD_OF = [[/^\/orders(\/|$)/, "order"], [/^\/payments\//, "payments"], [/^\/(mfg\/|installation$)/, "mfg"]];
-const boardProbe = {};
-const boardInstalled = (g) => (boardProbe[g] ??= fetch(`js/features/board-${g}.js`, { method: "HEAD" }).then((r) => r.ok).catch(() => false));
-// The List | Board choice is remembered per sidebar group (browser storage, so it survives reloads).
-// A link with an explicit ?view=list|board wins and is saved; a plain link (breadcrumb) uses the saved choice.
-// ?view=page (sidebar sub-links) opens the list page once and leaves the saved choice alone.
-const viewKey = (g) => "iceflow.view." + g;
-async function currentView(g) {
-  const asked = hashParams().get("view");
-  if (asked === "page") return "list";
-  if (asked === "board" || asked === "list") { try { localStorage.setItem(viewKey(g), asked); } catch {} return asked; }
-  let saved = null;
-  try { saved = localStorage.getItem(viewKey(g)); } catch {}
-  return saved === "board" && (await boardInstalled(g)) ? "board" : "list";
-}
-// The List | Board switch lives in the sidebar, under each group's heading (see sidebar()).
-function syncViewSwitches() {
-  $$("aside .seg[data-view]").forEach((seg) => {
-    let v = null;
-    try { v = localStorage.getItem(viewKey(seg.dataset.view)); } catch {}
-    const here = BOARD_OF.find(([re]) => re.test((location.hash || "").slice(1).split("?")[0]))?.[1] === seg.dataset.view;
-    if (here && hashParams().get("view") === "page") v = "list"; // this page is a list even though Board is saved
-    seg.querySelectorAll("a").forEach((a) => a.classList.toggle("on", a.dataset.v === (v === "board" ? "board" : "list")));
-  });
-}
-async function showViewSwitches() {
-  for (const seg of $$("aside .seg[data-view]")) seg.hidden = !(await boardInstalled(seg.dataset.view));
-  syncViewSwitches();
-}
-document.addEventListener("click", (e) => {
-  const a = e.target.closest("aside .seg a");
-  if (!a) return;
-  e.preventDefault();
-  try { localStorage.setItem(viewKey(a.closest(".seg").dataset.view), a.dataset.v); } catch {}
-  syncViewSwitches();
-  const path = (location.hash || "").slice(1).split("?")[0];
-  if (BOARD_OF.find(([re]) => re.test(path))?.[1] === a.closest(".seg").dataset.view) {
-    if (location.hash.includes("?")) location.hash = "#" + path; else navigate();
-  }
-});
-
 async function navigate() {
   const path = (location.hash || "#/dashboard").slice(1).split("?")[0];
   $("#crumbs").innerHTML = crumbsFor(path);
-  $$("aside a.nav").forEach((a) => a.classList.toggle("on", a.getAttribute("href").split("?")[0] === "#" + path));
-  const group = BOARD_OF.find(([re]) => re.test(path))?.[1];
-  const view = group ? await currentView(group) : null;
-  syncViewSwitches();
-  if (view === "board") {
-    main().innerHTML = `<p class="muted">Loading...</p>`;
-    try { await loadFeature("board"); await loadFeature("board-" + group); }
-    catch { main().innerHTML = `<div class="card empty">The board view is not installed in this build.<div class="small">Missing: js/features/board-${group}.js</div></div>`; return; }
-    try { await renderBoard(main(), group); } catch (e) { main().innerHTML = `<div class="err">${esc(errText(e))}</div>`; }
-    window.scrollTo(0, 0);
-    return;
-  }
+  $$("aside a.nav").forEach((a) => a.classList.toggle("on", a.getAttribute("href") === "#" + path));
   const feature = FEATURES.find(([re]) => re.test(path));
   if (feature) {
     try { await loadFeature(feature[1]); }
@@ -189,16 +135,16 @@ async function navigate() {
 window.addEventListener("hashchange", navigate);
 
 // ---- sidebar ----
-const G = (label, view) => ({ group: label, view });
+const G = (label) => ({ group: label });
 const NAV = [
   { label: "Dashboard", href: "#/dashboard" },
-  G("Orders", "order"),
+  G("Orders"),
   { label: "All Orders", href: "#/orders", sub: 1 }, { label: "New Orders", href: "#/orders/new", sub: 1, key: "new" },
   { label: "Quotations", href: "#/orders/quotations", sub: 1 }, { label: "Cancelled", href: "#/orders/cancelled", sub: 1 },
-  G("Manufacturing", "mfg"),
+  G("Manufacturing"),
   { label: "Factory Requests", href: "#/mfg/requests", sub: 1 }, { label: "Order Status", href: "#/mfg/status", sub: 1 },
   { label: "Installation", href: "#/installation" },
-  G("Payments", "payments"),
+  G("Payments"),
   { label: "Deposit", href: "#/payments/deposit", sub: 1, key: "dep" }, { label: "Final Payment", href: "#/payments/final", sub: 1, key: "fin" },
   { label: "Refund", href: "#/payments/refund", sub: 1, key: "ref" },
   G("Admin"),
@@ -208,9 +154,9 @@ const NAV = [
 function sidebar(user) {
   return `<div class="brand">ICEFLOW</div><div class="sub-brand">SHOP &amp; ADMIN CRM</div>` +
     NAV.map((n) =>
-      n.group ? `<div class="group">${n.group}${n.view ? `<span class="seg" data-view="${n.view}" role="group" aria-label="View" hidden><a href="#" data-v="list">List</a><a href="#" data-v="board">Board</a></span>` : ""}</div>` :
+      n.group ? `<div class="group">${n.group}</div>` :
       n.soon ? `<a class="nav soon ${n.sub ? "sub" : ""}" aria-disabled="true">${n.label}<span class="small">soon</span></a>` :
-      `<a class="nav ${n.sub ? "sub" : ""}" href="${n.href}${BOARD_OF.some(([re]) => re.test(n.href.slice(1))) ? "?view=page" : ""}">${n.label}${n.key ? `<span class="count" id="c-${n.key}" hidden></span>` : ""}</a>`).join("") +
+      `<a class="nav ${n.sub ? "sub" : ""}" href="${n.href}">${n.label}${n.key ? `<span class="count" id="c-${n.key}" hidden></span>` : ""}</a>`).join("") +
     `<div class="who">${esc(user.name)} · ${esc(user.role)}<br><button class="btn sm ghost" id="logout" style="margin-top:8px">Log out</button></div>`;
 }
 async function refreshCounts() {
@@ -239,7 +185,6 @@ async function boot() {
   $("#upd").textContent = "Last updated " + dateTH(new Date(), true);
   $("#logout").onclick = async () => { await db.auth.signOut(); location.hash = ""; location.reload(); };
   await navigate();
-  showViewSwitches();
   refreshCounts();
 }
 function showLogin(msg) {

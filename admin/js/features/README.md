@@ -28,14 +28,7 @@ Loaded on demand by other features or by the shell; they have no route of their 
 | File | What it is | Used by |
 |---|---|---|
 | `order-actions.js` | `loadOrder()` and `orderNext()`: an order's next step for the shop and the handler behind every button | the order page and the popup |
-| `popup.js` | `openOrderPopup(id)`: side panel with the summary and next step; opens when any order row, card or link is clicked (Ctrl/Cmd-click opens the full page) | `core.js` click handler |
-| `board.js` | `registerBoard()` / `renderBoard()`: puts every order in its column and draws the board | the List \| Board switch |
-| `board-order.js` | columns for the Orders group: New, Quoted, Cancelled | `#/orders...?view=board` |
-| `board-payments.js` | columns for Payments: Deposit, Final payment, Refund | `#/payments/...?view=board` |
-| `board-mfg.js` | columns for Manufacturing and Installation: Factory, Production, QC, Install | `#/mfg/...`, `#/installation` with `?view=board` |
-
-## List | Board
-Pages in the Orders, Payments and Manufacturing/Installation sidebar groups have a **List | Board** switch in the sidebar, under the group heading (`?view=board`). The switch appears only when that group's `board-<group>.js` is installed. The choice is remembered per sidebar group in browser storage (`iceflow.view.<group>`), so it survives reloads: a plain link (breadcrumb) opens the saved mode, while a link with `?view=list` or `?view=board` sets and saves it. Sidebar sub-links carry `?view=page`: they open that page as a list without changing the saved mode, so in Board mode the sidebar still reaches every list page and the group's switch brings the board back. If the saved mode is Board but the board file is missing, the page opens as a list. A card or row opens the popup; the popup's buttons call the same database actions as the full order page.
+| `popup.js` | `openOrderPopup(id)`: side panel with the summary and next step; opens when any order row or link is clicked (Ctrl/Cmd-click opens the full page) | `core.js` click handler |
 
 ## Adding a feature
 1. Add `js/features/<name>.js` that calls `route(/^\/your\/path$/, async (el) => { ... })`.
