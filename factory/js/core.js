@@ -39,6 +39,8 @@ const ICONS = {
   clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
   send: '<path d="m22 2-7 20-4-9-9-4ZM22 2 11 13"/>',
   chevronRight: '<path d="m9 18 6-6-6-6"/>', chevronLeft: '<path d="m15 18-6-6 6-6"/>', chevronDown: '<path d="m6 9 6 6 6-6"/>',
+  play: '<path d="M6 3l14 9-14 9V3z"/>',
+  alert: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3M12 9v4M12 17h.01"/>',
   logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',
 };
 const icon = (name, size = 18) =>
@@ -75,7 +77,7 @@ function setCrumbs(...parts) {
 const FEATURES = [
   [/^\/dashboard$/, "dashboard"],
   [/^\/requests$/, "requests"], [/^\/requests\/\d+\/evaluate$/, "request-evaluate"],
-  [/^\/production$/, "production"], [/^\/qc$/, "qc"], [/^\/installation$/, "installation"],
+  [/^\/production$/, "production"], [/^\/production\/\d+$/, "production-detail"], [/^\/qc$/, "qc"], [/^\/installation$/, "installation"],
   [/^\/notifications$/, "notifications"], [/^\/profile$/, "profile"],
 ];
 const loaded = {};
@@ -163,11 +165,11 @@ function showLogin(msg) {
   if (msg) db.auth.signOut();
 }
 
-// bell dot (requests waiting for a reply) and the sidebar capacity card; refreshed after every reply
+// bell dot (requests waiting for a reply, production due by tomorrow) and the sidebar capacity card; refreshed after every action
 async function refreshShell() {
   try {
-    const [reqs, fac] = await Promise.all([fetchRequests(), fetchFactory()]);
-    $("#belld").hidden = !reqs.some((r) => r.state === "pending");
+    const [reqs, fac, jobs] = await Promise.all([fetchRequests(), fetchFactory(), fetchProduction()]);
+    $("#belld").hidden = !reqs.some((r) => r.state === "pending") && !jobs.some(dueSoon);
     $("#capw").innerHTML = capacityCard(fac, reqs);
   } catch { /* the shell still works without these */ }
 }

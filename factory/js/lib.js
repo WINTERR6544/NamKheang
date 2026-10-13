@@ -54,3 +54,58 @@ function summaryCard(title, a) {
       ${a.state === "accepted" ? `<div class="full"><dt>รับผลิตเมื่อ</dt><dd>${dateTimeTH(a.responded_at)}</dd></div>` : ""}
     </dl></div>`;
 }
+
+// ---- Production (UC6) ----
+// A production job is an order this factory accepted. Its stage for the factory:
+//   ready  = accepted, production not started (order at 3)
+//   making = in production (4); the factory updates the estimated finish date or marks it finished
+//   qc     = finished and handed to QC or later (5 and up), read-only here
+const PROD_SEL = "assignment_id, order_id, responded_at, orders(order_id, order_code, status, machine_type, capacity, started_at, est_finish_date, finished_at, " +
+  "customers(name), machine_models(name, description))";
+const prodStage = (s) => (s === 3 ? "ready" : s === 4 ? "making" : "qc");
+const toJob = (a) => ({ ...a, o: a.orders, stage: prodStage(a.orders.status) });
+
+// the Production page lists only active jobs: 3 waiting to start, 4 in production.
+// Once finished (5 waiting_qc and later) a job belongs to QC / Rework and Installation, so the database query leaves it out.
+const ACTIVE = [3, 4];
+async function fetchProduction() {
+  const rows = must(await db.from("factory_assignments").select(PROD_SEL.replace("orders(", "orders!inner("))
+    .eq("factory_id", ME.factory_id).eq("response", "accepted").in("orders.status", ACTIVE)
+    .order("responded_at", { ascending: false }).limit(1000));
+  return rows.map(toJob);
+}
+async function fetchJob(orderId) {
+  const rows = must(await db.from("factory_assignments").select(PROD_SEL).eq("factory_id", ME.factory_id).eq("response", "accepted")
+    .eq("order_id", orderId).limit(1));
+  if (!rows.length || !rows[0].orders || rows[0].orders.status === 99) throw new Error("ไม่พบงานผลิตนี้ หรือโรงงานของคุณยังไม่ได้รับผลิตงานนี้");
+  return toJob(rows[0]);
+}
+// production timeline; empty until the factory_production migration lets the factory read it
+async function fetchProductionUpdates(orderId) {
+  const r = await db.from("production_updates").select("update_id, stage, est_finish_date, note, created_at").eq("order_id", orderId).order("created_at", { ascending: false });
+  return r.error ? [] : r.data;
+}
+
+// estimated finish date ("YYYY-MM-DD") against today, in whole days
+const pad2 = (n) => String(n).padStart(2, "0");
+const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; };
+const daysUntil = (iso) => Math.round((new Date(iso + "T00:00:00") - new Date(todayISO() + "T00:00:00")) / 86400000);
+// local "YYYY-MM-DD" of a timestamp (started_at)
+const isoOf = (ts) => { const d = new Date(ts); return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; };
+// an estimated finish date before the day production started cannot be right (data entered outside the factory page)
+const badPlan = (o) => !!(o.est_finish_date && o.started_at && o.est_finish_date < isoOf(o.started_at));
+// same rule as the nightly remind_production_deadlines job: in production and due by tomorrow
+const dueSoon = (j) => j.stage === "making" && j.o.est_finish_date && daysUntil(j.o.est_finish_date) <= 1;
+function dueText(j) {
+  if (j.stage !== "making" || !j.o.est_finish_date) return "";
+  if (badPlan(j.o)) return `<span class="red">วันที่คาดว่าจะเสร็จอยู่ก่อนวันเริ่มผลิต กรุณากำหนดใหม่</span>`;
+  const n = daysUntil(j.o.est_finish_date);
+  return n < 0 ? `<span class="red">เลยวันที่คาดว่าจะเสร็จ ${-n} วัน</span>` : n === 0 ? `<span class="amber">ครบกำหนดวันนี้</span>`
+    : n === 1 ? `<span class="amber">ครบกำหนดพรุ่งนี้</span>` : `อีก ${n} วัน`;
+}
+const AFTER = { 5: "รอตรวจ QC", 6: "Rework", 7: "ผ่าน QC", 8: "นัดติดตั้งแล้ว", 9: "ติดตั้งแล้ว", 10: "เสร็จสิ้น" };
+function stagePill(j) {
+  if (j.stage === "ready") return `<span class="pill dot warn">รอเริ่มผลิต</span>`;
+  if (j.stage === "making") return `<span class="pill dot">กำลังผลิต</span>`;
+  return `<span class="pill dot ${j.o.status === 6 ? "bad" : "ok"}">${AFTER[j.o.status] ?? "ส่งตรวจ QC แล้ว"}</span>`;
+}

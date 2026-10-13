@@ -23,3 +23,19 @@ Only what was sent to it (`my_factory_orders()` = orders with a `factory_assignm
 | `factory_respond(p_order, p_accept, p_reason)` | accept, or decline with a reason (required); notifies the shop user who sent the request | my assignment is `pending` and the order is at 3 | stays 3 |
 
 Same rules as `staff_factory_response`. The shop site no longer records replies for the factory, so this is the only way a request gets answered. After a decline the shop sends the order to another factory from `admin/` (Factory Requests). Production (3 → 4) is the next phase.
+
+## Production (UC6)
+Migration: `supabase/migrations/20261012120000_factory_production.sql` (adds only; safe to re-run).
+
+The factory calls `factory_production(p_order, p_stage, p_est, p_note)`. It is factory-only (`is_factory()` and the order's factory): the shop QC-flow migration made `staff_production` factory-only, and `rename_staff_production_to_factory_production` (2026-10-13) renamed it:
+
+| Stage | Allowed when | Result |
+|---|---|---|
+| `started` (estimated finish date required) | order at 3, accepted | 4 in_process, `started_at`, `est_finish_date` |
+| `in_progress` / `delayed` | order at 4 | new `est_finish_date` (optional); `delayed` tells the customer |
+| `finished` | order at 4 | 5 waiting_qc, `finished_at` |
+
+Each call adds a `production_updates` row. The customer is told by `notify_status` (with the estimated finish date); the nightly `remind_production_deadlines` job reminds the factory when the date is due by tomorrow. The migration adds:
+
+- `"factory reads own production updates"` on `production_updates` (the timeline on the job page)
+- trigger `trg_notify_shop_production` on `orders`: a shop message (`recipient_id` 0) when production starts, when the estimated finish date changes, and when it is finished
