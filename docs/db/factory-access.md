@@ -78,3 +78,6 @@ The migration adds:
 - `"factory reads own appointments"` on `appointments`
 - `"factory reads forwarded problems"` on `acceptance_checks` (only rows the shop forwarded)
 - a shop message in `notify_shop_production` when the factory confirms the install (8 → 9)
+
+## Notifications (read policy)
+Migration: `supabase/migrations/20261014130000_factory_notifications.sql` adds `"factory reads own notifications"` on `notifications` (`recipient_type = 'factory'` and `recipient_id = my_factory_id()`). It is applied on the live database; no factory page shows these messages yet (kept for the Notifications page). The Dashboard uses only the queries of the other pages.

@@ -95,7 +95,7 @@ function loadFeature(name) {
 }
 
 async function navigate() {
-  const path = (location.hash || "#/requests").slice(1).split("?")[0];
+  const path = (location.hash || "#/dashboard").slice(1).split("?")[0];
   const item = NAV.find((n) => path === n.href.slice(1) || path.startsWith(n.href.slice(1) + "/"));
   setCrumbs(item ? item.label : "");
   $$("aside a.nav").forEach((a) => a.classList.toggle("on", a === $(`aside a.nav[href="${item?.href}"]`)));
@@ -149,7 +149,7 @@ async function boot() {
   $("#mename").textContent = u.name; $("#av").textContent = initials(u.name);
   $("#logout").innerHTML = icon("logout", 16);
   $("#logout").onclick = async () => { await db.auth.signOut(); location.hash = ""; location.reload(); };
-  if (!location.hash) history.replaceState(null, "", "#/requests");
+  if (!location.hash) history.replaceState(null, "", "#/dashboard");
   await navigate();
   refreshShell();
 }

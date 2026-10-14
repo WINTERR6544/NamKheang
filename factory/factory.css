@@ -201,3 +201,14 @@ dl.spec2 dt, dl.spec2 dd { padding: 11px 0; border-bottom: 1px solid #eef0ef; ma
 dl.spec2 dt { color: var(--muted); font-size: .8rem; } dl.spec2 dd { font-weight: 500; }
 .card.prob { border-color: var(--f-red-line, #e3a29d); background: #fffafa; }
 .card.prob h2 { color: var(--f-red); }
+
+/* Dashboard */
+a.metric.link { text-decoration: none; color: var(--text); transition: border-color .15s, box-shadow .15s; }
+a.metric.link:hover { border-color: var(--f-teal); box-shadow: 0 4px 14px rgba(0, 120, 120, .1); }
+.metric .grow { flex: 1; min-width: 0; }
+.metric .ic-r { color: var(--f-teal); } .metric .ic-r.red { color: var(--red); }
+ul.todo { list-style: none; margin: 10px 0 0; padding: 0; }
+ul.todo li { display: flex; gap: 14px; padding: 16px 0; border-bottom: 1px solid #eef0ef; } ul.todo li:last-child { border-bottom: 0; }
+ul.todo .tile { width: 36px; height: 36px; background: #f1f3f2; color: var(--muted); }
+ul.todo .grow { flex: 1; min-width: 0; } ul.todo .row-sb + .small { margin: 2px 0 10px; }
+a.lnk { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; text-decoration: none; }

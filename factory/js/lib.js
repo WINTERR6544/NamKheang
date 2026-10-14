@@ -209,3 +209,4 @@ const INST_STATE = { waiting: ["รอประสานวันนัด", "wa
   installed: ["ติดตั้งเสร็จ · รอตรวจรับ", "ok"], reported: ["ลูกค้าแจ้งปัญหา · รอร้านนัด", "bad"] };
 const instPill = (s) => `<span class="pill dot ${INST_STATE[s][1]}">${INST_STATE[s][0]}</span>`;
 const timeOnly = (s) => new Date(s).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" }) + " น.";
+
