@@ -13,7 +13,7 @@ route(/^\/dashboard$/, async (el) => {
     j.st = instState(j, j.appt, extras.probs.get(j.o.order_id));
   });
   const rework = qcJobs.filter((j) => j.qc === "fail"), toCheck = qcJobs.filter((j) => j.qc === "pending" || j.qc === "recheck");
-  const booked = inst.filter((j) => j.o.status === 8), dueInstall = booked.filter((j) => j.appt && isoOf(j.appt.install_datetime) <= today);
+  const booked = inst.filter((j) => j.o.status === 8), dueInstall = booked.filter((j) => j.appt && !extras.moves?.has(j.o.order_id) && isoOf(j.appt.install_datetime) <= today);
   const who = (o) => `${esc(o.customers?.name ?? "-")} · ${esc(modelName(o))}`;
 
   // most urgent first: fix QC findings, installs due, overdue production, requests to answer, QC to record, production to start

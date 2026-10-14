@@ -2,12 +2,13 @@
 // shop to book a date (7), installed and waiting for the customer (9). The shop books and moves dates; the factory confirms the install.
 route(/^\/installation$/, async (el) => {
   const jobs = await fetchInstallJobs();
-  const { appts, probs } = await fetchInstallExtras(jobs.map((j) => j.o.order_id));
+  const { appts, probs, moves } = await fetchInstallExtras(jobs.map((j) => j.o.order_id));
   jobs.forEach((j) => {
     j.appts = appts.get(j.o.order_id) ?? [];
     j.appt = j.appts.find((a) => a.status === "scheduled") ?? null;
     j.prob = openProblem(j, probs.get(j.o.order_id));
-    j.st = instState(j, j.appt, probs.get(j.o.order_id));
+    j.move = moves.get(j.o.order_id) ?? null;
+    j.st = instState(j, j.appt, probs.get(j.o.order_id), j.move);
   });
   const TABS = [["booked", "นัดยืนยันแล้ว", (j) => j.o.status === 8], ["waiting", "รอประสานนัด", (j) => j.o.status === 7], ["done", "ติดตั้งเสร็จ", (j) => j.o.status === 9]];
   const n = (k) => jobs.filter(TABS.find((t) => t[0] === k)[2]).length;
@@ -15,7 +16,7 @@ route(/^\/installation$/, async (el) => {
   const PER = 10;
   let tab = TABS.some(([k]) => k === hashParams().get("tab")) ? hashParams().get("tab") : "booked", page = 1;
   const today = todayISO();
-  const dueToday = jobs.filter((j) => j.o.status === 8 && j.appt && isoOf(j.appt.install_datetime) <= today);
+  const dueToday = jobs.filter((j) => j.o.status === 8 && j.appt && !j.move && isoOf(j.appt.install_datetime) <= today);
 
   const metric = (ic, cls, label, num, sub) => `<div class="metric"><span class="tile ${cls}">${icon(ic, 20)}</span>
     <div><div class="small muted">${label}</div><div class="n">${num}</div><div class="small muted">${sub}</div></div></div>`;
@@ -37,8 +38,9 @@ route(/^\/installation$/, async (el) => {
 
   const TITLE = { booked: "นัดติดตั้งที่ร้านยืนยัน", waiting: "งานที่ผ่าน QC รอร้านประสานวันนัด", done: "ติดตั้งเสร็จ รอลูกค้าตรวจรับ" };
   const sub = (j) => j.st === "fix" ? "นัดเข้าแก้ไขปัญหาที่ลูกค้าแจ้ง" : j.st === "reported" ? "ร้านจะนัดวันเข้าแก้ไข"
+    : j.st === "moving" ? `ขอเลื่อนเป็น ${dateTH(j.move.proposed_datetime)} ${timeOnly(j.move.proposed_datetime)}`
     : j.o.status === 9 ? `ติดตั้งเสร็จ ${dateTH(j.o.installed_at)}` : j.appt?.reschedule_count ? `เลื่อนนัด ${j.appt.reschedule_count} ครั้ง` : j.o.status === 7 ? "ผ่าน QC พร้อมส่งมอบ" : "";
-  const canConfirm = (j) => j.o.status === 8 && j.appt && isoOf(j.appt.install_datetime) <= today;
+  const canConfirm = (j) => j.o.status === 8 && j.appt && !j.move && isoOf(j.appt.install_datetime) <= today;
   const row = (j) => `<tr class="click" data-href="#/installation/${j.o.order_id}">
       <td>${j.appt ? `<b>${dateTH(j.appt.install_datetime)}</b><div class="small muted">${timeOnly(j.appt.install_datetime)}</div>` : `<span class="muted">ยังไม่มีวันนัด</span>`}</td>
       <td><b class="mono">${esc(j.o.order_code)}</b><div class="small teal">QC ผ่าน · พร้อมส่งมอบ</div></td>
