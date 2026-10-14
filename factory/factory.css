@@ -25,16 +25,11 @@ aside a.nav { justify-content: flex-start; gap: 10px; padding: 11px 12px; margin
 aside a.nav:hover { background: var(--f-side-2); }
 aside a.nav.on { background: var(--f-teal); color: #fff; font-weight: 600; }
 aside .grow { flex: 1; min-height: 16px; }
-.capcard { background: var(--f-side-2); border-radius: 8px; padding: 12px; margin: 0 2px 14px; font-size: .74rem; line-height: 1.45; color: #c9d3d1; }
-.capcard b { display: block; color: #fff; margin-bottom: 8px; }
-.capcard .row-sb { margin-bottom: 6px; color: #8da3a1; }
-.capcard .track { height: 4px; border-radius: 99px; background: #2c3634; overflow: hidden; margin-bottom: 8px; }
-.capcard .track span { display: block; height: 100%; background: #3fa9a5; border-radius: 99px; }
 .who { display: flex; align-items: center; gap: 10px; margin: 0; padding: 14px 6px 0; border-top: 1px solid #222b2a; color: #8da3a1; font-size: .78rem; }
 .who b { color: #fff; font-size: .82rem; }
 .who .avatar, .me .avatar { width: 30px; height: 30px; font-size: .72rem; flex: none; }
 .who .avatar { background: #1f2a29; color: #8fd0cc; }
-@media (max-width: 900px) { aside .grow, .capcard { display: none; } }
+@media (max-width: 900px) { aside .grow { display: none; } }
 
 .topbar { padding: 16px 30px; }
 .crumbs { display: flex; align-items: center; gap: 8px; font-size: .8rem; } .crumbs b { font-weight: 500; }
@@ -212,3 +207,14 @@ ul.todo li { display: flex; gap: 14px; padding: 16px 0; border-bottom: 1px solid
 ul.todo .tile { width: 36px; height: 36px; background: #f1f3f2; color: var(--muted); }
 ul.todo .grow { flex: 1; min-width: 0; } ul.todo .row-sb + .small { margin: 2px 0 10px; }
 a.lnk { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; text-decoration: none; }
+
+/* Notifications */
+.card.notes { max-width: 980px; margin: 0 auto; padding: 28px 30px; }
+.card.notes .tile { width: 48px; height: 48px; background: var(--f-teal-note); color: var(--f-teal); }
+.notes-bar { margin: 22px 0 18px; padding-bottom: 18px; border-bottom: 1px solid var(--f-line); flex-wrap: wrap; }
+article.note { border: 1px solid var(--f-line); border-radius: var(--r); padding: 18px 20px; margin-top: 14px; }
+article.note.unread { background: var(--f-teal-note); border-color: #cdebe8; }
+article.note h2 { margin: 8px 0 6px; font-size: 1.05rem; }
+article.note .desc { margin-bottom: 4px; }
+article.note .cat { color: var(--f-teal); font-weight: 600; }
+article.note .cat.bad { color: var(--f-red); } article.note .cat.warn { color: var(--amber); }
