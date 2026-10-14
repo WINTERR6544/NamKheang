@@ -65,3 +65,16 @@ Migration: `supabase/migrations/20261013130000_qc_items_thai.sql` adds nullable 
 | `fix_example_th` | placeholder of the "what to fix" box when an item fails |
 
 To add or edit an item, edit `qc_items` (Supabase Table Editor, or as staff: the "staff manages qc_items" policy). No code change is needed. Existing reads and inserts that name only `item_name` are unaffected.
+
+## Installation (UC8, UC9, UC10)
+Migration: `supabase/migrations/20261014120000_factory_installation.sql` (adds only; safe to re-run).
+
+- **UC8 (the shop books the date):** `staff_schedule_install` (staff) records the appointment, moves 7 → 8 (or 9 → 8 for a fix visit) and tells the customer and the factory. The factory asks the shop to move a date; it does not change dates itself.
+- **UC9 (the factory confirms):** `staff_confirm_installed` (factory-only) needs a passing on-site QC (`staff_qc_submit(..., 'onsite')`, every active `qc_items` row) recorded after the current appointment was booked; then 8 → 9 and `installed_at`.
+- **UC10 (a failed acceptance):** the customer reports a problem (order stays at 9); the shop forwards it (`staff_forward_problem`, tells the factory) and books a fix visit (UC8). The factory then tests on site and confirms again.
+
+The migration adds:
+
+- `"factory reads own appointments"` on `appointments`
+- `"factory reads forwarded problems"` on `acceptance_checks` (only rows the shop forwarded)
+- a shop message in `notify_shop_production` when the factory confirms the install (8 → 9)
