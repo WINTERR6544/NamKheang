@@ -127,13 +127,13 @@ async function fetchQcJob(orderId) {
   if (!QC_ACTIVE.includes(j.o.status)) throw new Error("งานนี้ไม่ได้อยู่ในขั้นตอน QC");
   return j;
 }
-// production-stage QC rounds of some orders, grouped: Map(order_id -> [{ round_no, at, items: [...] }] newest first).
+// QC rounds of some orders for one stage (production, or onsite at the install), grouped: Map(order_id -> [{ round_no, at, items: [...] }] newest first).
 // Empty until the factory_qc migration lets the factory read qc_results.
-async function fetchQcRounds(orderIds) {
+async function fetchQcRounds(orderIds, stage = "production") {
   const byOrder = new Map(orderIds.map((id) => [id, []]));
   if (!orderIds.length) return byOrder;
   const r = await db.from("qc_results").select("order_id, round_no, item_id, passed, note, checked_at, qc_items(item_name, item_name_th)")
-    .eq("stage", "production").in("order_id", orderIds).order("round_no", { ascending: false }).order("item_id");
+    .eq("stage", stage).in("order_id", orderIds).order("round_no", { ascending: false }).order("item_id");
   for (const x of r.error ? [] : r.data) {
     const list = byOrder.get(x.order_id);
     let round = list.find((k) => k.round_no === x.round_no);
@@ -165,3 +165,47 @@ function qcTitle(it, withDesc) {
   return `<b>${esc(it.item_name_th || it.item_name)}</b>${it.item_name_th ? `<div class="small muted">${esc(it.item_name)}</div>` : ""}` +
     (withDesc && (it.description_th || it.description_en) ? `<div class="small desc">${esc(it.description_th ?? "")}${it.description_th && it.description_en ? "<br>" : ""}<span class="muted">${esc(it.description_en ?? "")}</span></div>` : "");
 }
+
+// ---- Installation (UC8 schedule, UC9 confirm install, UC10 fix after a failed acceptance) ----
+// The shop books the date (staff_schedule_install tells the factory). The factory records an on-site QC and confirms the install.
+//   7 qc_passed  -> waiting for the shop to book a date
+//   8 scheduled  -> install (or a fix visit after the customer reported a problem); confirm when installed and tested
+//   9 installed  -> waiting for the customer to accept; a forwarded problem means a fix visit is coming
+const INST_ACTIVE = [7, 8, 9];
+const INST_SEL = "assignment_id, order_id, responded_at, orders!inner(order_id, order_code, status, machine_type, capacity, install_address, install_power, " +
+  "install_space, finished_at, installed_at, customers(name, phone), machine_models(name))";
+async function fetchInstallJobs(orderId) {
+  let q = db.from("factory_assignments").select(INST_SEL).eq("factory_id", ME.factory_id).eq("response", "accepted").in("orders.status", INST_ACTIVE);
+  if (orderId) q = q.eq("order_id", orderId);
+  const rows = must(await q.order("responded_at", { ascending: false }).limit(1000));
+  return rows.map((a) => ({ ...a, o: a.orders }));
+}
+async function fetchInstallJob(orderId) {
+  const [j] = await fetchInstallJobs(orderId);
+  if (!j) throw new Error("ไม่พบงานติดตั้งนี้ หรืองานนี้ไม่ได้อยู่ในขั้นตอนติดตั้ง");
+  return j;
+}
+// appointments and forwarded customer problems of some orders; empty until the factory_installation migration
+async function fetchInstallExtras(orderIds) {
+  const appts = new Map(orderIds.map((id) => [id, []])), probs = new Map();
+  if (!orderIds.length) return { appts, probs };
+  const [a, p] = await Promise.all([
+    db.from("appointments").select("appointment_id, order_id, install_datetime, status, reschedule_count, reschedule_reason, created_at")
+      .in("order_id", orderIds).order("created_at", { ascending: false }),
+    db.from("acceptance_checks").select("order_id, passed, note, checked_at, forwarded_at").in("order_id", orderIds).order("checked_at", { ascending: false }),
+  ]);
+  for (const x of a.error ? [] : a.data) appts.get(x.order_id)?.push(x);
+  for (const x of p.error ? [] : p.data) if (!probs.has(x.order_id)) probs.set(x.order_id, x);
+  return { appts, probs };
+}
+// the customer's latest forwarded problem, if it is newer than the last confirmed install
+const openProblem = (j, prob) => (prob && !prob.passed && (!j.o.installed_at || prob.checked_at > j.o.installed_at) ? prob : null);
+function instState(j, appt, prob) {
+  if (j.o.status === 7) return "waiting";
+  if (j.o.status === 8) return openProblem(j, prob) ? "fix" : "scheduled";
+  return openProblem(j, prob) ? "reported" : "installed";
+}
+const INST_STATE = { waiting: ["รอประสานวันนัด", "warn"], scheduled: ["ยืนยันนัดแล้ว", ""], fix: ["นัดเข้าแก้ไข", "bad"],
+  installed: ["ติดตั้งเสร็จ · รอตรวจรับ", "ok"], reported: ["ลูกค้าแจ้งปัญหา · รอร้านนัด", "bad"] };
+const instPill = (s) => `<span class="pill dot ${INST_STATE[s][1]}">${INST_STATE[s][0]}</span>`;
+const timeOnly = (s) => new Date(s).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" }) + " น.";
