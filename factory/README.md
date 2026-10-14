@@ -14,6 +14,7 @@ Run from the repo root: `python -m http.server 5500`, then http://localhost:5500
 ## Pages
 | File | Page | Route |
 |---|---|---|
+| `dashboard.js` | Dashboard (home after login): cards (new requests, in production, rework, installs), every job waiting on the factory most urgent first with a link | `#/dashboard` |
 | `requests.js` | Manufacturing Requests: tabs (all / waiting / declined), search, month filter, sort, paging | `#/requests` |
 | `request-evaluate.js` | one request, opened from the list: summary, accept or decline (reason required), review, confirm → `factory_respond`; an answered request shows its result | `#/requests/:orderId/evaluate` |
 | `production.js` | Production: active jobs only (3 waiting to start, 4 in production; filtered in the query), metrics, tabs, search, sort, due-soon banner. A finished job (5 waiting_qc and later) leaves the list | `#/production` |
@@ -23,7 +24,7 @@ Run from the repo root: `python -m http.server 5500`, then http://localhost:5500
 | `installation.js` | Installation schedule: booked (8, install or fix visit), waiting for the shop to book (7), installed (9); due-today banner, tabs, search, month, sort | `#/installation` |
 | `installation-detail.js` | one job on one page: customer and site (map link), machine, the appointment and its history, a forwarded customer problem on a fix visit; when booked (8), the on-site test of every checklist item → `staff_qc_submit('onsite')`, all pass → `staff_confirm_installed` → 9; a fail is recorded and the order stays at 8 | `#/installation/:orderId` |
 
-Accepted requests leave this list; they continue on Production. Dashboard, Notifications and Profile are in the sidebar but not built yet (the page says so).
+Accepted requests leave this list; they continue on Production. Notifications and Profile are in the sidebar but not built yet (the page says so).
 
 The shop site is view-only for manufacturing (Factory Requests, Order Status). The factory steps and the database function behind each (all factory-only):
 
