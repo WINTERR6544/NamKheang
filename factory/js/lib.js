@@ -30,16 +30,6 @@ const STATE = {
 const statePill = (s) => `<span class="pill dot ${STATE[s][1]}">${STATE[s][0]}</span>`;
 const modelName = (o) => o.machine_models?.name ?? o.machine_type;
 
-// orders I accepted that are still with me (accepted, in production, waiting for QC, rework)
-function capacityCard(fac, reqs) {
-  if (!fac?.capacity_per_month) return "";
-  const load = reqs.filter((r) => r.response === "accepted" && [3, 4, 5, 6].includes(r.orders?.status)).length;
-  const pct = Math.min(100, Math.round((load / fac.capacity_per_month) * 100));
-  return `<div class="capcard"><b>${esc(fac.name)}</b><div class="row-sb small"><span>งานผลิตในมือ</span><span>${pct}%</span></div>
-    <div class="track"><span style="width:${pct}%"></span></div>
-    <div class="small">${load} / ${fac.capacity_per_month} เครื่องต่อเดือน · ${load < fac.capacity_per_month ? "ยังรับงานได้" : "เต็มกำลังผลิต"}</div></div>`;
-}
-
 // "สรุปงานที่ประเมิน" card on the accept / decline page
 function summaryCard(title, a) {
   const o = a.orders;
@@ -210,3 +200,42 @@ const INST_STATE = { waiting: ["รอประสานวันนัด", "wa
 const instPill = (s) => `<span class="pill dot ${INST_STATE[s][1]}">${INST_STATE[s][0]}</span>`;
 const timeOnly = (s) => new Date(s).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" }) + " น.";
 
+
+// ---- Notifications ----
+// Messages the system sends the factory (recipient_type 'factory'). The text is English (database convention), so the page
+// shows a Thai category, title and summary per kind, built from the message and the order, with the original text kept.
+async function fetchFactoryNotes(limit = 200) {
+  const r = await db.from("notifications").select("notification_id, order_id, message, read_at, created_at, " +
+      "orders(order_id, order_code, status, machine_type, customers(name), machine_models(name))")
+    .eq("recipient_type", "factory").eq("recipient_id", ME.factory_id).order("created_at", { ascending: false }).limit(limit);
+  return r.error ? [] : r.data;
+}
+// [pattern, kind, category, title, tone]; the first match wins
+const NOTE_KINDS = [
+  [/New production order/i, "new", "งานใหม่ · คำขอผลิต", "ได้รับคำขอผลิตใหม่จากร้าน", ""],
+  [/Reminder: please reply/i, "remind", "เตือน · คำขอผลิตรอตอบกลับ", "คำขอผลิตรอการตอบกลับ", "warn"],
+  [/withdrew the production request/i, "withdrawn", "ร้านถอนคำขอ", "ร้านถอนคำขอผลิต", "bad"],
+  [/estimated finish date is/i, "deadline", "เตือน · กำหนดเสร็จ", "ใกล้ถึงหรือเลยวันที่คาดว่าจะเสร็จ", "warn"],
+  [/Fix visit scheduled/i, "fix", "นัดเข้าแก้ไข · ร้านยืนยันวันนัด", "นัดเข้าแก้ไขปัญหาที่ลูกค้าแจ้ง", "bad"],
+  [/Install scheduled/i, "install", "นัดติดตั้ง · ร้านยืนยันวันนัด", "ร้านยืนยันวันนัดติดตั้ง", ""],
+  [/Customer reported a problem/i, "problem", "ปัญหาจากลูกค้า · ร้านส่งต่อ", "ลูกค้าแจ้งปัญหาหลังติดตั้ง", "bad"],
+];
+// "13/10/2026 10:00" in a message -> "13 ต.ค. 2569 เวลา 10:00 น."
+function thaiStamp(text) {
+  const m = /(\d{2})\/(\d{2})\/(\d{4})(?: (\d{2}):(\d{2}))?/.exec(text ?? "");
+  if (!m) return "";
+  return dateTH(`${m[3]}-${m[2]}-${m[1]}T12:00:00`) + (m[4] ? ` เวลา ${m[4]}:${m[5]} น.` : "");
+}
+function noteView(n) {
+  const [, kind, category, title, tone] = NOTE_KINDS.find(([re]) => re.test(n.message)) ?? [null, "other", "แจ้งเตือน", "แจ้งเตือนจากระบบ", ""];
+  const o = n.orders, body = n.message.split(" · ").slice(1).join(" · ") || n.message, after = body.split(": ").slice(1).join(": ");
+  const who = o ? [o.customers?.name, o.machine_models?.name ?? o.machine_type].filter(Boolean).join(" · ") : "";
+  const days = /(\d+) day/.exec(body)?.[1];
+  const sum = { new: days ? `ตอบรับหรือปฏิเสธภายใน ${days} วัน` : "", remind: /waiting (\d+)/.exec(body) ? `รอการตอบกลับมาแล้ว ${/waiting (\d+)/.exec(body)[1]} วัน` : "",
+    withdrawn: after ? `เหตุผล: ${after}` : "", deadline: thaiStamp(body) ? `วันที่คาดว่าจะเสร็จ ${thaiStamp(body)} · อัปเดตสถานะการผลิต` : "",
+    fix: thaiStamp(body) ? `นัด ${thaiStamp(body)}` : "", install: thaiStamp(body) ? `นัด ${thaiStamp(body)}` : "", problem: after ? `ปัญหา: ${after}` : "" }[kind] ?? "";
+  const id = n.order_id;
+  const href = !id ? "" : { new: `#/requests/${id}/evaluate`, remind: `#/requests/${id}/evaluate`, deadline: `#/production/${id}`,
+    fix: `#/installation/${id}`, install: `#/installation/${id}`, problem: `#/installation/${id}` }[kind] ?? "";
+  return { kind, category, title, tone, desc: [who, sum].filter(Boolean).join(" · "), original: n.message, href };
+}

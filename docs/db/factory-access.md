@@ -79,5 +79,8 @@ The migration adds:
 - `"factory reads forwarded problems"` on `acceptance_checks` (only rows the shop forwarded)
 - a shop message in `notify_shop_production` when the factory confirms the install (8 → 9)
 
-## Notifications (read policy)
-Migration: `supabase/migrations/20261014130000_factory_notifications.sql` adds `"factory reads own notifications"` on `notifications` (`recipient_type = 'factory'` and `recipient_id = my_factory_id()`). It is applied on the live database; no factory page shows these messages yet (kept for the Notifications page). The Dashboard uses only the queries of the other pages.
+## Notifications
+- `20261014130000_factory_notifications.sql`: `"factory reads own notifications"` on `notifications` (`recipient_type = 'factory'` and `recipient_id = my_factory_id()`).
+- `20261014140000_factory_notifications_read.sql`: `factory_mark_notifications_read(p_ids bigint[] default null)` sets `read_at` on the factory's own unread messages (null = all) and returns how many. A function, not an update policy, so the factory can change `read_at` only.
+
+Messages the system sends the factory today: a new production order (`staff_send_to_factory`), a reply reminder (`remind_factories`), a withdrawn request (`staff_withdraw_request`), a near finish date (`remind_production_deadlines`), an install or fix visit date (`staff_schedule_install`) and a forwarded customer problem (`staff_forward_problem`). The text is English; the factory page adds a Thai category and summary by matching it, so a changed message falls back to the original text.
