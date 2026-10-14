@@ -159,7 +159,8 @@ function qcTitle(it, withDesc) {
 // ---- Installation (UC8 schedule, UC9 confirm install, UC10 fix after a failed acceptance) ----
 // The shop books the date (staff_schedule_install tells the factory). The factory records an on-site QC and confirms the install.
 //   7 qc_passed  -> waiting for the shop to book a date
-//   8 scheduled  -> install (or a fix visit after the customer reported a problem); confirm when installed and tested
+//   8 scheduled  -> install (or a fix visit after the customer reported a problem): the factory confirms the date as booked
+//                   or asks to move it, then confirms the install when installed and tested
 //   9 installed  -> waiting for the customer to accept; a forwarded problem means a fix visit is coming
 const INST_ACTIVE = [7, 8, 9];
 const INST_SEL = "assignment_id, order_id, responded_at, orders!inner(order_id, order_code, status, machine_type, capacity, install_address, install_power, " +
@@ -175,27 +176,30 @@ async function fetchInstallJob(orderId) {
   if (!j) throw new Error("ไม่พบงานติดตั้งนี้ หรืองานนี้ไม่ได้อยู่ในขั้นตอนติดตั้ง");
   return j;
 }
-// appointments and forwarded customer problems of some orders; empty until the factory_installation migration
+// appointments, forwarded customer problems and the factory's pending reschedule requests of some orders
+// (empty until the factory_installation / install_reschedule_requests migrations)
 async function fetchInstallExtras(orderIds) {
-  const appts = new Map(orderIds.map((id) => [id, []])), probs = new Map();
-  if (!orderIds.length) return { appts, probs };
-  const [a, p] = await Promise.all([
-    db.from("appointments").select("appointment_id, order_id, install_datetime, status, reschedule_count, reschedule_reason, created_at")
+  const appts = new Map(orderIds.map((id) => [id, []])), probs = new Map(), moves = new Map();
+  if (!orderIds.length) return { appts, probs, moves };
+  const [a, p, m] = await Promise.all([
+    db.from("appointments").select("appointment_id, order_id, install_datetime, status, reschedule_count, reschedule_reason, created_at, factory_confirmed_at")
       .in("order_id", orderIds).order("created_at", { ascending: false }),
     db.from("acceptance_checks").select("order_id, passed, note, checked_at, forwarded_at").in("order_id", orderIds).order("checked_at", { ascending: false }),
+    db.from("install_reschedule_requests").select("request_id, order_id, proposed_datetime, reason, created_at").eq("status", "pending").in("order_id", orderIds),
   ]);
   for (const x of a.error ? [] : a.data) appts.get(x.order_id)?.push(x);
   for (const x of p.error ? [] : p.data) if (!probs.has(x.order_id)) probs.set(x.order_id, x);
-  return { appts, probs };
+  for (const x of m.error ? [] : m.data) moves.set(x.order_id, x);
+  return { appts, probs, moves };
 }
 // the customer's latest forwarded problem, if it is newer than the last confirmed install
 const openProblem = (j, prob) => (prob && !prob.passed && (!j.o.installed_at || prob.checked_at > j.o.installed_at) ? prob : null);
-function instState(j, appt, prob) {
+function instState(j, appt, prob, move) {
   if (j.o.status === 7) return "waiting";
-  if (j.o.status === 8) return openProblem(j, prob) ? "fix" : "scheduled";
+  if (j.o.status === 8) return openProblem(j, prob) ? "fix" : move ? "moving" : appt?.factory_confirmed_at ? "scheduled" : "toConfirm";
   return openProblem(j, prob) ? "reported" : "installed";
 }
-const INST_STATE = { waiting: ["รอประสานวันนัด", "warn"], scheduled: ["ยืนยันนัดแล้ว", ""], fix: ["นัดเข้าแก้ไข", "bad"],
+const INST_STATE = { waiting: ["รอประสานวันนัด", "warn"], toConfirm: ["รอโรงงานยืนยันนัด", "warn"], scheduled: ["ยืนยันนัดแล้ว", ""], fix: ["นัดเข้าแก้ไข", "bad"], moving: ["ขอเลื่อนนัด · รอร้านยืนยัน", "warn"],
   installed: ["ติดตั้งเสร็จ · รอตรวจรับ", "ok"], reported: ["ลูกค้าแจ้งปัญหา · รอร้านนัด", "bad"] };
 const instPill = (s) => `<span class="pill dot ${INST_STATE[s][1]}">${INST_STATE[s][0]}</span>`;
 const timeOnly = (s) => new Date(s).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" }) + " น.";

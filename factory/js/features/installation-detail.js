@@ -9,14 +9,18 @@
 route(/^\/installation\/(\d+)(?:\/confirm)?$/, async (el, [id]) => {
   if (location.hash.split("?")[0].endsWith("/confirm")) history.replaceState(null, "", `#/installation/${id}`);
   const [j, items, qc, onsite] = await Promise.all([fetchInstallJob(Number(id)), fetchQcItems(), fetchQcRounds([Number(id)]), fetchQcRounds([Number(id)], "onsite")]);
-  const { appts, probs } = await fetchInstallExtras([j.o.order_id]);
+  const { appts, probs, moves } = await fetchInstallExtras([j.o.order_id]);
   const o = j.o, list = appts.get(o.order_id) ?? [], appt = list.find((a) => a.status === "scheduled") ?? null;
-  const prob = openProblem(j, probs.get(o.order_id)), st = instState(j, appt, probs.get(o.order_id));
+  const prob = openProblem(j, probs.get(o.order_id)), move = moves.get(o.order_id) ?? null, st = instState(j, appt, probs.get(o.order_id), move);
   const passedQc = (qc.get(o.order_id) ?? []).find((r) => !r.failed.length);
   setCrumbs("Installation", o.order_code);
   el.onclick = null;
   const canConfirm = o.status === 8 && !!appt;
   const early = appt && isoOf(appt.install_datetime) > todayISO();
+  // no test or confirm while the factory's request to move the date waits for the shop, or before the install day
+  const blocked = canConfirm ? (move ? "moving" : early ? "early" : null) : null;
+  const blockedWhy = { moving: `มีคำขอเลื่อนนัดเป็น ${move ? `${dateTH(move.proposed_datetime)} ${timeOnly(move.proposed_datetime)}` : ""} รอร้านยืนยัน · ยืนยันติดตั้งได้หลังร้านบันทึกวันใหม่และถึงวันนัด`,
+    early: `ยังไม่ถึงวันนัด (${appt ? dateTH(appt.install_datetime) : ""}) · ทดสอบหน้างานและยืนยันติดตั้งได้ตั้งแต่วันนัด` }[blocked];
   const map = o.install_address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(o.install_address)}` : "";
   // on-site rounds for this appointment only (the database counts rounds checked after the appointment was booked)
   const rounds = canConfirm ? (onsite.get(o.order_id) ?? []).filter((r) => r.at > appt.created_at) : [];
@@ -27,7 +31,9 @@ route(/^\/installation\/(\d+)(?:\/confirm)?$/, async (el, [id]) => {
   const problem = prob ? `<div class="card prob"><h2>ปัญหาจากการตรวจรับของลูกค้า</h2>
     <div class="muted small">ลูกค้าแจ้งเมื่อ ${dateTimeTH(prob.checked_at)} · ร้านส่งต่อให้โรงงานเมื่อ ${dateTimeTH(prob.forwarded_at)}</div>
     <div class="quote">${esc(prob.note || "-")}</div></div>` : "";
-  const checklist = !canConfirm ? "" : passedRound ? `<div class="card"><div class="row-sb"><h2>ผลติดตั้งและทดสอบจริง</h2><span class="pill dot ok">ผ่านแล้ว</span></div>
+  const checklist = !canConfirm ? "" : blocked ? `<div class="card"><div class="row-sb"><h2>ผลติดตั้งและทดสอบจริง</h2><span class="pill dot mute">ยังทดสอบไม่ได้</span></div>
+      <div class="muted small">${blockedWhy}</div></div>`
+    : passedRound ? `<div class="card"><div class="row-sb"><h2>ผลติดตั้งและทดสอบจริง</h2><span class="pill dot ok">ผ่านแล้ว</span></div>
       <div class="muted small">บันทึก QC หน้างานรอบ ${passedRound.round_no} ผ่านทุกข้อแล้วเมื่อ ${dateTimeTH(passedRound.at)} · ยืนยันติดตั้งเสร็จได้เลย</div></div>`
     : !items.length ? `<div class="card"><div class="err">โหลดหัวข้อทดสอบไม่ได้ · ต้องรัน migration factory_qc ก่อน</div></div>`
     : `<div class="card" id="test"><div class="row-sb"><h2>ผลติดตั้งและทดสอบจริง</h2><span class="pill dot" id="cnt"></span></div>
@@ -49,8 +55,9 @@ route(/^\/installation\/(\d+)(?:\/confirm)?$/, async (el, [id]) => {
     <dl class="spec2"><dt>เครื่อง</dt><dd>${esc(modelName(o))} · ${esc(o.machine_type)}</dd><dt>กำลังผลิต</dt><dd>${esc(o.capacity)}</dd>
       <dt>ระบบไฟฟ้า</dt><dd>${esc(o.install_power || "-")}</dd><dt>พื้นที่ติดตั้ง</dt><dd>${esc(o.install_space || "-")}</dd></dl></div>`;
 
-  const action = canConfirm ? `<div class="card primary"><div class="row-sb" style="justify-content:flex-start">${icon("shield", 20)}<h2 style="margin:0">${st === "fix" ? "เข้าแก้ไขและยืนยัน" : "ยืนยันติดตั้งและทดสอบเสร็จ"}</h2></div>
-      ${early ? `<div class="note-box small amber">ยังไม่ถึงวันนัด (${dateTH(appt.install_datetime)}) · ยืนยันได้เมื่อติดตั้งและทดสอบหน้างานจริงแล้วเท่านั้น</div>` : ""}
+  const action = blocked ? `<div class="card"><div class="row-sb" style="justify-content:flex-start">${icon("shield", 20)}<h2 style="margin:0">ยืนยันติดตั้งและทดสอบเสร็จ</h2></div>
+      <div class="note-box small amber">${blockedWhy}</div></div>`
+    : canConfirm ? `<div class="card primary"><div class="row-sb" style="justify-content:flex-start">${icon("shield", 20)}<h2 style="margin:0">${st === "fix" ? "เข้าแก้ไขและยืนยัน" : "ยืนยันติดตั้งและทดสอบเสร็จ"}</h2></div>
       <div class="note-box small" id="sum"></div>
       <label class="check"><input type="checkbox" id="ok"><span>โรงงานยืนยันว่าติดตั้งและทดสอบจริงครบทุกข้อ ตรงกับเครื่องและลูกค้า พร้อมส่งมอบโดยไม่มีงานค้าง</span></label>
       <button class="btn wide" id="go" disabled></button></div>`
@@ -59,9 +66,25 @@ route(/^\/installation\/(\d+)(?:\/confirm)?$/, async (el, [id]) => {
   const apptCard = `<div class="card"><h2>วันนัดติดตั้ง</h2>${instPill(st)}
     ${appt ? `<div class="big-date">${dateTH(appt.install_datetime)}</div><div class="muted">${timeOnly(appt.install_datetime)}</div><hr>
       <dl class="kv2"><div class="full"><dt>ร้านบันทึกนัดเมื่อ</dt><dd>${dateTimeTH(appt.created_at)}</dd></div>
-        <div class="full"><dt>การเลื่อนนัด</dt><dd>${appt.reschedule_count ? `เลื่อนแล้ว ${appt.reschedule_count} ครั้ง` : "นัดเดิม ไม่มีการเลื่อน"}</dd></div></dl>`
+        <div class="full"><dt>การเลื่อนนัด</dt><dd>${move ? `<span class="amber">มีคำขอเลื่อน · รอร้านยืนยัน</span>${appt.reschedule_count ? `<div class="small muted">เคยเลื่อนแล้ว ${appt.reschedule_count} ครั้ง</div>` : ""}`
+          : appt.reschedule_count ? `เลื่อนแล้ว ${appt.reschedule_count} ครั้ง` : "นัดเดิม ไม่มีการเลื่อน"}</dd></div></dl>`
       : `<p class="muted">${o.status === 7 ? "ร้านกำลังประสานวันนัดกับลูกค้า" : o.status === 9 ? `ติดตั้งเสร็จเมื่อ ${dateTimeTH(o.installed_at)}` : "-"}</p>`}
-    <p class="small muted" style="margin-top:12px">ต้องการเลื่อนนัด ให้แจ้งร้าน ร้านเป็นผู้บันทึกวันและเวลาใหม่ และระบบจะแจ้งลูกค้ากับโรงงาน</p></div>`;
+    ${move ? `<div class="note-box small amber" style="margin-top:12px"><b>ขอเลื่อนนัดแล้ว · รอร้านยืนยัน</b>
+        <div>วันที่ขอ: ${dateTH(move.proposed_datetime)} · ${timeOnly(move.proposed_datetime)}</div>
+        <div>เหตุผล: ${esc(move.reason)}</div><div class="muted">ส่งคำขอเมื่อ ${dateTimeTH(move.created_at)} · ร้านจะบันทึกวันใหม่และแจ้งลูกค้า</div></div>`
+      : o.status === 8 && appt ? `<div class="appt-act" id="ap"><div class="lbl-b" style="margin-top:14px">การตอบรับวันนัดของโรงงาน</div>
+          <label class="choice acc ${appt.factory_confirmed_at ? "done" : ""}" data-c="keep"><input type="radio" name="ap" value="keep" ${appt.factory_confirmed_at ? "disabled" : ""}>
+            <div class="grow"><div class="row-sb"><b>ยืนยันตามวันเวลาเดิม</b>${appt.factory_confirmed_at ? `<span class="pill dot ok">ยืนยันแล้ว</span>` : `<span class="pill dot sel">เลือกอยู่</span>`}</div>
+              <div class="small muted">${appt.factory_confirmed_at ? `โรงงานยืนยันนัดแล้วเมื่อ ${dateTimeTH(appt.factory_confirmed_at)}` : `${dateTH(appt.install_datetime)} · ${timeOnly(appt.install_datetime)} · ร้านจะได้รับแจ้งว่าโรงงานพร้อมเข้าติดตั้ง`}</div></div></label>
+          <label class="choice rej" data-c="move"><input type="radio" name="ap" value="move">
+            <div class="grow"><div class="row-sb"><b>ขอเลื่อนวันนัดติดตั้ง</b><span class="pill dot sel">เลือกอยู่</span></div>
+              <div class="small muted">ระบุวันเวลาใหม่และเหตุผล ร้านจะพิจารณาและบันทึกวันใหม่</div>
+              <div class="reason">
+                <div class="lbl-b" id="mv-dl">วันและเวลาที่ต้องการ *</div><input type="datetime-local" id="mv-dt" aria-labelledby="mv-dl" min="${todayISO()}T00:00">
+                <div class="lbl-b" id="mv-rl" style="margin-top:12px">เหตุผลที่ต้องการขอเลื่อนนัด *</div>
+                <textarea id="mv-r" aria-labelledby="mv-rl" rows="3" maxlength="500" placeholder="เช่น ทีมติดตั้งติดงานอื่นวันนั้น หรืออะไหล่ยังมาไม่ถึง"></textarea></div></div></label>
+          <div class="small" id="mv-h" style="margin:10px 0"></div>
+          <button class="btn wide" id="ap-go" disabled>${icon("check", 16)}ยืนยันนัดติดตั้ง</button></div>` : ""}</div>`;
   const hist = list.length > 1 ? `<div class="card"><h2>ประวัติวันนัด</h2><ol class="tline">${list.map((a) => `<li><span class="d"></span><div>
       <b>${dateTH(a.install_datetime)} · ${timeOnly(a.install_datetime)}</b> <span class="small muted">${{ scheduled: "นัดปัจจุบัน", rescheduled: "เลื่อนแล้ว", completed: "ติดตั้งแล้ว", cancelled: "ยกเลิก" }[a.status] ?? esc(a.status)}</span>
       ${a.reschedule_reason ? `<div class="small">เหตุผลที่เลื่อน: ${esc(a.reschedule_reason)}</div>` : ""}</div></li>`).join("")}</ol></div>` : "";
@@ -70,9 +93,44 @@ route(/^\/installation\/(\d+)(?:\/confirm)?$/, async (el, [id]) => {
   el.innerHTML = `<div class="head"><div><h1>${canConfirm ? "งานติดตั้งและยืนยันเสร็จ" : "รายละเอียดงานติดตั้ง"}</h1>
       <div class="muted">${esc(o.order_code)} · ${esc(o.customers?.name ?? "")}${canConfirm ? ` · ${st === "fix" ? "เข้าแก้ไขปัญหาที่ลูกค้าแจ้ง · " : ""}ทดสอบหน้างานแล้วยืนยันเพื่อแจ้งร้านและลูกค้า` : ""}</div></div>
       <a class="btn ghost" href="#/installation">${icon("arrowLeft", 16)}กลับตารางนัด</a></div>
-    ${canConfirm ? `<div class="card steps"><ol class="psteps" id="steps">${STEPS.map((s, i) => `<li data-s="${i}"><span class="num">${i + 1}</span>${s}</li>`).join("")}</ol></div>` : ""}
+    ${canConfirm && !blocked ? `<div class="card steps"><ol class="psteps" id="steps">${STEPS.map((s, i) => `<li data-s="${i}"><span class="num">${i + 1}</span>${s}</li>`).join("")}</ol></div>` : ""}
     <div class="grid cols-prod"><div class="stack">${problem}${checklist}${site}${machine}</div><div class="stack">${action}${apptCard}${hist}</div></div>`;
-  if (!canConfirm) return;
+  // answer the booked date: keep it (factory_confirm_appointment) or ask to move it with a new date and a reason
+  // (factory_request_reschedule); the button follows the choice and stays off until the choice is complete
+  const ap = $("#ap", el);
+  if (ap) {
+    const go2 = $("#ap-go", el), dt = $("#mv-dt", el), rs = $("#mv-r", el);
+    const at = new Date(appt.install_datetime), cur = `${isoOf(appt.install_datetime)}T${pad2(at.getHours())}:${pad2(at.getMinutes())}`; // local time for the input
+    const choice = () => $("input[name=ap]:checked", ap)?.value;
+    const check = () => {
+      const c = choice();
+      $$(".choice", ap).forEach((x) => x.classList.toggle("on", x.dataset.c === c));
+      let msg = "";
+      if (!c) msg = appt.factory_confirmed_at ? "ต้องการเลื่อนนัด ให้เลือก \"ขอเลื่อนวันนัดติดตั้ง\"" : "เลือกยืนยันตามวันเวลาเดิม หรือขอเลื่อนวันนัด";
+      else if (c === "move") {
+        const when = dt.value ? new Date(dt.value) : null, same = when && Math.abs(when - at) < 60000;
+        msg = !dt.value ? "เลือกวันและเวลาที่ต้องการ" : when <= new Date() ? "ต้องเป็นวันและเวลาในอนาคต" : same ? "เป็นวันนัดเดิม" : !rs.value.trim() ? "กรุณาระบุเหตุผลที่ต้องการขอเลื่อนนัด" : "";
+      }
+      $("#mv-h", el).innerHTML = msg ? `<span class="${c === "move" && dt.value ? "red" : "muted"}">${msg}</span>`
+        : `<span class="muted">${c === "move" ? "ร้านจะได้รับแจ้งพร้อมวันที่และเหตุผล" : "ร้านจะได้รับแจ้งว่าโรงงานยืนยันวันนัดนี้"}</span>`;
+      go2.innerHTML = c === "move" ? `${icon("send", 16)}ส่งคำขอเลื่อนนัด` : `${icon("check", 16)}ยืนยันนัดติดตั้ง`;
+      go2.hidden = !c && !!appt.factory_confirmed_at;
+      go2.disabled = !c || !!msg;
+    };
+    ap.addEventListener("change", (e) => { if (e.target.value === "move" && !dt.value) dt.value = cur; check(); if (e.target.value === "move") dt.focus(); });
+    ap.addEventListener("input", check);
+    go2.onclick = async () => {
+      go2.disabled = true;
+      try {
+        if (choice() === "keep") await rpc("factory_confirm_appointment", { p_order: o.order_id }, "ยืนยันนัดติดตั้งแล้ว แจ้งร้านแล้ว");
+        else await rpc("factory_request_reschedule", { p_order: o.order_id, p_datetime: new Date(dt.value).toISOString(), p_reason: rs.value.trim() },
+          "ส่งคำขอเลื่อนนัดให้ร้านแล้ว รอร้านยืนยันวันใหม่");
+        refreshShell(); navigate(); // reload: the card now shows the confirmed date or the pending request
+      } catch (e) { toast(errText(e), true); check(); }
+    };
+    check();
+  }
+  if (!canConfirm || blocked) return;
 
   const ok = $("#ok", el), go = $("#go", el), rows = $$(".qc-item[data-i]", el);
   const read = () => rows.map((r) => ({ item_id: Number(r.dataset.i), v: $("input[type=radio]:checked", r)?.value, note: $(".fix", r).value.trim() }));
@@ -89,6 +147,7 @@ route(/^\/installation\/(\d+)(?:\/confirm)?$/, async (el, [id]) => {
     const allPass = passedRound || (!left && !fail && rows.length);
     setSteps(allPass ? 3 : 2);
     $("#sum", el).innerHTML = allPass ? `ทดสอบผ่านทุกข้อ → สถานะเป็น <b>"ติดตั้งแล้ว"</b> แจ้งร้าน และแจ้งลูกค้าให้ตรวจรับ`
+      : !rows.length ? "ยังโหลดหัวข้อทดสอบไม่ได้"
       : left ? `ทดสอบหน้างานในการ์ด "ผลติดตั้งและทดสอบจริง" · ยังไม่ได้ทดสอบ ${left} หัวข้อ`
       : `ไม่ผ่าน ${fail} หัวข้อ → บันทึกผลไว้ งานยังอยู่ที่นัดนี้ แก้ไขแล้วทดสอบใหม่${missing ? `<div class="red">ระบุจุดที่ต้องแก้ให้ครบ</div>` : ""}`;
     go.innerHTML = fail && !passedRound ? `${icon("x", 16)}บันทึกผลทดสอบไม่ผ่าน` : `${icon("check", 16)}ยืนยันติดตั้งเสร็จและแจ้งร้าน`;

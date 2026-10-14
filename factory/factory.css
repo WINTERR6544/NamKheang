@@ -218,3 +218,11 @@ article.note h2 { margin: 8px 0 6px; font-size: 1.05rem; }
 article.note .desc { margin-bottom: 4px; }
 article.note .cat { color: var(--f-teal); font-weight: 600; }
 article.note .cat.bad { color: var(--f-red); } article.note .cat.warn { color: var(--amber); }
+
+/* answer the booked install date */
+.appt-act .choice.rej b { color: var(--text); }
+.appt-act .choice.rej.on { border-color: var(--amber); background: var(--amber-soft); }
+.appt-act .choice.rej .sel { background: #fff; color: var(--amber); }
+.appt-act .choice.done { cursor: default; opacity: .85; }
+.appt-act .choice.done .sel { visibility: hidden; }
+.appt-act .choice.rej input[type="radio"] { accent-color: var(--amber); }

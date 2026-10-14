@@ -84,3 +84,20 @@ The migration adds:
 - `20261014140000_factory_notifications_read.sql`: `factory_mark_notifications_read(p_ids bigint[] default null)` sets `read_at` on the factory's own unread messages (null = all) and returns how many. A function, not an update policy, so the factory can change `read_at` only.
 
 Messages the system sends the factory today: a new production order (`staff_send_to_factory`), a reply reminder (`remind_factories`), a withdrawn request (`staff_withdraw_request`), a near finish date (`remind_production_deadlines`), an install or fix visit date (`staff_schedule_install`) and a forwarded customer problem (`staff_forward_problem`). The text is English; the factory page adds a Thai category and summary by matching it, so a changed message falls back to the original text.
+
+## Reschedule request (UC8 alternative flow)
+Migration: `supabase/migrations/20261014150000_install_reschedule_requests.sql` (adds only; safe to re-run).
+
+The factory asks to move a booked install (order at 8) with `factory_request_reschedule(p_order, p_datetime, p_reason)`: a future date other than the current one and a reason are required, one pending request per order. It adds a row to the new table `install_reschedule_requests` (`pending`) and tells the shop (`recipient_id` 0) the current date, the date asked for and the reason.
+
+The appointment itself is not changed (it stays `scheduled`, so `staff_confirm_installed` and `staff_schedule_install` work as before; `appointments.status` only allows scheduled / rescheduled / completed / cancelled). The shop answers by booking the new date with `staff_schedule_install`; the trigger `trg_resolve_reschedule_requests` on `appointments` marks the order's pending request `resolved`.
+
+Read: the factory reads its own requests, staff read all. No shop screen shows the requests yet; the shop sees the message in the order's notifications.
+
+## Confirm a booked date (factory)
+Migration: `supabase/migrations/20261014160000_factory_confirm_appointment.sql` (adds only; safe to re-run).
+
+- New nullable column `appointments.factory_confirmed_at`. A date the shop books starts empty, so the factory confirms each new date; existing reads (named columns or `*`) and `staff_schedule_install` are unaffected.
+- `factory_confirm_appointment(p_order)`: order at 8, the current `scheduled` appointment, not yet confirmed, no pending move request; sets `factory_confirmed_at` and tells the shop (`recipient_id` 0).
+
+On the job page the factory answers the booked date with one choice: **ยืนยันตามวันเวลาเดิม** (`factory_confirm_appointment`) or **ขอเลื่อนวันนัดติดตั้ง** (new date and reason, `factory_request_reschedule`). The list shows รอโรงงานยืนยันนัด / ยืนยันนัดแล้ว / ขอเลื่อนนัด · รอร้านยืนยัน.
