@@ -17,7 +17,7 @@ route(/^\/requests\/(\d+)\/evaluate$/, async (el, [id]) => {
   let choice = ["accept", "reject"].includes(hashParams().get("choice")) ? hashParams().get("choice") : null;
 
   el.innerHTML = `<div class="head"><div><h1>รับผลิต / ปฏิเสธงาน</h1>
-      <div class="muted">${esc(o.order_code)} · ตรวจสอบผลการประเมินและยืนยันก่อนส่งให้ร้าน ICEFLOW</div></div>${back}</div>
+      <div class="muted">${esc(o.order_code)} · ตรวจสอบผลการประเมินและยืนยันก่อนส่งให้ร้าน NamKheang</div></div>${back}</div>
     <div class="card steps"><ol id="steps">
       <li class="done">${icon("circleCheck")}เปิดคำขอ</li>${icon("chevronRight", 16)}
       <li data-s="2">เลือกผลการประเมิน</li>${icon("chevronRight", 16)}

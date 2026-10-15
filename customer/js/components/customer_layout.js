@@ -1,15 +1,22 @@
-import { $, icon, confirm, toast } from "./customer_ui.js";
+import { $, confirm, toast } from "./customer_ui.js";
 import { esc, initials } from "../lib.js";
 import { errorMessage } from "../customer_errors.js";
-import { TITLES } from "../customer_constants.js";
 import { signOut } from "../services/customer_auth_service.js";
 import { unreadCount } from "../services/customer_notification_service.js";
+// NamKheang app shell: the landing page's top bar (wordmark, menu, pill button) over a centred page.
 const nav = [
-  ["dashboard", "หน้าหลัก", "imgLayoutDashboard"],
-  ["orders", "คำสั่งซื้อของฉัน", "imgClipboardList"],
-  ["new-order", "สร้างคำสั่งซื้อ", "imgCirclePlus"],
-  ["payments", "การชำระเงิน", "imgCreditCard"],
+  ["dashboard", "หน้าหลัก"],
+  ["orders", "คำสั่งซื้อของฉัน"],
+  ["payments", "การชำระเงิน"],
+  ["notifications", "แจ้งเตือน"],
 ];
+// Line icons (Lucide, ISC licence) drawn inline so they take the text colour.
+const svg = (d) =>
+  '<svg class="ln" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+  d +
+  "</svg>";
+const LOGOUT = svg('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>');
+const MENU = svg('<path d="M4 6h16M4 12h16M4 18h16"/>');
 export function layout(profile, page) {
   const active = [
     "quotation",
@@ -17,74 +24,58 @@ export function layout(profile, page) {
     "final-payment",
     "refund",
     "receipt",
+    "payments",
   ].includes(page)
     ? "payments"
-    : ["order", "appointment", "acceptance", "cancel-order"].includes(page)
+    : ["order", "appointment", "acceptance", "cancel-order", "orders"].includes(page)
       ? "orders"
-      : page === "catalog"
+      : ["new-order", "catalog"].includes(page)
         ? "new-order"
         : page;
-  document.body.className = "app-body";
+  document.body.className = "app-page";
   $("#app").innerHTML =
-    '<a class="skip-link" href="#view">ข้ามไปเนื้อหา</a><div class="shell"><aside class="sidebar" id="sidebar"><a class="brand" href="#/dashboard"><span class="brand-mark">' +
-    icon("imgSnowflake") +
-    '</span><span><b>NamKheang</b><small>ICE MACHINE FLOW</small></span></a><p class="nav-label">เมนูสำหรับลูกค้า</p><nav aria-label="เมนูหลัก">' +
+    '<a class="skip-link" href="#view">ข้ามไปเนื้อหา</a>' +
+    '<header class="app-top"><div class="app-wrap app-bar">' +
+    '<a class="app-logo" href="#/dashboard" aria-label="NamKheang หน้าหลัก">Nam<b>Kheang</b></a>' +
+    '<nav class="app-nav" id="app-nav" aria-label="เมนูหลัก">' +
     nav
       .map(
-        ([key, label, asset]) =>
-          '<a class="nav-link ' +
-          (active === key ? "active" : "") +
-          '" ' +
-          (active === key ? 'aria-current="page"' : "") +
-          ' href="#/' +
+        ([key, label]) =>
+          '<a href="#/' +
           key +
-          '">' +
-          icon(asset) +
-          "<span>" +
+          '"' +
+          (active === key ? ' class="on" aria-current="page"' : "") +
+          ">" +
           label +
-          "</span></a>",
+          (key === "notifications" ? '<span id="unread" class="app-count" hidden></span>' : "") +
+          "</a>",
       )
       .join("") +
-    '</nav><div class="sidebar-account"><a class="account" href="#/profile"><span class="avatar">' +
-    esc(initials(profile.name)) +
-    "</span><span><b>" +
-    esc(profile.name) +
-    '</b><small>บัญชีลูกค้า</small></span></a><button id="logout" class="icon-btn" aria-label="ออกจากระบบ">' +
-    icon("imgLogOut") +
-    '</button></div></aside><div class="workspace"><header class="topbar"><div class="breadcrumbs"><button class="icon-btn mobile-menu" id="menu" aria-label="เปิดเมนู" aria-expanded="false">☰</button><span>NamKheang</span>' +
-    icon("imgChevronRight") +
-    "<b>" +
-    esc(TITLES[page] ?? "ลูกค้า") +
-    '</b></div><div class="account-tools"><a class="icon-btn bell" href="#/notifications" aria-label="แจ้งเตือน">' +
-    icon("imgBell") +
-    '<span id="unread" class="notification-dot" hidden></span></a><span class="divider"></span><button class="profile-button" id="profile-button" aria-label="เปิดข้อมูลส่วนตัว"><span class="avatar">' +
+    '<button id="logout-m" class="app-nav-out" type="button">ออกจากระบบ</button></nav>' +
+    '<div class="app-tools"><a class="pill coral app-new' +
+    (active === "new-order" ? " on" : "") +
+    '" href="#/new-order">สั่งซื้อใหม่ <span aria-hidden="true">→</span></a>' +
+    '<button class="app-me" id="profile-button" type="button" aria-label="ข้อมูลส่วนตัว"><span class="avatar">' +
     esc(initials(profile.name)) +
     '</span><span class="account-copy"><b>' +
     esc(profile.name.split(" ")[0]) +
     "</b><small>" +
     esc(profile.company || "บัญชีลูกค้า") +
-    "</small></span>" +
-    icon("imgChevronDown") +
-    '</button></div></header><main id="view" tabindex="-1"></main><footer>© 2026 NamKheang · ระบบสั่งผลิตเครื่องทำน้ำแข็ง</footer></div></div>';
-  const KEY = "sidebar-collapsed";
-  const wide = () => window.matchMedia("(min-width: 851px)").matches;
-  try {
-    $(".shell").classList.toggle("collapsed", localStorage.getItem(KEY) === "1");
-  } catch { /* private mode: just not remembered */ }
-  if (wide()) $("#menu").setAttribute("aria-expanded", String(!$(".shell").classList.contains("collapsed")));
-  // desktop: hide/show the sidebar column; mobile keeps the slide-over menu
-  $("#menu").onclick = () => {
-    let open;
-    if (wide()) {
-      const collapsed = $(".shell").classList.toggle("collapsed");
-      try { localStorage.setItem(KEY, collapsed ? "1" : "0"); } catch { /* ignore */ }
-      open = !collapsed;
-    } else open = $("#sidebar").classList.toggle("expanded");
-    $("#menu").setAttribute("aria-expanded", String(open));
+    '</small></span></button><button id="logout" class="app-icon app-out" type="button" aria-label="ออกจากระบบ" title="ออกจากระบบ">' +
+    LOGOUT +
+    '</button><button class="app-icon app-menu" id="menu" type="button" aria-label="เปิดเมนู" aria-expanded="false" aria-controls="app-nav">' +
+    MENU +
+    "</button></div></div></header>" +
+    '<main id="view" class="app-wrap" tabindex="-1"></main>' +
+    '<footer class="app-foot"><div class="app-wrap"><span class="app-logo small">Nam<b>Kheang</b></span><span>© 2026 NamKheang · ระบบสั่งผลิตเครื่องทำน้ำแข็ง</span></div></footer>';
+  const menu = $("#menu");
+  menu.onclick = () => {
+    const open = $("#app-nav").classList.toggle("open");
+    menu.setAttribute("aria-expanded", String(open));
   };
   $("#profile-button").onclick = () =>
     window.dispatchEvent(new CustomEvent("customer:profile"));
-  $("#logout").onclick = async () => {
+  const logout = async () => {
     if (
       await confirm(
         "ออกจากระบบ?",
@@ -100,6 +91,8 @@ export function layout(profile, page) {
       }
     }
   };
+  $("#logout").onclick = logout;
+  $("#logout-m").onclick = logout;
   refreshUnread(profile);
 }
 export async function refreshUnread(profile) {
@@ -123,10 +116,5 @@ export function updateProfile(profile) {
     $(".account-copy b", top).textContent = firstName;
     $(".account-copy small", top).textContent =
       profile.company || "บัญชีลูกค้า";
-  }
-  const side = $(".sidebar-account .account");
-  if (side) {
-    $(".avatar", side).textContent = initials(profile.name);
-    $("b", side).textContent = profile.name;
   }
 }
