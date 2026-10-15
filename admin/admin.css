@@ -27,6 +27,9 @@ aside { background: var(--side); color: #e8efee; padding: 22px 12px 24px; positi
 @media (max-width: 900px) { aside { position: fixed; top: 0; left: 0; width: 260px; max-width: 85vw; height: 100vh; z-index: 40; box-shadow: 4px 0 24px rgba(0,0,0,.35); } }
 .shell.collapsed { grid-template-columns: 1fr; }
 .shell.collapsed > aside { display: none; }
+@media (max-width: 900px) { .side-backdrop { position: fixed; inset: 0; z-index: 39; background: rgba(0,0,0,.45); }
+  .shell.collapsed > .side-backdrop { display: none; } }
+@media (min-width: 901px) { .side-backdrop { display: none; } }
 .side-toggle { border: 0; background: none; color: var(--muted); font-size: 1.2rem; line-height: 1; cursor: pointer; padding: 6px 8px; margin-right: 12px; border-radius: 6px; }
 .side-toggle:hover { background: rgba(0,0,0,.06); color: var(--text); }
 .topbar .crumbs { flex: 1; }

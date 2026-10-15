@@ -64,6 +64,11 @@ function loadFeature(name) {
     if (wide()) { try { localStorage.setItem(KEY, on ? "1" : "0"); } catch { /* ignore */ } }
     sync();
   };
+  // tap outside the open drawer to close it (the drawer covers the toggle button)
+  const bd = document.createElement("div");
+  bd.className = "side-backdrop";
+  bd.onclick = () => { app.classList.add("collapsed"); sync(); };
+  app.append(bd);
   // after picking a page on a narrow screen, get the menu out of the way
   window.addEventListener("hashchange", () => { if (!wide()) { app.classList.add("collapsed"); sync(); } });
   sync();
