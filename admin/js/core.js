@@ -138,7 +138,7 @@ async function boot() {
   const { data } = await db.auth.getSession();
   if (!data.session) return showLogin();
   const { data: u } = await db.from("users").select("user_id, name, role, is_active").eq("auth_id", data.session.user.id).maybeSingle();
-  if (!u || !u.is_active || !["admin", "shop"].includes(u.role)) return showLogin("This account does not have shop access");
+  if (!u || !u.is_active || !["admin", "shop"].includes(u.role)) return showLogin("บัญชีนี้ไม่มีสิทธิ์เข้าใช้งานฝั่งร้าน");
   window.ME = u;
   $("#gate").hidden = true; $("#app").hidden = false;
   $("#side").innerHTML = sidebar(u);
@@ -157,7 +157,7 @@ function showLogin(msg) {
     e.preventDefault();
     err.hidden = true;
     const { error } = await db.auth.signInWithPassword({ email: $("#gemail").value, password: $("#gpass").value });
-    if (error) { err.textContent = /invalid login/i.test(error.message) ? "Wrong email or password" : errText(error); err.hidden = false; return; }
+    if (error) { err.textContent = /invalid login/i.test(error.message) ? "อีเมลหรือรหัสผ่านไม่ถูกต้อง" : errText(error); err.hidden = false; return; }
     boot();
   };
   if (msg) db.auth.signOut();

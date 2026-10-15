@@ -7,12 +7,14 @@ const db = supabase.createClient(
 );
 
 // admin/, factory/ and the portal share one stored session. When it ends (sign-out here or in
-// another tab, or a refresh that fails), go back to the sign-in page instead of staying on a
-// page whose requests now run signed out (empty lists, 401 errors).
+// another tab, or a refresh that fails), reload to this site's own sign-in screen instead of
+// staying on a page whose requests now run signed out (empty lists, 401 errors). Nothing happens
+// while the sign-in screen is already showing, so its error messages stay visible.
 let signedIn = false;
+const toGate = () => { if (document.getElementById("app")?.hidden === false) location.reload(); };
 db.auth.onAuthStateChange((event, session) => {
   if (session) signedIn = true;
-  else if (signedIn && event === "SIGNED_OUT") location.replace("../");
+  else if (signedIn && event === "SIGNED_OUT") toGate();
 });
 // a tab left open in the background: check again before showing the next page
 async function sessionGone() {
@@ -20,9 +22,9 @@ async function sessionGone() {
   const { data } = await db.auth.getSession();
   return !data.session;
 }
-window.addEventListener("hashchange", async () => { if (await sessionGone()) location.replace("../"); });
+window.addEventListener("hashchange", async () => { if (await sessionGone()) toGate(); });
 document.addEventListener("visibilitychange", async () => {
-  if (document.visibilityState === "visible" && (await sessionGone())) location.replace("../");
+  if (document.visibilityState === "visible" && (await sessionGone())) toGate();
 });
 
 const $ = (s, el = document) => el.querySelector(s);

@@ -18,7 +18,7 @@ From the repo root:
 python -m http.server 5500
 ```
 
-Sign in (all roles): http://localhost:5500/ — one login page (`index.html`, `portal.js`) that reads the account's role and opens the customer, factory or admin site. Signing out of customer or factory comes back here.
+Sign in (all roles): http://localhost:5500/ — one login page (`index.html`, `portal.js`) that reads the account's role and opens the customer, factory or admin site. Each site also has its own NamKheang sign-in screen (`shared/login.css` + `shared/login.js` for admin, factory and the portal; customer has its own in `customer.css`).
 
 Customer site: http://localhost:5500/customer/
 Admin (shop): http://localhost:5500/admin/

@@ -3,21 +3,27 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ICEFLOW · Factory</title>
+  <title>NamKheang · โรงงาน</title>
   <link rel="stylesheet" href="../admin/admin.css">
   <link rel="stylesheet" href="factory.css">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Hubballi&family=Mali:wght@500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../shared/login.css">
 </head>
 <body>
-  <div id="gate" class="gate">
-    <form id="gform" class="card">
-      <h1>ICEFLOW</h1>
-      <p class="muted">เข้าสู่ระบบโรงงาน (Factory Workspace)</p>
-      <div style="margin:12px 0"><label>อีเมล</label><input id="gemail" type="email" required autocomplete="username"></div>
-      <div style="margin:12px 0"><label>รหัสผ่าน</label><input id="gpass" type="password" required autocomplete="current-password"></div>
-      <div id="gerr" class="err" hidden style="margin-bottom:12px"></div>
-      <button class="btn" style="width:100%">เข้าสู่ระบบ</button>
-    </form>
+  <div id="gate" class="nk-login">
+    <section class="nk-art"><a class="nk-brand" href="../">Nam<b>Kheang</b></a><div class="nk-marquee" aria-hidden="true"></div></section>
+    <main class="nk-area">
+      <form id="gform" class="nk-card" novalidate>
+        <p class="nk-role">โรงงาน · Factory</p>
+        <h1>เข้าสู่ระบบโรงงาน</h1>
+        <p class="nk-sub">รับคำสั่งผลิต อัปเดตการผลิต QC และการติดตั้ง</p>
+        <div class="nk-field"><label for="gemail">อีเมล</label><input id="gemail" type="email" required autocomplete="username"></div>
+        <div class="nk-field"><label for="gpass">รหัสผ่าน</label><input id="gpass" type="password" required autocomplete="current-password"></div>
+        <div id="gerr" class="nk-err" role="alert" hidden></div>
+        <button class="nk-btn">เข้าสู่ระบบ</button>
+        <p class="nk-switch">เป็นพนักงานร้าน? <a href="../admin/">เข้าสู่ระบบร้าน</a> · ลูกค้า <a href="../customer/index.html#/login">เข้าสู่ระบบลูกค้า</a></p>
+      </form>
+    </main>
   </div>
   <div id="app" class="shell" hidden>
     <aside id="side"></aside>
@@ -36,6 +42,7 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="../shared/staff-lib.js"></script>
+  <script src="../shared/login.js"></script>
   <script src="js/core.js"></script>
   <script src="js/lib.js"></script>
   <script>boot();</script>

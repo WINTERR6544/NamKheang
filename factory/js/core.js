@@ -100,7 +100,7 @@ function sidebar(user) {
 // ---- login gate ----
 async function boot() {
   const { data } = await db.auth.getSession();
-  if (!data.session) return location.replace("../"); // sign in on the shared portal (index.html at the repo root)
+  if (!data.session) return showLogin();
   const { data: u } = await db.from("users").select("user_id, name, role, factory_id, is_active").eq("auth_id", data.session.user.id).maybeSingle();
   if (!u || !u.is_active || u.role !== "factory" || !u.factory_id) return showLogin("บัญชีนี้ไม่มีสิทธิ์เข้าใช้งานฝั่งโรงงาน");
   window.ME = u;
@@ -109,7 +109,7 @@ async function boot() {
   $("#bell").innerHTML = icon("bell") + $("#bell").innerHTML;
   $("#mename").textContent = u.name; $("#av").textContent = initials(u.name);
   $("#logout").innerHTML = icon("logout", 16);
-  $("#logout").onclick = async () => { await db.auth.signOut(); location.replace("../"); };
+  $("#logout").onclick = async () => { await db.auth.signOut(); location.hash = ""; location.reload(); };
   if (!location.hash) history.replaceState(null, "", "#/dashboard");
   await navigate();
   refreshShell();
