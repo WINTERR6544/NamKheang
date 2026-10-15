@@ -41,5 +41,5 @@ export function profileFields(profile) {
   );
 }
 export function profileHeader() {
-  return `<span class="profile-header-icon">${icon("imgAccountMultipleOutline", "236:13997")}</span><div class="profile-header-copy"><h2 id="dialog-title">ข้อมูลส่วนตัวและการติดต่อ</h2><p>ICEFLOW CUSTOMER · จัดการข้อมูลสำหรับติดต่อและประสานงาน</p></div>`;
+  return `<span class="profile-header-icon">${icon("imgAccountMultipleOutline", "236:13997")}</span><div class="profile-header-copy"><h2 id="dialog-title">ข้อมูลส่วนตัวและการติดต่อ</h2><p>NAMKHEANG CUSTOMER · จัดการข้อมูลสำหรับติดต่อและประสานงาน</p></div>`;
 }

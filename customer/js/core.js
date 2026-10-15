@@ -38,7 +38,7 @@ async function renderRoute(token) {
     document.body.dataset.page = route.page;
     if (route.page === "index") {
       (await import("./features/customer_auth.js")).renderLanding();
-      document.title = "ICEFLOW · ระบบบริการลูกค้า";
+      document.title = "NamKheang · ระบบบริการลูกค้า";
     } else if (AUTH_PAGES.includes(route.page)) {
       await (
         await import("./features/customer_auth.js")
@@ -58,7 +58,7 @@ async function renderRoute(token) {
       if (token !== generation) return;
       accountId = profile.auth_id;
       layout(profile, route.page);
-      document.title = (TITLES[route.page] || "ลูกค้า") + " · ICEFLOW";
+      document.title = (TITLES[route.page] || "ลูกค้า") + " · NamKheang";
       const cleanup = new Set();
       let disposed = false;
       const context = {
