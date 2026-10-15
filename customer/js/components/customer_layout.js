@@ -71,6 +71,7 @@ export function layout(profile, page) {
   try {
     $(".shell").classList.toggle("collapsed", localStorage.getItem(KEY) === "1");
   } catch { /* private mode: just not remembered */ }
+  if (wide()) $("#menu").setAttribute("aria-expanded", String(!$(".shell").classList.contains("collapsed")));
   // desktop: hide/show the sidebar column; mobile keeps the slide-over menu
   $("#menu").onclick = () => {
     let open;
