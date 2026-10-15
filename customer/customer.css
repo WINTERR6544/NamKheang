@@ -712,6 +712,54 @@ input[readonly] {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 12px;
 }
+.model-grid:has(.model-card) {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+.model-grid > .model-card {
+  margin: 0;
+}
+@media (max-width: 900px) {
+  .model-grid:has(.model-card) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 560px) {
+  .model-grid:has(.model-card) {
+    grid-template-columns: 1fr;
+  }
+}
+.model-card {
+  display: flex;
+  flex-direction: column;
+}
+.model-card .actions {
+  margin-top: auto;
+}
+.model-photo {
+  position: relative;
+  margin: -6px -6px 12px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #eef2f1;
+}
+.model-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+.model-photo figcaption {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.85);
+  color: #4d6664;
+  font-size: 11px;
+}
 .model-choice {
   display: block;
   border: 1px solid #d2dada;
