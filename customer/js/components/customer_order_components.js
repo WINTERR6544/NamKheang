@@ -130,7 +130,9 @@ export function orderDetails(d) {
       esc(d.o.machine_type) +
       "</dd><dt>กำลังผลิต</dt><dd>" +
       esc(d.o.capacity) +
-      "</dd><dt>ที่อยู่ติดตั้ง</dt><dd>" +
+      "</dd><dt>จำนวน</dt><dd>" +
+      esc(d.o.quantity || 1) +
+      " เครื่อง</dd><dt>ที่อยู่ติดตั้ง</dt><dd>" +
       esc(d.o.install_address) +
       "</dd><dt>ระบบไฟฟ้า</dt><dd>" +
       esc(d.o.install_power || "ยังไม่ระบุ") +

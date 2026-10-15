@@ -44,7 +44,7 @@ The order moves through statuses 0 to 10 (99 = cancelled). See `SA-project/READM
 
 ## 5. Known gaps / decisions to make
 - Real catalog (names, capacities, prices, photos) is needed.
-- One machine per order (no quantity).
+- One model per order, with a quantity of 1 to 20 (`orders.quantity`). Mixed models in one order is not supported.
 - Shop (admin) and factory sites do not exist; in production the shop would create quotes and verify slips, the factory would answer and update production.
 - Open question from the SA doc: who does QC, the shop or the factory?
 - The UC document in `SA-project/` was written before the status renumbering; the database (and `SA-project/README.md` now) use the newer codes.

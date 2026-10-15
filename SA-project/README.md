@@ -79,7 +79,7 @@ customers, users, factories, machine_models (catalog), orders, order_statuses, s
 - ~~Who does QC: shop or factory?~~ Decided 2026-10-10: manufacturing QC is checked by the factory only; installation is checked by the factory again (on-site QC); after install the customer rechecks, and if there is a problem the customer contacts the shop and the shop contacts the factory. Needs a `stage` column (`production`/`onsite`) on `qc_results` and a factory-portal on-site QC step; not built yet.
 - Figma still has Installation and Delivery screens; delivery is out of scope.
 - Catalog models and prices are sample data.
-- One machine per order (no quantity).
+- One model per order; `orders.quantity` (1 to 20) sets how many machines of it (migration `20261015120000_order_quantity.sql`). Mixed models in one order is not supported.
 
 ## Next
 - [x] New swimlane (done in Figma, see "Business process (ใหม่)")

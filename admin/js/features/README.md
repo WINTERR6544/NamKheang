@@ -15,7 +15,7 @@ One file per sidebar item. The shell (`../core.js`) loads a feature's file the f
 | `factories.js` | Admin > Factories (UC14: view for the shop, add / edit / deactivate for role `admin`) | `#/factories` |
 | `users-roles.js` | Admin > Users & Roles (UC15: view for the shop, add / edit for role `admin`) | `#/users` |
 | `mfg-status.js` | Manufacturing > Order Status (view only, reported by the factory) | `#/mfg/status` |
-| `installation.js` | Installation | `#/installation` |
+| `installation.js` | Installation (also lists the factory's reschedule requests; "Book this date" answers one, as does the order page) | `#/installation` |
 | `payments-deposit.js` | Payments > Deposit | `#/payments/deposit` |
 | `payments-final.js` | Payments > Final Payment | `#/payments/final` |
 | `payments-refund.js` | Payments > Refund | `#/payments/refund` |

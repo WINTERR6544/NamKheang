@@ -16,7 +16,7 @@ route(/^\/order\/(\d+)$/, async (el, [id]) => {
   el.innerHTML = `<div class="head"><div><a class="small" href="#/orders">← Orders</a><h1 class="mono">${esc(o.order_code)} ${pill(o.status)}</h1></div></div>
     <div class="grid cols2">
       ${card("Customer / details", `<dl class="kv"><dt>Customer</dt><dd>${esc(o.customers?.name)}</dd><dt>Contact</dt><dd>${esc(o.customers?.phone)} · ${esc(o.customers?.email)}</dd>
-        <dt>Model</dt><dd>${esc(o.machine_models?.name ?? o.machine_type)} · ${esc(o.capacity)}</dd><dt>Install address</dt><dd>${esc(o.install_address)}</dd>
+        <dt>Model</dt><dd>${esc(o.machine_models?.name ?? o.machine_type)} · ${esc(o.capacity)}</dd><dt>Quantity</dt><dd>${o.quantity ?? 1} machine(s)</dd><dt>Install address</dt><dd>${esc(o.install_address)}</dd>
         <dt>Power / area</dt><dd>${esc(o.install_power ?? "-")} / ${esc(o.install_space ?? "-")}</dd><dt>Factory</dt><dd>${esc(o.factories?.name ?? "-")}</dd>
         <dt>Est. finish</dt><dd>${dateTH(o.est_finish_date)}</dd><dt>Ordered</dt><dd>${dateTH(o.created_at, true)}</dd></dl>`)}
       <div class="card next"><h2>Next step</h2><div id="panel">${panel}</div></div>

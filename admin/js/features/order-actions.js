@@ -2,7 +2,7 @@
 // and holds the handlers behind the buttons (quote, verify slip, send to factory, QC, schedule, cancel ...).
 async function loadOrder(id) {
   const q = (t, sel, o = "created_at", asc = true) => db.from(t).select(sel).eq("order_id", id).order(o, { ascending: asc });
-  const [o, logs, quotes, pays, asg, prod, qc, ap, ac, notes, facs, items, rules] = await Promise.all([
+  const [o, logs, quotes, pays, asg, prod, qc, ap, ac, notes, facs, items, rules, moves] = await Promise.all([
     db.from("orders").select("*, customers(name, phone, email), factories(name), machine_models(name, code, price)").eq("order_id", id).maybeSingle().then(must),
     q("order_status_logs", "status, changed_at", "changed_at").then(must),
     q("quotations", "*, quotation_items(description, amount)", "created_at", false).then(must),
@@ -16,9 +16,10 @@ async function loadOrder(id) {
     db.from("factories").select("factory_id, name").eq("is_active", true).order("name").then(must),
     db.from("qc_items").select("item_id, item_name").eq("is_active", true).order("item_id").then(must),
     db.from("business_rules").select("rule_key, value").then(must),
+    q("install_reschedule_requests", "request_id, proposed_datetime, reason, status, created_at, resolved_at").then(must),
   ]);
   if (!o) throw new Error("Order not found");
-  return { o, logs, quote: quotes[0] ?? null, pays, asg, prod, qc, ap, ac, notes, facs, items, rules: Object.fromEntries(rules.map((r) => [r.rule_key, Number(r.value)])) };
+  return { o, logs, moves, quote: quotes[0] ?? null, pays, asg, prod, qc, ap, ac, notes, facs, items, rules: Object.fromEntries(rules.map((r) => [r.rule_key, Number(r.value)])) };
 }
 
 
@@ -32,6 +33,7 @@ function orderNext(d, reload) {
   const prodQc = d.qc.filter((x) => x.stage !== "onsite"); // manufacturing QC (the factory records it; the shop only views it)
   const failedQc = (() => { const r = Math.max(0, ...prodQc.map((x) => x.round_no)); return prodQc.filter((x) => x.round_no === r && !x.passed); })();
   const canCancel = [0, 1, 2, 3].includes(o.status);
+  const move = d.moves.find((m) => m.status === "pending"); // the factory asked to move the booked install
 
   /* ----- next-action panel ----- */
   const btn = (act, label, cls = "") => `<button class="btn ${cls}" data-act="${act}">${label}</button>`;
@@ -53,7 +55,10 @@ function orderNext(d, reload) {
     case 6: panel = `<p>QC failed: ${failedQc.map((x) => esc(x.qc_items?.item_name) + (x.note ? ` (${esc(x.note)})` : "")).join(", ")}. Waiting for the factory to fix it.</p>`; break;
     case 7: panel = `<p>QC passed. Arrange the install date with the customer and the factory.</p>${btn("schedule", "Schedule install")}`; break;
     case 8: panel = sched
-      ? `<p>Install scheduled for <b>${dateTH(sched.install_datetime, true)}</b> (the factory installs, does the on-site QC, then confirms the install)</p><div class="row">${btn("schedule", "Reschedule", "ghost")}</div>`
+      ? `<p>Install scheduled for <b>${dateTH(sched.install_datetime, true)}</b> (the factory installs, does the on-site QC, then confirms the install)</p>` +
+        (move ? `<div class="card" style="margin:10px 0"><p><b>The factory asks to move the install to ${dateTH(move.proposed_datetime, true)}</b></p><p class="small">Reason: ${esc(move.reason)}</p>
+          <div class="row">${btn("book_move", "Book the requested date", "green")}${btn("schedule", "Choose another date", "ghost")}</div></div>`
+          : `<div class="row">${btn("schedule", "Reschedule", "ghost")}</div>`)
       : `<p class="err">The customer reported a problem after inspection: ${esc(lastAcc?.note ?? "-")}. Coordinate a fix with the factory, then set a new date.</p>${btn("schedule", "Schedule a new install date")}`; break;
     case 9: { const p = pay("final");
       if (p) panel = `<p>The customer accepted the machine and sent a slip for the balance of ${baht(p.amount)} THB.</p>${payBtns(p)}`;
@@ -79,9 +84,10 @@ function orderNext(d, reload) {
   const dateInput = (min) => `<input id="dt" type="datetime-local" ${min ? `min="${min}"` : ""}>`;
   const actions = {
     quote: () => {
-      const price = o.machine_models?.price ?? "";
+      const qty = o.quantity ?? 1;
+      const price = o.machine_models?.price != null ? Number(o.machine_models.price) * qty : "";
       let rowsHtml = (desc, amt) => `<div class="it"><input class="ds" placeholder="Item" value="${esc(desc)}"><input class="am" type="number" min="0" step="0.01" placeholder="Price" value="${esc(amt)}"><button type="button" class="btn sm red x">×</button></div>`;
-      form("Issue quote", `<div class="items" id="its">${rowsHtml(`${o.machine_models?.name ?? o.machine_type} · ${o.capacity}`, price)}</div>
+      form("Issue quote", `<div class="items" id="its">${rowsHtml(`${o.machine_models?.name ?? o.machine_type} · ${o.capacity}${qty > 1 ? ` × ${qty}` : ""}`, price)}</div>
         <button type="button" class="btn sm ghost" id="add" style="margin-top:8px">+ Add item</button>
         <div class="grid cols3" style="margin-top:12px;gap:8px"><div><label>VAT %</label><input id="vat" type="number" value="7"></div><div><label>Deposit %</label><input id="dep" type="number" value="${d.rules.deposit_percent}"></div><div><label>Valid (days)</label><input id="days" type="number" value="${d.rules.quote_valid_days}"></div></div>
         <div class="sum" id="sum" style="margin-top:12px"></div>`, "Issue quote",
@@ -107,6 +113,7 @@ function orderNext(d, reload) {
       (m) => rpc("staff_withdraw_request", { p_order: o.order_id, p_reason: $("#r", m).value.trim() || null }, "Request withdrawn. Choose another factory")),
     schedule: () => form(sched ? "Reschedule install" : o.status === 9 ? "Schedule a fix visit" : "Schedule install", `<label>Date and time</label>${dateInput()}${sched ? `<label style="margin-top:10px">Reason for rescheduling</label><input id="r">` : ""}`, "Save appointment",
       (m) => { if (!$("#dt", m).value) throw new Error("Please choose a date and time"); return rpc("staff_schedule_install", { p_order: o.order_id, p_datetime: new Date($("#dt", m).value).toISOString(), p_reason: $("#r", m)?.value || null }, "Appointment saved. The customer was notified"); }),
+    book_move: () => run(() => rpc("staff_schedule_install", { p_order: o.order_id, p_datetime: move.proposed_datetime, p_reason: `Factory request: ${move.reason}`.slice(0, 500) }, "Appointment saved. The customer and the factory were notified")),
     cancel: cancelForm,
   };
   const handle = (key) => {

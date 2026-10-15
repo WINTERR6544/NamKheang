@@ -1,5 +1,5 @@
 // Helpers shared by the feature pages in js/features/.
-const ORDER_SEL = "order_id, order_code, status, machine_type, capacity, created_at, sent_at, est_finish_date, customers(name, phone), factories(name), machine_models(name)";
+const ORDER_SEL = "order_id, order_code, status, machine_type, capacity, quantity, created_at, sent_at, est_finish_date, customers(name, phone), factories(name), machine_models(name)";
 async function fetchOrders(statuses) {
   let q = db.from("orders").select(ORDER_SEL).order("created_at", { ascending: false }).limit(1000);
   if (statuses) q = q.in("status", statuses);
@@ -13,7 +13,7 @@ const orderLink = (o) => `<a class="mono" href="#/order/${o.order_id}"><b>${esc(
 const who = (o) => `${esc(o.customers?.name)}<div class="small muted">${esc(o.customers?.phone)}</div>`;
 const ORDER_COLS = [
   { h: "Order", f: orderLink }, { h: "Customer", f: who },
-  { h: "Model", f: (o) => `${esc(o.machine_models?.name ?? o.machine_type)}<div class="small muted">${esc(o.capacity)}</div>` },
+  { h: "Model", f: (o) => `${esc(o.machine_models?.name ?? o.machine_type)}${o.quantity > 1 ? ` <b>× ${o.quantity}</b>` : ""}<div class="small muted">${esc(o.capacity)}</div>` },
   { h: "Status", f: (o) => pill(o.status) }, { h: "Factory", f: (o) => esc(o.factories?.name ?? "-") }, { h: "Ordered", f: (o) => dateTH(o.created_at) },
 ];
 const goOrder = (o) => `#/order/${o.order_id}`;

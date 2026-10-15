@@ -1,10 +1,10 @@
 /** @typedef {{quotation_id:number,status:string,total_price:number,deposit_amount:number,valid_until:string,quotation_items:Array<{description:string,amount:number}>}} CustomerQuotation */
-/** @typedef {{order_id:number,order_code:string,status:number,customer_id:number,model_id:number,machine_type:string,capacity:string,install_address:string,install_power?:string,install_space?:string,created_at:string,est_finish_date?:string}} CustomerOrder */
+/** @typedef {{order_id:number,order_code:string,status:number,customer_id:number,model_id:number,machine_type:string,capacity:string,install_address:string,install_power?:string,install_space?:string,quantity?:number,created_at:string,est_finish_date?:string}} CustomerOrder */
 import { client, unwrap, customerRpc } from "./customer_supabase_client.js";
 import { CustomerError } from "../customer_errors.js";
 import { validId } from "../lib.js";
 const ORDER_COLUMNS =
-  "order_id,order_code,customer_id,model_id,machine_type,capacity,install_address,install_power,install_space,status,created_at,est_finish_date,installed_at,cancel_reason,cancelled_at,machine_models(name,code)";
+  "order_id,order_code,customer_id,model_id,machine_type,capacity,install_address,install_power,install_space,quantity,status,created_at,est_finish_date,installed_at,cancel_reason,cancelled_at,machine_models(name,code)";
 export const getCatalog = async () =>
   unwrap(
     await client()
@@ -149,6 +149,7 @@ export const createOrder = (values) =>
     p_address: values.install_address.trim(),
     p_power: values.install_power?.trim() || null,
     p_space: values.install_space?.trim() || null,
+    p_quantity: Number(values.quantity) || 1,
   });
 export const cancelOrder = (id, reason) =>
   customerRpc("customer_cancel_order_v2", {

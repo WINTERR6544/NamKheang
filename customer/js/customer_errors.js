@@ -16,6 +16,7 @@ const businessErrors = {
   INVALID_PHONE: "กรุณากรอกเบอร์โทรศัพท์ไทย 9–10 หลัก",
   INVALID_NAME: "กรุณากรอกชื่อ 2–120 ตัวอักษร",
   INVALID_ADDRESS: "กรุณาระบุที่อยู่ติดตั้งให้ครบถ้วน",
+  INVALID_QUANTITY: "กรุณาเลือกจำนวนเครื่อง 1–20 เครื่อง",
   INVALID_NOTE: "กรุณาระบุรายละเอียด 5–1,000 ตัวอักษร",
   INVALID_ACCOUNT: "ข้อมูลบัญชีรับเงินคืนไม่ครบหรือไม่ถูกต้อง",
   INVALID_PROFILE: "ข้อมูลติดต่อไม่ครบหรือไม่ถูกต้อง กรุณาตรวจสอบช่องที่กรอก",
@@ -88,6 +89,7 @@ export function errorField(error) {
     return "phone";
   if (text.includes("INVALID_NAME")) return "name";
   if (text.includes("INVALID_ADDRESS")) return "install_address";
+  if (text.includes("INVALID_QUANTITY")) return "quantity";
   if (text.includes("INVALID_NOTE") || text.includes("INVALID_REASON"))
     return "note";
   return null;

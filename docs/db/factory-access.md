@@ -92,7 +92,7 @@ The factory asks to move a booked install (order at 8) with `factory_request_res
 
 The appointment itself is not changed (it stays `scheduled`, so `staff_confirm_installed` and `staff_schedule_install` work as before; `appointments.status` only allows scheduled / rescheduled / completed / cancelled). The shop answers by booking the new date with `staff_schedule_install`; the trigger `trg_resolve_reschedule_requests` on `appointments` marks the order's pending request `resolved`.
 
-Read: the factory reads its own requests, staff read all. No shop screen shows the requests yet; the shop sees the message in the order's notifications.
+Read: the factory reads its own requests, staff read all. The shop answers on Admin > Installation (a card listing the requests, "Book this date") or on the order page (status 8). Declining a request is not built: the shop can only book the asked date or another one.
 
 ## Confirm a booked date (factory)
 Migration: `supabase/migrations/20261014160000_factory_confirm_appointment.sql` (adds only; safe to re-run).

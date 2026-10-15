@@ -93,7 +93,7 @@ export async function render(context, el) {
     ) +
     card(
       "",
-      '<div class="section-title"><span>2</span><div><h2>เลือกประเภทและรุ่นเครื่อง</h2><small>หนึ่งเครื่องต่อคำสั่งซื้อ</small></div></div><div class="model-grid">' +
+      '<div class="section-title"><span>2</span><div><h2>เลือกประเภทและรุ่นเครื่อง</h2><small>เลือกรุ่นเดียวต่อคำสั่งซื้อ และระบุจำนวนเครื่อง</small></div></div><div class="model-grid">' +
         models
           .map(
             (m) =>
@@ -110,7 +110,14 @@ export async function render(context, el) {
               "</small></label>",
           )
           .join("") +
-        '</div><p class="field-error" data-error="model_id" hidden></p>',
+        '</div><p class="field-error" data-error="model_id" hidden></p>' +
+        field("quantity", "จำนวนเครื่อง", {
+          value: draft.quantity || "1",
+          options: Array.from({ length: 20 }, (_, i) => ({
+            value: String(i + 1),
+            label: String(i + 1) + " เครื่อง",
+          })),
+        }),
     ) +
     card(
       "",
@@ -145,20 +152,25 @@ export async function render(context, el) {
     });
   function update() {
     const v = validation.values(),
-      m = models.find((m) => String(m.model_id) === v.model_id);
+      m = models.find((m) => String(m.model_id) === v.model_id),
+      qty = Math.min(20, Math.max(1, Number(v.quantity) || 1));
     $("#order-review").innerHTML =
       "<h2>ตรวจสอบคำสั่งซื้อ</h2><h3>" +
       esc(m?.name) +
       '</h3><div class="rule"></div><dl class="summary-dl"><dt>กำลังผลิต</dt><dd>' +
       esc(m?.capacity) +
-      "</dd><dt>จำนวน</dt><dd>1 เครื่อง</dd><dt>ราคาอ้างอิง</dt><dd>" +
-      money(m?.price) +
+      "</dd><dt>จำนวน</dt><dd>" +
+      qty +
+      " เครื่อง</dd><dt>ราคาอ้างอิง</dt><dd>" +
+      money(Number(m?.price) * qty) +
+      (qty > 1 ? " (" + money(m?.price) + " × " + qty + ")" : "") +
       '</dd></dl><div class="banner warning">ยอดชำระจะยืนยันตามใบเสนอราคาจากร้าน การส่งคำสั่งซื้อยังไม่ใช่การชำระเงิน</div><small id="draft-state"></small>';
     try {
       localStorage.setItem(
         key,
         JSON.stringify({
           model_id: v.model_id,
+          quantity: v.quantity,
           install_address: v.install_address,
           install_power: v.install_power,
           install_space: v.install_space,

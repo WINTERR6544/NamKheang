@@ -6,7 +6,7 @@
 //   accepted = I accepted (moves on to Production, not listed on Manufacturing Requests)
 //   closed   = still pending but the shop cancelled the order, so it can no longer be answered
 const REQ_SEL = "assignment_id, order_id, response, reject_reason, sent_at, responded_at, " +
-  "orders(order_id, order_code, status, machine_type, capacity, customers(name), machine_models(name))";
+  "orders(order_id, order_code, status, machine_type, capacity, quantity, customers(name), machine_models(name))";
 const reqState = (a) => (a.response === "pending" ? (a.orders?.status === 3 ? "pending" : "closed") : a.response);
 
 async function fetchRequests() {
@@ -28,7 +28,7 @@ const STATE = {
   pending: ["รอประเมิน", ""], rejected: ["ปฏิเสธแล้ว", "bad"], accepted: ["รับผลิตแล้ว", "ok"], closed: ["ร้านยกเลิกคำสั่งซื้อ", "mute"],
 };
 const statePill = (s) => `<span class="pill dot ${STATE[s][1]}">${STATE[s][0]}</span>`;
-const modelName = (o) => o.machine_models?.name ?? o.machine_type;
+const modelName = (o) => (o.machine_models?.name ?? o.machine_type) + (o.quantity > 1 ? ` × ${o.quantity}` : "");
 
 // "สรุปงานที่ประเมิน" card on the accept / decline page
 function summaryCard(title, a) {
@@ -50,7 +50,7 @@ function summaryCard(title, a) {
 //   ready  = accepted, production not started (order at 3)
 //   making = in production (4); the factory updates the estimated finish date or marks it finished
 //   qc     = finished and handed to QC or later (5 and up), read-only here
-const PROD_SEL = "assignment_id, order_id, responded_at, orders(order_id, order_code, status, machine_type, capacity, started_at, est_finish_date, finished_at, " +
+const PROD_SEL = "assignment_id, order_id, responded_at, orders(order_id, order_code, status, machine_type, capacity, quantity, started_at, est_finish_date, finished_at, " +
   "customers(name), machine_models(name, description))";
 const prodStage = (s) => (s === 3 ? "ready" : s === 4 ? "making" : "qc");
 const toJob = (a) => ({ ...a, o: a.orders, stage: prodStage(a.orders.status) });
@@ -163,7 +163,7 @@ function qcTitle(it, withDesc) {
 //                   or asks to move it, then confirms the install when installed and tested
 //   9 installed  -> waiting for the customer to accept; a forwarded problem means a fix visit is coming
 const INST_ACTIVE = [7, 8, 9];
-const INST_SEL = "assignment_id, order_id, responded_at, orders!inner(order_id, order_code, status, machine_type, capacity, install_address, install_power, " +
+const INST_SEL = "assignment_id, order_id, responded_at, orders!inner(order_id, order_code, status, machine_type, capacity, quantity, install_address, install_power, " +
   "install_space, finished_at, installed_at, customers(name, phone), machine_models(name))";
 async function fetchInstallJobs(orderId) {
   let q = db.from("factory_assignments").select(INST_SEL).eq("factory_id", ME.factory_id).eq("response", "accepted").in("orders.status", INST_ACTIVE);
