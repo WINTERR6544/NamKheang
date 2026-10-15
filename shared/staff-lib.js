@@ -45,3 +45,21 @@ function loadFeature(name) {
   });
   return loaded[name];
 }
+
+// ---- collapsible sidebar: a button at the start of the topbar toggles .collapsed on #app (remembered per browser) ----
+(() => {
+  const app = $("#app"), bar = $(".topbar");
+  if (!app || !bar) return;
+  const KEY = "sidebar-collapsed";
+  try { app.classList.toggle("collapsed", localStorage.getItem(KEY) === "1"); } catch { /* private mode: just not remembered */ }
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "side-toggle"; b.textContent = "☰"; b.title = b.ariaLabel = "Toggle sidebar";
+  const sync = () => b.setAttribute("aria-expanded", String(!app.classList.contains("collapsed")));
+  b.onclick = () => {
+    const on = app.classList.toggle("collapsed");
+    try { localStorage.setItem(KEY, on ? "1" : "0"); } catch { /* ignore */ }
+    sync();
+  };
+  sync();
+  bar.prepend(b);
+})();

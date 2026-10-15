@@ -66,9 +66,20 @@ export function layout(profile, page) {
     "</small></span>" +
     icon("imgChevronDown") +
     '</button></div></header><main id="view" tabindex="-1"></main><footer>© 2026 ICEFLOW · ระบบสั่งผลิตเครื่องทำน้ำแข็ง</footer></div></div>';
+  const KEY = "sidebar-collapsed";
+  const wide = () => window.matchMedia("(min-width: 851px)").matches;
+  try {
+    $(".shell").classList.toggle("collapsed", localStorage.getItem(KEY) === "1");
+  } catch { /* private mode: just not remembered */ }
+  // desktop: hide/show the sidebar column; mobile keeps the slide-over menu
   $("#menu").onclick = () => {
-    const on = $("#sidebar").classList.toggle("expanded");
-    $("#menu").setAttribute("aria-expanded", String(on));
+    let open;
+    if (wide()) {
+      const collapsed = $(".shell").classList.toggle("collapsed");
+      try { localStorage.setItem(KEY, collapsed ? "1" : "0"); } catch { /* ignore */ }
+      open = !collapsed;
+    } else open = $("#sidebar").classList.toggle("expanded");
+    $("#menu").setAttribute("aria-expanded", String(open));
   };
   $("#profile-button").onclick = () =>
     window.dispatchEvent(new CustomEvent("customer:profile"));

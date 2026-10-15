@@ -311,8 +311,14 @@ small {
     10px/17px Inter,
     sans-serif;
 }
-.mobile-menu {
+.shell.collapsed {
+  grid-template-columns: minmax(0, 1fr);
+}
+.shell.collapsed > .sidebar {
   display: none;
+}
+.mobile-menu {
+  display: inline-flex;
 }
 main#view {
   padding: 30px 40px 32px;
