@@ -29,7 +29,7 @@ export async function render(context, el) {
     .filter((p) => p.pay_type === "deposit" && p.verified)
     .reduce((n, p) => n + Number(p.amount), 0);
   el.innerHTML += card(
-    "ICEFLOW · ใบเสร็จ " + final.receipt_no,
+    "NamKheang · ใบเสร็จ " + final.receipt_no,
     '<dl class="summary-dl"><dt>ผู้ชำระ</dt><dd>' +
       esc(context.profile.name) +
       "</dd><dt>เลขที่คำสั่งซื้อ</dt><dd>" +

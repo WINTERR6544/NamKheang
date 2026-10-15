@@ -28,7 +28,7 @@ export function layout(profile, page) {
   $("#app").innerHTML =
     '<a class="skip-link" href="#view">ข้ามไปเนื้อหา</a><div class="shell"><aside class="sidebar" id="sidebar"><a class="brand" href="#/dashboard"><span class="brand-mark">' +
     icon("imgSnowflake") +
-    '</span><span><b>ICEFLOW</b><small>ICE MACHINE FLOW</small></span></a><p class="nav-label">เมนูสำหรับลูกค้า</p><nav aria-label="เมนูหลัก">' +
+    '</span><span><b>NamKheang</b><small>ICE MACHINE FLOW</small></span></a><p class="nav-label">เมนูสำหรับลูกค้า</p><nav aria-label="เมนูหลัก">' +
     nav
       .map(
         ([key, label, asset]) =>
@@ -51,7 +51,7 @@ export function layout(profile, page) {
     esc(profile.name) +
     '</b><small>บัญชีลูกค้า</small></span></a><button id="logout" class="icon-btn" aria-label="ออกจากระบบ">' +
     icon("imgLogOut") +
-    '</button></div></aside><div class="workspace"><header class="topbar"><div class="breadcrumbs"><button class="icon-btn mobile-menu" id="menu" aria-label="เปิดเมนู" aria-expanded="false">☰</button><span>ICEFLOW</span>' +
+    '</button></div></aside><div class="workspace"><header class="topbar"><div class="breadcrumbs"><button class="icon-btn mobile-menu" id="menu" aria-label="เปิดเมนู" aria-expanded="false">☰</button><span>NamKheang</span>' +
     icon("imgChevronRight") +
     "<b>" +
     esc(TITLES[page] ?? "ลูกค้า") +
@@ -65,7 +65,7 @@ export function layout(profile, page) {
     esc(profile.company || "บัญชีลูกค้า") +
     "</small></span>" +
     icon("imgChevronDown") +
-    '</button></div></header><main id="view" tabindex="-1"></main><footer>© 2026 ICEFLOW · ระบบสั่งผลิตเครื่องทำน้ำแข็ง</footer></div></div>';
+    '</button></div></header><main id="view" tabindex="-1"></main><footer>© 2026 NamKheang · ระบบสั่งผลิตเครื่องทำน้ำแข็ง</footer></div></div>';
   const KEY = "sidebar-collapsed";
   const wide = () => window.matchMedia("(min-width: 851px)").matches;
   try {

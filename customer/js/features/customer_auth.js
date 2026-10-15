@@ -60,12 +60,12 @@ export async function renderAuth(page) {
         : "ลืมรหัสผ่าน"
       : "ยินดีต้อนรับกลับ";
   document.body.className = "auth-body";
-  document.title = title + " · ICEFLOW";
+  document.title = title + " · NamKheang";
   const assets = ASSETS[register ? "56:403" : "49:2594"];
   $("#app").innerHTML =
     '<div class="auth-shell"><section class="auth-art"><a class="brand" href="#/index"><span class="brand-mark">' +
     icon("imgIceMachineSymbol", "49:2594") +
-    '</span><span><b>ICEFLOW</b><small>ICE MACHINE CRM</small></span></a><img class="auth-snow one" src="' +
+    '</span><span><b>NamKheang</b><small>ICE MACHINE CRM</small></span></a><img class="auth-snow one" src="' +
     assets.imgEvcpPresent11 +
     '" alt=""><img class="auth-snow two" src="' +
     assets.imgEvcpPresent11 +
@@ -218,7 +218,7 @@ export async function renderAuth(page) {
 const ARROW =
   '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 const MODEL_IMG = (code) => "img/models/" + code + ".webp";
-// Landing page (public): what ICEFLOW does, the three ice types, the order steps.
+// Landing page (public): what NamKheang does, the three ice types, the order steps.
 // Figures match the live data: models T-500…C-500, deposit 40% / balance 60%,
 // reschedule notice 1 day. Machine pictures are AI illustrations, labelled as such.
 export function renderLanding() {
@@ -242,7 +242,7 @@ export function renderLanding() {
   ];
   $("#app").innerHTML =
     '<div class="lp">' +
-    '<header class="lp-wrap lp-top"><a class="lp-logo" href="#/index" aria-label="ICEFLOW หน้าแรก">ICE<b>FLOW</b></a>' +
+    '<header class="lp-wrap lp-top"><a class="lp-logo" href="#/index" aria-label="NamKheang หน้าแรก">Nam<b>Kheang</b></a>' +
     '<nav class="lp-nav"><button type="button" data-scroll="lp-types">รุ่นเครื่อง</button><button type="button" data-scroll="lp-steps">ขั้นตอนการสั่ง</button>' +
     '<a href="#/orders">ติดตามคำสั่งซื้อ</a><a class="pill teal" href="../">เข้าสู่ระบบ ' + ARROW + "</a></nav></header>" +
     '<main><section class="lp-wrap lp-hero"><div class="lp-hero-copy"><p class="lp-eyebrow">ผลิต · ติดตั้ง · ดูแล</p>' +
@@ -271,11 +271,11 @@ export function renderLanding() {
     '<section class="lp-wrap lp-sec flush" id="lp-steps"><h2>สั่งอย่างไร</h2><ol class="lp-steps">' +
     steps.map(([t, d]) => "<li><h3>" + t + "</h3><p>" + d + "</p></li>").join("") +
     "</ol></section>" +
-    '<section class="lp-wrap lp-sec flush"><h2>ใครใช้ ICEFLOW</h2><ul class="lp-users">' +
+    '<section class="lp-wrap lp-sec flush"><h2>ใครใช้ NamKheang</h2><ul class="lp-users">' +
     users.map(([t, d]) => "<li><h3>" + t + "</h3><p>" + d + "</p></li>").join("") +
     '</ul><div class="lp-cta"><p>พร้อมสั่งเครื่องแล้ว?</p><a class="pill teal" href="#/sign-up">สมัครสมาชิก ' + ARROW +
     '</a><a class="pill line" href="../">มีบัญชีแล้ว เข้าสู่ระบบ ' + ARROW + "</a></div></section></main>" +
-    '<footer class="lp-wrap lp-foot"><span>ICEFLOW · ระบบสั่งผลิตเครื่องทำน้ำแข็ง</span><span>รูปเครื่องเป็นภาพประกอบ ราคายืนยันตามใบเสนอราคาจากร้าน</span></footer></div>';
+    '<footer class="lp-wrap lp-foot"><span>NamKheang · ระบบสั่งผลิตเครื่องทำน้ำแข็ง</span><span>รูปเครื่องเป็นภาพประกอบ ราคายืนยันตามใบเสนอราคาจากร้าน</span></footer></div>';
   document.querySelectorAll("[data-scroll]").forEach((b) =>
     b.addEventListener("click", () =>
       document.getElementById(b.dataset.scroll)?.scrollIntoView({ behavior: "smooth", block: "start" }),
