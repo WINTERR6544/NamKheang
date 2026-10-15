@@ -22,8 +22,13 @@ import {
   signOut,
 } from "../services/customer_auth_service.js";
 import { errorMessage, errorField } from "../customer_errors.js";
-import { ASSETS } from "../customer_assets.js";
 
+// Decorative rows of the brand name for the sign-in panel; each row holds the text twice so
+// the CSS loop (translateX -50%) is seamless.
+const brandRows = () => {
+  const half = "<span>NamKheang ✻</span>".repeat(6);
+  return '<div class="auth-marquee" aria-hidden="true">' + ("<div>" + half + half + "</div>").repeat(9) + "</div>";
+};
 const passwordField = (name, label) =>
   field(name, label, {
     type: "password",
@@ -61,15 +66,12 @@ export async function renderAuth(page) {
       : "ยินดีต้อนรับกลับ";
   document.body.className = "auth-body";
   document.title = title + " · NamKheang";
-  const assets = ASSETS[register ? "56:403" : "49:2594"];
   $("#app").innerHTML =
     '<div class="auth-shell"><section class="auth-art"><a class="brand" href="#/index"><span class="brand-mark">' +
     icon("imgIceMachineSymbol", "49:2594") +
-    '</span><span><b>NamKheang</b><small>ICE MACHINE CRM</small></span></a><img class="auth-snow one" src="' +
-    assets.imgEvcpPresent11 +
-    '" alt=""><img class="auth-snow two" src="' +
-    assets.imgEvcpPresent11 +
-    '" alt=""></section><main class="auth-area"><div class="auth-top"><a href="#/index">← กลับหน้าหลัก</a></div><form class="auth-card" id="auth-form" novalidate><h1>' +
+    '</span><span><b>NamKheang</b><small>ICE MACHINE CRM</small></span></a>' +
+    brandRows() +
+    '</section><main class="auth-area"><div class="auth-top"><a href="#/index">← กลับหน้าหลัก</a></div><form class="auth-card" id="auth-form" novalidate><h1>' +
     title +
     '</h1><p class="muted">' +
     (reset
