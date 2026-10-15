@@ -6,6 +6,25 @@ const db = supabase.createClient(
   "sb_publishable_pCpu9MDRctw7DcySKYLobA_fwBXJsUG", // publishable key; RLS + staff_* / factory_* functions protect the data
 );
 
+// admin/, factory/ and the portal share one stored session. When it ends (sign-out here or in
+// another tab, or a refresh that fails), go back to the sign-in page instead of staying on a
+// page whose requests now run signed out (empty lists, 401 errors).
+let signedIn = false;
+db.auth.onAuthStateChange((event, session) => {
+  if (session) signedIn = true;
+  else if (signedIn && event === "SIGNED_OUT") location.replace("../");
+});
+// a tab left open in the background: check again before showing the next page
+async function sessionGone() {
+  if (!signedIn) return false;
+  const { data } = await db.auth.getSession();
+  return !data.session;
+}
+window.addEventListener("hashchange", async () => { if (await sessionGone()) location.replace("../"); });
+document.addEventListener("visibilitychange", async () => {
+  if (document.visibilityState === "visible" && (await sessionGone())) location.replace("../");
+});
+
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
