@@ -3,7 +3,8 @@
 Plain HTML/JS shop CRM on the same Supabase project. Hash-routed; no build step.
 
 - `index.html`, `admin.css`: login gate, sidebar, page chrome
-- `js/core.js`: Supabase client, router, lazy feature loader, sidebar, modal/toast helpers
+- `../shared/staff-lib.js`: helpers shared with the factory site (Supabase client, `$`/`$$`/`esc`/`must`, `toast`, `rpc`, route registry, `loadFeature`, sidebar toggle). Loaded before `core.js`; add shared helpers there, not in each `core.js`
+- `js/core.js`: router, sidebar, modal, login gate
 - `js/lib.js`: helpers shared by the pages (order and payment lists)
 - `js/features/`: **one file per sidebar item**, loaded the first time its page opens. See its README for the list and how to add one.
 

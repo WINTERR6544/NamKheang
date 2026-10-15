@@ -3,7 +3,8 @@
 Plain HTML/JS factory workspace on the same Supabase project, built like `admin/`: hash-routed, no build step, one file per page. Follows the Figma "ICEFLOW Factory" screens (Thai UI).
 
 - `index.html`, `factory.css`: login gate, sidebar, topbar. Styles build on `../admin/admin.css`; `factory.css` only adds what the factory screens do differently.
-- `js/core.js`: Supabase client, router, lazy feature loader, sidebar, icons (inline Lucide SVG), toast, Thai (Buddhist-era) dates
+- `../shared/staff-lib.js`: helpers shared with the admin site (Supabase client, `$`/`$$`/`esc`/`must`, `toast`, `rpc`, route registry, `loadFeature`, sidebar toggle). Loaded before `core.js`; add shared helpers there, not in each `core.js`
+- `js/core.js`: router, sidebar, icons (inline Lucide SVG), Thai (Buddhist-era) dates, login redirect
 - `js/lib.js`: loading this factory's requests, status pills, the summary card
 - `js/features/`: one file per page, loaded the first time its page opens
 
