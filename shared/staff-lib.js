@@ -46,20 +46,26 @@ function loadFeature(name) {
   return loaded[name];
 }
 
-// ---- collapsible sidebar: a button at the start of the topbar toggles .collapsed on #app (remembered per browser) ----
+// ---- collapsible sidebar: a button at the start of the topbar toggles .collapsed on #app ----
+// Wide screens remember the choice per browser; narrow screens use it as a slide-over menu that starts closed.
 (() => {
   const app = $("#app"), bar = $(".topbar");
   if (!app || !bar) return;
   const KEY = "sidebar-collapsed";
-  try { app.classList.toggle("collapsed", localStorage.getItem(KEY) === "1"); } catch { /* private mode: just not remembered */ }
+  const wide = () => window.matchMedia("(min-width: 901px)").matches;
   const b = document.createElement("button");
   b.type = "button"; b.className = "side-toggle"; b.textContent = "☰"; b.title = b.ariaLabel = "Toggle sidebar";
   const sync = () => b.setAttribute("aria-expanded", String(!app.classList.contains("collapsed")));
+  let saved = false;
+  try { saved = localStorage.getItem(KEY) === "1"; } catch { /* private mode: just not remembered */ }
+  app.classList.toggle("collapsed", wide() ? saved : true);
   b.onclick = () => {
     const on = app.classList.toggle("collapsed");
-    try { localStorage.setItem(KEY, on ? "1" : "0"); } catch { /* ignore */ }
+    if (wide()) { try { localStorage.setItem(KEY, on ? "1" : "0"); } catch { /* ignore */ } }
     sync();
   };
+  // after picking a page on a narrow screen, get the menu out of the way
+  window.addEventListener("hashchange", () => { if (!wide()) { app.classList.add("collapsed"); sync(); } });
   sync();
   bar.prepend(b);
 })();
