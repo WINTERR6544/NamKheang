@@ -67,11 +67,11 @@ export async function renderAuth(page) {
   document.body.className = "auth-body";
   document.title = title + " · NamKheang";
   $("#app").innerHTML =
-    '<div class="auth-shell"><section class="auth-art"><a class="brand" href="#/index"><span class="brand-mark">' +
-    icon("imgIceMachineSymbol", "49:2594") +
-    '</span><span><b>NamKheang</b><small>ICE MACHINE CRM</small></span></a>' +
+    '<div class="auth-shell"><section class="auth-art"><a class="auth-logo" href="#/index">Nam<b>Kheang</b></a>' +
     brandRows() +
-    '</section><main class="auth-area"><div class="auth-top"><a href="#/index">← กลับหน้าหลัก</a></div><form class="auth-card" id="auth-form" novalidate><h1>' +
+    '</section><main class="auth-area"><div class="auth-top"><a href="#/index">← กลับหน้าหลัก</a></div><form class="auth-card" id="auth-form" novalidate><p class="auth-role">' +
+    (reset ? "ลูกค้า · กู้คืนบัญชี" : "ลูกค้า · Customer") +
+    "</p><h1>" +
     title +
     '</h1><p class="muted">' +
     (reset
