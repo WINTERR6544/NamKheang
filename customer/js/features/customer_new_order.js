@@ -19,6 +19,13 @@ import { getCatalog, createOrder } from "../services/customer_order_service.js";
 
 import { TYPE_LABELS } from "../customer_constants.js";
 import { errorMessage, errorField } from "../customer_errors.js";
+// AI illustration per model code (customer/img/models/<code>.webp); hidden if the file is missing.
+const modelPhoto = (m) =>
+  '<figure class="model-photo"><img src="img/models/' +
+  esc(String(m.code || "").toLowerCase()) +
+  '.webp" alt="' +
+  esc(m.name) +
+  '" loading="lazy" width="512" height="512" onerror="this.closest(\'figure\').remove()"><figcaption>ภาพประกอบ</figcaption></figure>';
 export async function render(context, el) {
   const models = await getCatalog();
   if (context.page === "catalog") {
@@ -32,8 +39,11 @@ export async function render(context, el) {
           models
             .map((m) =>
               card(
-                m.name,
-                "<p>" +
+                "",
+                modelPhoto(m) +
+                  "<h2>" +
+                  esc(m.name) +
+                  "</h2><p>" +
                   esc(TYPE_LABELS[m.machine_type] ?? m.machine_type) +
                   " · " +
                   esc(m.capacity) +
@@ -44,6 +54,7 @@ export async function render(context, el) {
                   '</strong><small> ก่อน VAT</small><div class="actions">' +
                   button("เลือกรุ่นนี้", "#/new-order?model=" + m.model_id) +
                   "</div>",
+                "model-card",
               ),
             )
             .join("") +
