@@ -1,0 +1,90 @@
+/* NamKheang look for the admin/ and factory/ pages after sign-in, matching the sign-in screens and
+   the customer site: light soft-teal sidebar with the NamKheang wordmark, Mali headings, pill buttons,
+   rounded cards on a mist page. Loaded after admin.css (and factory.css), so it only overrides. */
+:root {
+  --nk-teal: #00777a; --nk-teal-h: #006064; --nk-bright: #00afaf; --nk-soft: #e2f7f6; --nk-mist: #eef2f1;
+  --nk-coral: #d9512b; --nk-ink: #14302f; --nk-muted: #4d6664; --nk-line: #dbe4e3;
+  --nk-display: "Mali", "Noto Sans Thai", system-ui, sans-serif;
+  --nk-logo: "Hubballi", "Mali", sans-serif;
+  --teal-btn: var(--nk-teal); --teal-btn-h: var(--nk-teal-h); --teal-soft: var(--nk-soft); --teal-note: #f2fbfa;
+  --bg: var(--nk-mist); --line: var(--nk-line); --text: var(--nk-ink); --muted: var(--nk-muted); --r: 18px;
+  --nk-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120' fill='none' stroke='%230a7f80' stroke-width='3' stroke-linecap='round' opacity='.5'%3E%3Cpath d='M14 18l8 14M60 10l-3 15M100 22l-9 10M30 62l14 3M84 58l-4 14M16 100l10-7M62 96l-2 15M104 96l-12-4'/%3E%3Cpath d='M60 52v16M52 60h16M54.5 54.5l11 11M65.5 54.5l-11 11' stroke-width='2.4'/%3E%3C/svg%3E");
+}
+a { color: var(--nk-teal); }
+:focus-visible { outline-color: var(--nk-bright); }
+
+/* sidebar */
+aside {
+  background: var(--nk-soft); color: var(--nk-ink); border-right: 1px solid #cfe9e7;
+  padding: 24px 14px 18px; display: flex; flex-direction: column;
+}
+aside::before {
+  content: ""; position: absolute; inset: auto 0 0 0; height: 180px; pointer-events: none;
+  background: var(--nk-pattern) 0 0 / 110px; opacity: .22;
+  -webkit-mask-image: linear-gradient(transparent, #000); mask-image: linear-gradient(transparent, #000);
+}
+aside > * { position: relative; }
+@media (max-width: 900px) { aside { box-shadow: 4px 0 24px rgba(0, 60, 60, .2); } }
+.nk-logo { display: inline-block; padding: 0 10px; font: 400 34px/1 var(--nk-logo); letter-spacing: .05em; color: var(--nk-teal); text-decoration: none; }
+.nk-logo b { font-weight: 400; color: var(--nk-coral); }
+.nk-tag {
+  display: inline-block; margin: 10px 10px 6px; padding: 3px 12px; border-radius: 99px; background: #fff;
+  font: 600 .72rem/1.6 var(--nk-display); letter-spacing: .04em; color: var(--nk-teal); align-self: flex-start;
+}
+aside .group { color: #5f7a78; font-size: .7rem; font-weight: 600; letter-spacing: .1em; padding: 18px 12px 6px; }
+aside a.nav { color: var(--nk-ink); border-radius: 99px; padding: 9px 14px; font-size: .88rem; }
+aside a.nav span { overflow: hidden; text-overflow: ellipsis; }
+aside a.nav.sub { color: #36504e; padding-left: 26px; }
+aside a.nav:hover { background: rgba(255, 255, 255, .75); }
+aside a.nav.on { background: var(--nk-teal); color: #fff; font-weight: 600; }
+aside a.nav .ic { color: var(--nk-teal); }
+aside a.nav.on .ic { color: #fff; }
+aside a.nav .count { background: var(--nk-coral); }
+aside .soon:hover { background: transparent; }
+.who { border-top: 1px solid #c6e3e1; color: var(--nk-muted); }
+.who b { color: var(--nk-ink); }
+.who .avatar { background: #fff; color: var(--nk-teal); }
+
+/* top bar, footer */
+.topbar { background: rgba(255, 255, 255, .92); border-bottom-color: var(--nk-line); backdrop-filter: blur(6px); }
+.crumbs b { color: var(--nk-ink); font-weight: 600; }
+.side-toggle:hover { background: var(--nk-soft); }
+.bell { background: var(--nk-soft); }
+.avatar { background: var(--nk-soft); color: var(--nk-teal); }
+footer.foot { color: var(--nk-muted); }
+.toast { background: var(--nk-ink); border-left-color: var(--nk-bright); border-radius: 14px; }
+
+/* type */
+h1, h2, .code-lg, .kpi .n { font-family: var(--nk-display); font-weight: 600; letter-spacing: 0; }
+h1 { font-size: 1.9rem; }
+.kpi .n, .metrics .n { color: var(--nk-teal); }
+
+/* surfaces */
+.card { border-color: var(--nk-line); border-radius: var(--r); box-shadow: 0 6px 20px rgba(10, 60, 60, .04); }
+.card.note, .card.next, .banner { background: var(--nk-soft); border-color: #cdebe8; }
+a.kpi { border-radius: var(--r); border-color: var(--nk-line); }
+a.kpi:hover { border-color: var(--nk-bright); }
+.task { border-radius: 14px; border-left-color: var(--nk-bright); background: #f5f8f8; }
+.bar .fill, ol.tl .d { background: var(--nk-bright); }
+.ov .card { border-radius: 22px; }
+.ov { background: rgba(10, 40, 40, .45); }
+
+/* controls */
+.btn { border-radius: 99px; padding-inline: 18px; font-family: var(--nk-display); font-weight: 600; }
+.btn.sm { padding-inline: 12px; }
+.btn.ghost { border-color: #cfdcdb; }
+.btn.ghost:hover { background: var(--nk-soft); border-color: var(--nk-teal); }
+input, select, textarea { border-color: #cfdcdb; border-radius: 12px; }
+input:focus, select:focus, textarea:focus { outline-color: var(--nk-bright); border-color: var(--nk-bright); }
+.pill { font-family: var(--nk-display); font-weight: 600; }
+.tabs button { border-radius: 99px; background: #fff; border: 1px solid var(--nk-line); font-family: var(--nk-display); }
+.tabs button:hover { background: var(--nk-soft); }
+.tabs button[aria-selected="true"] { background: var(--nk-teal); border-color: var(--nk-teal); color: #fff; }
+.toolbar .search, .toolbar .selbtn { border-radius: 99px; border-color: var(--nk-line); }
+.pg { border-radius: 99px; }
+.pg.on { background: var(--nk-teal); }
+.pg:hover:not(:disabled) { background: var(--nk-soft); }
+
+/* tables */
+table.t th, table.req th { color: var(--nk-muted); }
+table.t tr.click:hover td, table.req tbody tr:hover td { background: #f2fbfa; }

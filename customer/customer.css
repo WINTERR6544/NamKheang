@@ -2266,3 +2266,203 @@ h2,
   margin-top: 8px;
   color: var(--muted);
 }
+
+/* ===== Inner pages (2026-10): the signed-in pages get the NamKheang look of the sign-in screens and
+   landing page. Light soft-teal sidebar with the wordmark, deep teal-ink for dark surfaces instead of
+   black, dark-teal pill buttons (white text stays readable), rounder cards on a mist page.
+   Same look as ../shared/nk-app.css for the shop and factory pages. */
+:root {
+  --dark: #123b3a;
+  --teal-dark: #00777a;
+  --bg: #eef2f1;
+  --line: #dbe4e3;
+  --radius: 20px;
+}
+.app-body {
+  background: var(--mist);
+}
+.sidebar {
+  background: var(--soft);
+  color: var(--ink);
+  border-right: 1px solid #cfe9e7;
+  gap: 22px;
+}
+.sidebar::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 200px;
+  pointer-events: none;
+  background: var(--pattern) 0 0 / 110px;
+  opacity: 0.22;
+  -webkit-mask-image: linear-gradient(transparent, #000);
+  mask-image: linear-gradient(transparent, #000);
+}
+.sidebar > * {
+  position: relative;
+}
+.sidebar .brand {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+}
+.sidebar .wordmark {
+  font: 400 34px/1 var(--logo);
+  letter-spacing: 0.05em;
+  color: var(--teal-dark);
+}
+.sidebar .wordmark b {
+  font: inherit;
+  letter-spacing: inherit;
+  color: var(--coral);
+}
+.sidebar .role-tag {
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: #fff;
+  font: 600 11px/1.6 var(--display);
+  letter-spacing: 0.04em;
+  color: var(--teal-dark);
+}
+.nav-label {
+  color: #5f7a78;
+  font-weight: 600;
+}
+.nav-link {
+  color: var(--ink);
+  border-radius: 999px;
+  font-size: 14px;
+}
+.nav-link .icon {
+  color: var(--teal-dark);
+}
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.75);
+}
+.nav-link.active {
+  background: var(--teal-dark);
+}
+.nav-link.active .icon {
+  color: #fff;
+}
+.sidebar-account {
+  padding-top: 14px;
+  border-top: 1px solid #c6e3e1;
+}
+.account {
+  color: var(--ink);
+}
+.account small {
+  color: var(--muted);
+}
+.sidebar .avatar {
+  background: #fff;
+}
+.sidebar .icon-btn:hover {
+  background: #fff;
+}
+.topbar {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(6px);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.breadcrumbs {
+  color: var(--muted);
+  font-size: 13px;
+}
+.breadcrumbs b {
+  font-weight: 600;
+}
+.bell {
+  background: var(--soft);
+}
+.avatar {
+  background: var(--teal-dark);
+}
+.btn {
+  background: var(--teal-dark);
+  border-color: var(--teal-dark);
+}
+.btn:hover {
+  background: #006064;
+  border-color: #006064;
+}
+.btn.ghost {
+  background: #fff;
+  border-color: #cfdcdb;
+  color: var(--ink);
+}
+.btn.ghost:hover {
+  background: var(--soft);
+  border-color: var(--teal-dark);
+}
+.btn.danger {
+  background: var(--red-bg);
+  border-color: #f4bdc2;
+  color: var(--red);
+}
+.card {
+  box-shadow: 0 6px 20px rgba(10, 60, 60, 0.04);
+}
+.card.tint {
+  background: var(--soft);
+  border-color: #cdebe8;
+}
+.kpi strong,
+.payment-amount,
+.amount {
+  font-family: var(--display);
+}
+.kpi strong {
+  color: var(--teal-dark);
+}
+.badge {
+  font-family: var(--display);
+  font-weight: 600;
+}
+.tab {
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid var(--line);
+  font-family: var(--display);
+}
+.tab:hover {
+  background: var(--soft);
+}
+.tab.on {
+  background: var(--teal-dark);
+  border-color: var(--teal-dark);
+}
+.pagination .current {
+  background: var(--teal-dark);
+  border-radius: 999px;
+}
+.pagination button {
+  border-radius: 999px;
+}
+.search-tools input,
+.search-tools select,
+.toolbar input,
+.toolbar select {
+  border-radius: 999px;
+}
+.section-title span {
+  background: var(--teal-dark);
+  border-radius: 999px;
+}
+.modal {
+  border-radius: 22px;
+}
+.toast {
+  border-radius: 14px;
+}
+footer {
+  font-size: 12px;
+}
+@media (max-width: 850px) {
+  .sidebar.expanded {
+    box-shadow: 4px 0 24px rgba(0, 60, 60, 0.2);
+  }
+}

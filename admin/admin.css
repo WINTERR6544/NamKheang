@@ -1,6 +1,7 @@
-/* ICEFLOW shop / admin CRM: follows the Figma "Shop / Admin" screens.
+/* NamKheang shop / admin (formerly ICEFLOW): follows the Figma "Shop / Admin" screens.
    Dark sidebar, teal accent #00afaf, white cards on a light page.
-   Buttons use a deeper teal so white text keeps AA contrast. */
+   Buttons use a deeper teal so white text keeps AA contrast.
+   ../shared/nk-app.css loads after this and gives the pages the NamKheang look. */
 :root {
   --side: #080b0b; --side-2: #151b1b; --teal: #00afaf; --teal-btn: #00858a; --teal-btn-h: #006a6e; --teal-soft: #e6f7f6; --teal-note: #f2fbfa;
   --bg: #f5f6f5; --card: #fff; --line: #e3e8e7; --text: #16211f; --muted: #5b6b69;

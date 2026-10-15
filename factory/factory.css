@@ -1,4 +1,4 @@
-/* ICEFLOW factory workspace: follows the Figma "ICEFLOW Factory" screens.
+/* NamKheang factory workspace (formerly ICEFLOW): follows the Figma "ICEFLOW Factory" screens.
    Built on ../admin/admin.css (cards, buttons, pills, tables, toast, login gate); this file only adds or overrides
    what the factory screens do differently. Buttons keep a deeper teal than the Figma swatch so white text stays readable. */
 :root {

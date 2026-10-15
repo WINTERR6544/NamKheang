@@ -114,7 +114,7 @@ const NAV = [
   { label: "Users & Roles", href: "#/users", sub: 1 },
 ];
 function sidebar(user) {
-  return `<div class="brand">ICEFLOW</div><div class="sub-brand">SHOP &amp; ADMIN CRM</div>` +
+  return `<a class="nk-logo" href="#/dashboard">Nam<b>Kheang</b></a><span class="nk-tag">ร้าน · Shop / Admin</span>` +
     NAV.map((n) =>
       n.group ? `<div class="group">${n.group}</div>` :
       n.soon ? `<a class="nav soon ${n.sub ? "sub" : ""}" aria-disabled="true">${n.label}<span class="small">soon</span></a>` :

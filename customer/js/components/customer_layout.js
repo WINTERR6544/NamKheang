@@ -26,9 +26,7 @@ export function layout(profile, page) {
         : page;
   document.body.className = "app-body";
   $("#app").innerHTML =
-    '<a class="skip-link" href="#view">ข้ามไปเนื้อหา</a><div class="shell"><aside class="sidebar" id="sidebar"><a class="brand" href="#/dashboard"><span class="brand-mark">' +
-    icon("imgSnowflake") +
-    '</span><span><b>NamKheang</b><small>ICE MACHINE FLOW</small></span></a><p class="nav-label">เมนูสำหรับลูกค้า</p><nav aria-label="เมนูหลัก">' +
+    '<a class="skip-link" href="#view">ข้ามไปเนื้อหา</a><div class="shell"><aside class="sidebar" id="sidebar"><a class="brand" href="#/dashboard" aria-label="NamKheang หน้าหลัก"><span class="wordmark">Nam<b>Kheang</b></span><span class="role-tag">ลูกค้า · Customer</span></a><p class="nav-label">เมนูสำหรับลูกค้า</p><nav aria-label="เมนูหลัก">' +
     nav
       .map(
         ([key, label, asset]) =>

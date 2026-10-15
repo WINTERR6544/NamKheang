@@ -42,9 +42,9 @@ const icon = (name, size = 18) =>
   `<svg class="ic" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]}</svg>`;
 
 // ---- router ----
-// breadcrumb: "ICEFLOW / Factory > <page> / <extra>"; a feature can add its part once its data is loaded
+// breadcrumb: "NamKheang / Factory > <page> / <extra>"; a feature can add its part once its data is loaded
 function setCrumbs(...parts) {
-  $("#crumbs").innerHTML = `<span>ICEFLOW / Factory</span>${icon("chevronRight", 14)}<b>${parts.map(esc).join(" / ")}</b>`;
+  $("#crumbs").innerHTML = `<span>NamKheang / Factory</span>${icon("chevronRight", 14)}<b>${parts.map(esc).join(" / ")}</b>`;
 }
 
 // ---- features: one file per page, loaded when its route is first opened ----
@@ -90,7 +90,7 @@ const NAV = [
 ];
 const initials = (name) => (name || "?").trim().split(/\s+/).slice(0, 2).map((w) => w.charAt(0)).join("");
 function sidebar(user) {
-  return `<div class="brand"><span class="logo">${icon("snowflake", 20)}</span><div>ICEFLOW<div class="sub-brand">FACTORY WORKSPACE</div></div></div>
+  return `<a class="nk-logo" href="#/dashboard">Nam<b>Kheang</b></a><span class="nk-tag">โรงงาน · Factory</span>
     <div class="group">Workspace</div>` +
     NAV.map((n) => `<a class="nav" href="${n.href}">${icon(n.icon)}<span>${n.label}</span></a>`).join("") +
     `<div class="grow"></div>
