@@ -94,7 +94,7 @@ export function layout(profile, page) {
     ) {
       try {
         await signOut();
-        location.replace("../");
+        location.replace("#/login");
       } catch (error) {
         toast(errorMessage(error), "error");
       }
