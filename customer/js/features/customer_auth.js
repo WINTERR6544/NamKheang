@@ -215,52 +215,70 @@ export async function renderAuth(page) {
   if (routeParams().get("reset") === "success")
     banner(form, "ตั้งรหัสผ่านใหม่แล้ว กรุณาเข้าสู่ระบบ", "success");
 }
+const ARROW =
+  '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+const MODEL_IMG = (code) => "img/models/" + code + ".webp";
+// Landing page (public): what ICEFLOW does, the three ice types, the order steps.
+// Figures match the live data: models T-500…C-500, deposit 40% / balance 60%,
+// reschedule notice 1 day. Machine pictures are AI illustrations, labelled as such.
 export function renderLanding() {
   document.body.className = "landing-body";
-  const a = ASSETS["47:2"];
-  const snowPositions =
-    window.innerWidth < 560
-      ? [
-          ["-45px", "150px", 90, 92],
-          ["calc(100% - 30px)", "290px", 72, 74],
-          ["calc(100% - 88px)", "86px", 58, 60],
-          ["15px", "500px", 65, 66],
-        ]
-      : [
-          ["166px", "218px", 123, 125],
-          ["270px", "475px", 104, 107],
-          ["calc(100% - 138px)", "414px", 104, 107],
-          ["calc(100% - 242px)", "142px", 123, 125],
-          ["291px", "101px", 61, 62],
-          ["32%", "187px", 61, 62],
-          ["67%", "86px", 49, 50],
-          ["calc(100% - 61px)", "281px", 61, 62],
-        ];
+  const types = [
+    ["if-t10", "น้ำแข็งหลอด", "T-500 · T-1000 · T-2000", "500 กก. ถึง 2 ตันต่อวัน สำหรับร้านน้ำแข็ง ร้านอาหาร และจุดขายส่ง"],
+    ["if-f20", "น้ำแข็งเกล็ด", "F-1000 · F-2000", "1–2 ตันต่อวัน สำหรับแผงอาหารทะเลและงานแช่เย็นสินค้า"],
+    ["if-c05", "น้ำแข็งซอง", "C-500", "500 กก. ต่อวัน ก้อนใหญ่ ละลายช้า สำหรับเรือประมงและการขนส่ง"],
+  ];
+  const steps = [
+    ["ส่งคำสั่งซื้อ", "เลือกรุ่น จำนวน และที่อยู่ติดตั้ง"],
+    ["ยืนยันราคา", 'ร้านส่งใบเสนอราคา ชำระมัดจำ <b class="pct">40%</b>'],
+    ["ผลิตและ QC", "โรงงานผลิต แล้วตรวจทุกข้อก่อนส่ง"],
+    ["นัดติดตั้ง", "เลือกวันติดตั้ง เลื่อนได้ล่วงหน้า 1 วัน"],
+    ["ตรวจรับ", 'ทดสอบเครื่อง แล้วชำระส่วนที่เหลือ <b class="pct">60%</b>'],
+  ];
+  const users = [
+    ["ร้านน้ำแข็งและร้านอาหาร", "น้ำแข็งหลอดใช้กับเครื่องดื่มและขายปลีก"],
+    ["แผงอาหารทะเลและตลาด", "น้ำแข็งเกล็ดคลุมสินค้าได้ทั่วถึง ไม่ช้ำ"],
+    ["เรือประมงและโรงงานแปรรูป", "น้ำแข็งซองเก็บความเย็นได้นานระหว่างขนส่ง"],
+  ];
   $("#app").innerHTML =
-    '<main class="landing"><a class="brand" href="#/index"><span class="brand-mark">' +
-    icon("imgIceMachineSymbol", "47:2") +
-    "</span><span><b>ICEFLOW</b><small>ICE MACHINE CRM</small></span></a>" +
-    snowPositions
+    '<div class="lp">' +
+    '<header class="lp-wrap lp-top"><a class="lp-logo" href="#/index" aria-label="ICEFLOW หน้าแรก">ICE<b>FLOW</b></a>' +
+    '<nav class="lp-nav"><button type="button" data-scroll="lp-types">รุ่นเครื่อง</button><button type="button" data-scroll="lp-steps">ขั้นตอนการสั่ง</button>' +
+    '<a href="#/orders">ติดตามคำสั่งซื้อ</a><a class="pill teal" href="../">เข้าสู่ระบบ ' + ARROW + "</a></nav></header>" +
+    '<main><section class="lp-wrap lp-hero"><div class="lp-hero-copy"><p class="lp-eyebrow">ผลิต · ติดตั้ง · ดูแล</p>' +
+    "<h1>เครื่องทำน้ำแข็ง<br><em>สั่งผลิตได้ในที่เดียว</em></h1>" +
+    '<p class="lp-lead">เลือกรุ่น ขอใบเสนอราคา แล้วติดตามได้ทุกขั้น ตั้งแต่โรงงานเริ่มผลิต ตรวจ QC จนช่างติดตั้งถึงหน้าร้านคุณ</p>' +
+    '<div class="lp-row"><button type="button" class="pill teal" data-scroll="lp-types">ดูรุ่นเครื่อง ' + ARROW + '</button><a class="pill line" href="#/sign-up">สมัครสมาชิก ' + ARROW + "</a></div></div>" +
+    '<div class="lp-collage" aria-hidden="true"><div class="lp-pattern"></div>' +
+    '<img class="lp-ph one" src="' + MODEL_IMG("if-t20") + '" alt="" width="512" height="512">' +
+    '<img class="lp-ph two" src="' + MODEL_IMG("if-f10") + '" alt="" width="512" height="512">' +
+    '<img class="lp-ph three" src="' + MODEL_IMG("if-c05") + '" alt="" width="512" height="512">' +
+    '<p class="lp-tag">ผลิต 500 กก. – 2 ตัน <b>ต่อวัน</b></p></div></section>' +
+    '<section class="lp-band"><div class="lp-wrap"><h2>บอกขนาดที่ต้องใช้ แล้วให้เราดูแลที่เหลือ</h2>' +
+    "<p>ร้านรับคำสั่งซื้อ ส่งให้โรงงานผลิต ตรวจคุณภาพก่อนส่ง และนัดวันติดตั้งให้ คุณเห็นสถานะทุกครั้งที่งานขยับ</p>" +
+    '<div class="lp-row center"><button type="button" class="pill coral" data-scroll="lp-types">รุ่นเครื่อง ' + ARROW +
+    '</button><button type="button" class="pill teal" data-scroll="lp-steps">ขั้นตอน ' + ARROW +
+    '</button><a class="pill pink" href="#/sign-up">สมัครสมาชิก ' + ARROW + "</a></div></div></section>" +
+    '<section class="lp-wrap lp-sec" id="lp-types"><h2>เลือกชนิดน้ำแข็ง</h2><div class="lp-types">' +
+    types
       .map(
-        ([left, top, w, h]) =>
-          '<img class="landing-snow" src="' +
-          a.imgEvcpPresent12 +
-          '" alt="" style="left:' +
-          left +
-          ";top:" +
-          top +
-          ";width:" +
-          w +
-          "px;height:" +
-          h +
-          'px">',
+        ([img, name, models, text]) =>
+          '<article class="lp-type"><figure><img src="' + MODEL_IMG(img) + '" alt="เครื่อง' + name + '" loading="lazy" width="512" height="512"><figcaption>ภาพประกอบ</figcaption></figure>' +
+          "<h3>" + name + '</h3><p class="lp-models">' + models + "</p><p>" + text + '</p><a class="pill line" href="#/catalog">ดูรุ่นและราคา ' + ARROW + "</a></article>",
       )
       .join("") +
-    '<div class="landing-copy"><h1>ICE MACHINE FLOW CRM PLATFORM</h1><p class="tagline">Precision Management, Fast Delivery</p><a class="btn" href="#/login">' +
-    icon("imgLogIn", "47:2") +
-    'เข้าสู่ระบบ</a><small>หากยังไม่มีบัญชี&nbsp; <a href="#/sign-up">สมัครสมาชิก</a></small></div><img class="landing-orbit one" src="' +
-    a.imgEllipse7 +
-    '" alt=""><img class="landing-orbit two" src="' +
-    a.imgEllipse8 +
-    '" alt=""></main>';
+    "</div></section>" +
+    '<section class="lp-wrap lp-sec flush" id="lp-steps"><h2>สั่งอย่างไร</h2><ol class="lp-steps">' +
+    steps.map(([t, d]) => "<li><h3>" + t + "</h3><p>" + d + "</p></li>").join("") +
+    "</ol></section>" +
+    '<section class="lp-wrap lp-sec flush"><h2>ใครใช้ ICEFLOW</h2><ul class="lp-users">' +
+    users.map(([t, d]) => "<li><h3>" + t + "</h3><p>" + d + "</p></li>").join("") +
+    '</ul><div class="lp-cta"><p>พร้อมสั่งเครื่องแล้ว?</p><a class="pill teal" href="#/sign-up">สมัครสมาชิก ' + ARROW +
+    '</a><a class="pill line" href="../">มีบัญชีแล้ว เข้าสู่ระบบ ' + ARROW + "</a></div></section></main>" +
+    '<footer class="lp-wrap lp-foot"><span>ICEFLOW · ระบบสั่งผลิตเครื่องทำน้ำแข็ง</span><span>รูปเครื่องเป็นภาพประกอบ ราคายืนยันตามใบเสนอราคาจากร้าน</span></footer></div>';
+  document.querySelectorAll("[data-scroll]").forEach((b) =>
+    b.addEventListener("click", () =>
+      document.getElementById(b.dataset.scroll)?.scrollIntoView({ behavior: "smooth", block: "start" }),
+    ),
+  );
 }
