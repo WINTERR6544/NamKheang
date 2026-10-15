@@ -1,15 +1,7 @@
-// Shared factory core: Supabase client, helpers, icons, toast, router, sidebar, login gate.
+// Factory core: helpers, icons, router, sidebar, login gate.
 // Same structure as admin/js/core.js; the factory sees only its own requests (RLS + factory_* functions).
-const db = supabase.createClient(
-  "https://neotkiugfgktrjyzrbji.supabase.co",
-  "sb_publishable_pCpu9MDRctw7DcySKYLobA_fwBXJsUG", // publishable key; RLS + factory_* functions protect the data
-);
-
-const $ = (s, el = document) => el.querySelector(s);
-const $$ = (s, el = document) => [...el.querySelectorAll(s)];
-const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+// db, $, $$, esc, must, toast, rpc, route, main, hashParams and loadFeature come from ../shared/staff-lib.js.
 const errText = (e) => (e && e.message) || "เกิดข้อผิดพลาด";
-const must = (r) => { if (r.error) throw r.error; return r.data; };
 
 // Thai dates in the Buddhist era, as in the Figma: "11 มิ.ย. 2569", "11 มิ.ย. 2569 · 14:20 น."
 const dateTH = (s) => (s ? new Date(s).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" }) : "-");
@@ -49,27 +41,7 @@ const ICONS = {
 const icon = (name, size = 18) =>
   `<svg class="ic" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]}</svg>`;
 
-function toast(msg, bad) {
-  const t = document.createElement("div");
-  t.className = "toast" + (bad ? " bad" : "");
-  t.textContent = msg;
-  document.body.append(t);
-  setTimeout(() => t.remove(), bad ? 6000 : 3000);
-}
-
-// run an RPC, toast the result, throw on error
-async function rpc(name, args, okMsg) {
-  const { data, error } = await db.rpc(name, args);
-  if (error) throw error;
-  if (okMsg) toast(okMsg);
-  return data;
-}
-
 // ---- router ----
-const routes = [];
-const route = (re, fn) => routes.push({ re, fn });
-const main = () => $("#view");
-const hashParams = () => new URLSearchParams((location.hash.split("?")[1]) || "");
 // breadcrumb: "ICEFLOW / Factory > <page> / <extra>"; a feature can add its part once its data is loaded
 function setCrumbs(...parts) {
   $("#crumbs").innerHTML = `<span>ICEFLOW / Factory</span>${icon("chevronRight", 14)}<b>${parts.map(esc).join(" / ")}</b>`;
@@ -83,18 +55,6 @@ const FEATURES = [
   [/^\/production$/, "production"], [/^\/production\/\d+$/, "production-detail"], [/^\/qc$/, "qc"], [/^\/qc\/\d+$/, "qc-detail"], [/^\/installation$/, "installation"], [/^\/installation\/\d+(\/confirm)?$/, "installation-detail"],
   [/^\/notifications$/, "notifications"], [/^\/profile$/, "profile"],
 ];
-const loaded = {};
-function loadFeature(name) {
-  if (!loaded[name]) loaded[name] = new Promise((resolve, reject) => {
-    const s = document.createElement("script");
-    s.src = `js/features/${name}.js`;
-    s.onload = resolve;
-    s.onerror = () => { delete loaded[name]; reject(new Error(`feature "${name}" is not installed`)); };
-    document.head.append(s);
-  });
-  return loaded[name];
-}
-
 async function navigate() {
   const path = (location.hash || "#/dashboard").slice(1).split("?")[0];
   const item = NAV.find((n) => path === n.href.slice(1) || path.startsWith(n.href.slice(1) + "/"));
@@ -140,7 +100,7 @@ function sidebar(user) {
 // ---- login gate ----
 async function boot() {
   const { data } = await db.auth.getSession();
-  if (!data.session) return showLogin();
+  if (!data.session) return location.replace("../"); // sign in on the shared portal (index.html at the repo root)
   const { data: u } = await db.from("users").select("user_id, name, role, factory_id, is_active").eq("auth_id", data.session.user.id).maybeSingle();
   if (!u || !u.is_active || u.role !== "factory" || !u.factory_id) return showLogin("บัญชีนี้ไม่มีสิทธิ์เข้าใช้งานฝั่งโรงงาน");
   window.ME = u;
@@ -149,7 +109,7 @@ async function boot() {
   $("#bell").innerHTML = icon("bell") + $("#bell").innerHTML;
   $("#mename").textContent = u.name; $("#av").textContent = initials(u.name);
   $("#logout").innerHTML = icon("logout", 16);
-  $("#logout").onclick = async () => { await db.auth.signOut(); location.hash = ""; location.reload(); };
+  $("#logout").onclick = async () => { await db.auth.signOut(); location.replace("../"); };
   if (!location.hash) history.replaceState(null, "", "#/dashboard");
   await navigate();
   refreshShell();

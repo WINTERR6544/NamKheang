@@ -1,12 +1,5 @@
-// Shared admin core: Supabase client, helpers, modal/toast, router, sidebar, login gate.
-const db = supabase.createClient(
-  "https://neotkiugfgktrjyzrbji.supabase.co",
-  "sb_publishable_pCpu9MDRctw7DcySKYLobA_fwBXJsUG", // publishable key; RLS + staff_* functions protect the data
-);
-
-const $ = (s, el = document) => el.querySelector(s);
-const $$ = (s, el = document) => [...el.querySelectorAll(s)];
-const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+// Admin core: helpers, modal, router, sidebar, login gate.
+// db, $, $$, esc, toast, rpc, route, main, hashParams and loadFeature come from ../shared/staff-lib.js.
 const errText = (e) => (e && e.message) || "Something went wrong";
 const baht = (n) => Number(n ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const dateTH = (s, time) => (s ? new Date(s).toLocaleString("en-GB", time ? { dateStyle: "medium", timeStyle: "short" } : { dateStyle: "medium" }) : "-");
@@ -19,14 +12,6 @@ const STATUS = {
   10: "Completed", 99: "Cancelled",
 };
 const pill = (s) => `<span class="pill ${s === 10 ? "ok" : s === 99 ? "bad" : [0, 2, 5, 7, 9].includes(s) ? "warn" : ""}">${esc(STATUS[s] ?? s)}</span>`;
-
-function toast(msg, bad) {
-  const t = document.createElement("div");
-  t.className = "toast" + (bad ? " bad" : "");
-  t.textContent = msg;
-  document.body.append(t);
-  setTimeout(() => t.remove(), bad ? 6000 : 3000);
-}
 
 // modal(title, bodyHtml, { ok, onOk(root) }) -> resolves true when onOk succeeded
 function modal(title, body, { ok = "Save", onOk, onOpen } = {}) {
@@ -50,14 +35,6 @@ function modal(title, body, { ok = "Save", onOk, onOpen } = {}) {
   });
 }
 
-// run an RPC, toast the result, throw on error
-async function rpc(name, args, okMsg) {
-  const { data, error } = await db.rpc(name, args);
-  if (error) throw error;
-  if (okMsg) toast(okMsg);
-  return data;
-}
-
 async function slipUrl(path) {
   const { data, error } = await db.storage.from("payment-slips").createSignedUrl(path, 300);
   if (error) throw error;
@@ -78,10 +55,6 @@ async function uploadSlip(file, prefix) {
 }
 
 // ---- router ----
-const routes = [];
-const route = (re, fn) => routes.push({ re, fn });
-const main = () => $("#view");
-const hashParams = () => new URLSearchParams((location.hash.split("?")[1]) || "");
 function crumbsFor(path) {
   let grp = "", item = null;
   for (const n of NAV) { if (n.group) grp = n.group; else if (n.href === "#" + path) { item = n; if (!n.sub) grp = ""; break; } }
@@ -101,17 +74,6 @@ const FEATURES = [
   [/^\/installation$/, "installation"], [/^\/customers$/, "customers"], [/^\/factories$/, "factories"], [/^\/users$/, "users-roles"],
   [/^\/payments\/deposit$/, "payments-deposit"], [/^\/payments\/final$/, "payments-final"], [/^\/payments\/refund$/, "payments-refund"],
 ];
-const loaded = {};
-function loadFeature(name) {
-  if (!loaded[name]) loaded[name] = new Promise((resolve, reject) => {
-    const s = document.createElement("script");
-    s.src = `js/features/${name}.js`;
-    s.onload = resolve;
-    s.onerror = () => { delete loaded[name]; reject(new Error(`feature "${name}" is not installed`)); };
-    document.head.append(s);
-  });
-  return loaded[name];
-}
 async function navigate() {
   const path = (location.hash || "#/dashboard").slice(1).split("?")[0];
   $("#crumbs").innerHTML = crumbsFor(path);

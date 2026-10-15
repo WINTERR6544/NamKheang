@@ -51,7 +51,7 @@ async function renderRoute(token) {
       const auth = await session();
       if (token !== generation) return;
       if (!auth) {
-        location.replace(routeUrl("login"));
+        location.replace("../"); // shared portal (index.html at the repo root)
         return;
       }
       const profile = await getProfile();
@@ -103,7 +103,7 @@ async function renderRoute(token) {
       leave.onclick = async () => {
         try {
           await signOut();
-          location.replace(routeUrl("login"));
+          location.replace("../");
         } catch {
           toast("ออกจากระบบไม่ได้ กรุณาตรวจสอบการเชื่อมต่อ", "error");
         }
@@ -129,7 +129,7 @@ export async function boot() {
         }
       }
       if (ready && event === "SIGNED_OUT" && activeContext)
-        location.replace(routeUrl("login"));
+        location.replace("../");
       if (
         ready &&
         event === "SIGNED_IN" &&

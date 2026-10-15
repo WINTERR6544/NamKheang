@@ -18,6 +18,8 @@ From the repo root:
 python -m http.server 5500
 ```
 
+Sign in (all roles): http://localhost:5500/ — one login page (`index.html`, `portal.js`) that reads the account's role and opens the customer, factory or admin site. Signing out of customer or factory comes back here.
+
 Customer site: http://localhost:5500/customer/
 Admin (shop): http://localhost:5500/admin/
 Factory: http://localhost:5500/factory/

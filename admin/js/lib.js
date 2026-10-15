@@ -7,7 +7,6 @@ async function fetchOrders(statuses) {
   if (error) throw error;
   return data;
 }
-const must = (r) => { if (r.error) throw r.error; return r.data; };
 const head = (title, sub) => `<div class="head"><div><h1>${title}</h1>${sub ? `<div class="muted">${sub}</div>` : ""}</div></div>`;
 const orderLink = (o) => `<a class="mono" href="#/order/${o.order_id}"><b>${esc(o.order_code)}</b></a>`;
 const who = (o) => `${esc(o.customers?.name)}<div class="small muted">${esc(o.customers?.phone)}</div>`;

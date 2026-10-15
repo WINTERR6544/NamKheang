@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080b0b">
+  <title>ICEFLOW · เข้าสู่ระบบ</title>
+  <link rel="stylesheet" href="admin/admin.css">
+  <link rel="stylesheet" href="portal.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <main class="gate">
+    <div class="portal">
+      <form id="pform" class="card" novalidate>
+        <div class="p-brand">
+          <span class="p-logo" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20M12 2v20m8-6-4-4 4-4M4 8l4 4-4 4M16 4l-4 4-4-4M8 20l4-4 4 4"/></svg>
+          </span>
+          <div><h1>ICEFLOW</h1><div class="small muted">ระบบสั่งผลิตเครื่องทำน้ำแข็ง</div></div>
+        </div>
+
+        <p class="p-lead">เข้าสู่ระบบครั้งเดียว ระบบจะพาไปหน้าของคุณเอง</p>
+        <ul class="p-roles" aria-label="ประเภทบัญชี">
+          <li>ลูกค้า</li><li>โรงงาน</li><li>ร้าน</li>
+        </ul>
+
+        <div class="p-field"><label for="pemail">อีเมล</label><input id="pemail" type="email" required autocomplete="username"></div>
+        <div class="p-field"><label for="ppass">รหัสผ่าน</label><input id="ppass" type="password" required autocomplete="current-password"></div>
+        <div class="p-row">
+          <label class="p-check"><input id="premember" type="checkbox" checked> จดจำการเข้าสู่ระบบ</label>
+          <a href="customer/index.html#/reset-password">ลืมรหัสผ่าน?</a>
+        </div>
+
+        <div id="perr" class="err" role="alert" hidden></div>
+        <button id="pbtn" class="btn p-submit">เข้าสู่ระบบ</button>
+
+        <div class="p-alt">
+          <a href="customer/index.html#/login">ลูกค้าเข้าด้วยเบอร์โทรศัพท์</a>
+          <span>ลูกค้าใหม่? <a href="customer/index.html#/sign-up">สมัครสมาชิก</a></span>
+        </div>
+      </form>
+      <p id="pstatus" class="p-status" role="status" hidden>กำลังตรวจสอบการเข้าสู่ระบบ…</p>
+    </div>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.8/dist/umd/supabase.js"></script>
+  <script src="portal.js"></script>
+</body>
+</html>
