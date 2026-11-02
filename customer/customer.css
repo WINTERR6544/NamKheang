@@ -2636,3 +2636,8 @@ select:focus {
     width: auto;
   }
 }
+
+/* phone menu open: hide the profile chip (same rule as the staff sidebar); shows again when closed */
+.app-top.menu-open .app-me {
+  display: none;
+}

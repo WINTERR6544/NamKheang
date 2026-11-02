@@ -121,7 +121,7 @@ function sidebar(user) {
       n.group ? `<div class="group">${n.group}</div>` :
       `<a class="nav" href="${n.href}">${icon(n.icon)}<span>${n.label}</span>${n.key ? `<span class="count" id="c-${n.key}" hidden></span>` : ""}</a>`).join("") +
     `<div class="grow"></div>
-    <div class="who"><span class="avatar">${esc(initials(user.name))}</span><div><b>${esc(user.name)}</b><div class="small">${user.role === "admin" ? "ผู้ดูแลระบบ" : "พนักงานร้าน"}</div></div></div>`;
+    <div class="who"><span class="avatar">${esc(initials(user.name))}</span><div><b>${esc(user.name)}</b><div class="small">${user.role === "admin" ? "ผู้ดูแลระบบ" : "พนักงานร้าน"}</div></div><button class="menu-btn" type="button" title="ออกจากระบบ" aria-label="ออกจากระบบ"></button></div>`;
 }
 async function refreshCounts() {
   const [n, p] = await Promise.all([
@@ -146,8 +146,11 @@ async function boot() {
   $("#side").innerHTML = sidebar(u);
   $("#bell").innerHTML = icon("bell") + $("#bell").innerHTML;
   $("#mename").textContent = u.name; $("#av").textContent = initials(u.name);
-  $("#logout").innerHTML = icon("logout", 16);
-  $("#logout").onclick = async () => { await db.auth.signOut(); location.replace("../"); };
+  // sign-out sits in the top bar and, while the sidebar is open (top bar group hidden), next to the name
+  $$("#logout, .who .menu-btn").forEach((b) => {
+    b.innerHTML = icon("logout", 16);
+    b.onclick = async () => { await db.auth.signOut(); location.replace("../"); };
+  });
   await navigate();
   refreshCounts();
 }

@@ -67,3 +67,11 @@ h1 { font-size: 1.85rem; margin-bottom: 6px; } h2 { font-size: 1.12rem; margin-b
   .crumbs { min-width: 0; } .crumbs > span, .crumbs > .ic, .me .sep { display: none; }
   .crumbs b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
+
+/* sidebar open: the person and sign-out are at the bottom of the sidebar, so the top-right group hides;
+   sidebar closed: it shows again */
+.shell:not(.collapsed) .topbar .me { display: none; }
+.who > div { flex: 1; min-width: 0; }
+.who .menu-btn { flex: none; }
+/* keep the person + sign-out in view at the bottom of a long sidebar (shop menu scrolls) */
+aside .who { position: sticky; bottom: -18px; margin: 0 -14px -18px; padding: 12px 20px 18px; background: var(--nk-soft, #e2f7f6); z-index: 1; }
