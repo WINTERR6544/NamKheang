@@ -63,7 +63,7 @@ function sidebar(user) {
     <div class="group">Workspace</div>` +
     NAV.map((n) => `<a class="nav" href="${n.href}">${icon(n.icon)}<span>${n.label}</span></a>`).join("") +
     `<div class="grow"></div>
-    <div class="who"><span class="avatar">${esc(initials(user.name))}</span><div><b>${esc(user.name)}</b><div class="small">ผู้จัดการโรงงาน</div></div></div>`;
+    <div class="who"><span class="avatar">${esc(initials(user.name))}</span><div><b>${esc(user.name)}</b><div class="small">ผู้จัดการโรงงาน</div></div><button class="menu-btn" type="button" title="ออกจากระบบ" aria-label="ออกจากระบบ"></button></div>`;
 }
 
 // ---- login gate ----
@@ -77,8 +77,11 @@ async function boot() {
   $("#side").innerHTML = sidebar(u);
   $("#bell").innerHTML = icon("bell") + $("#bell").innerHTML;
   $("#mename").textContent = u.name; $("#av").textContent = initials(u.name);
-  $("#logout").innerHTML = icon("logout", 16);
-  $("#logout").onclick = async () => { await db.auth.signOut(); location.replace("../"); };
+  // sign-out sits in the top bar and, while the sidebar is open (top bar group hidden), next to the name
+  $$("#logout, .who .menu-btn").forEach((b) => {
+    b.innerHTML = icon("logout", 16);
+    b.onclick = async () => { await db.auth.signOut(); location.replace("../"); };
+  });
   if (!location.hash) history.replaceState(null, "", "#/dashboard");
   await navigate();
   refreshShell();
