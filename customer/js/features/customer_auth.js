@@ -44,6 +44,12 @@ const passwordField = (name, label) =>
         "</button></div><p id=",
     );
 export async function renderAuth(page) {
+  // One sign-in page for every role: the portal at the repo root reads the role and opens the
+  // right site. This site keeps only sign-up and password reset.
+  if (page === "login") {
+    location.replace("../" + (routeParams().get("reset") === "success" ? "?reset=success" : ""));
+    return;
+  }
   const register = page === "sign-up",
     reset = page === "reset-password";
   const auth = await session();
@@ -126,9 +132,9 @@ export async function renderAuth(page) {
         : "เข้าสู่ระบบ") +
     '</button><p class="auth-switch">' +
     (register
-      ? 'มีบัญชีแล้ว? <a href="#/login">เข้าสู่ระบบ</a>'
+      ? 'มีบัญชีแล้ว? <a href="../">เข้าสู่ระบบ</a>'
       : reset
-        ? '<a href="#/login">กลับไปเข้าสู่ระบบ</a>'
+        ? '<a href="../">กลับไปเข้าสู่ระบบ</a>'
         : 'ยังไม่มีบัญชี? <a href="#/sign-up">สมัครสมาชิก</a> · พนักงาน <a href="../">เข้าสู่ระบบร้าน / โรงงาน</a>') +
     "</p>" +
     "</form></main></div>";
@@ -172,7 +178,7 @@ export async function renderAuth(page) {
             await changePassword(v.password);
             sessionStorage.removeItem("iceflow.customer.recovery");
             await signOut();
-            location.replace("#/login?reset=success");
+            location.replace("../?reset=success");
           } else {
             await sendReset(v.email);
             banner(
@@ -248,7 +254,7 @@ export function renderLanding() {
     '<div class="lp">' +
     '<header class="lp-wrap lp-top"><a class="lp-logo" href="#/index" aria-label="NamKheang หน้าแรก">Nam<b>Kheang</b></a>' +
     '<nav class="lp-nav"><button type="button" data-scroll="lp-types">รุ่นเครื่อง</button><button type="button" data-scroll="lp-steps">ขั้นตอนการสั่ง</button>' +
-    '<a href="#/orders">ติดตามคำสั่งซื้อ</a><a class="pill teal" href="#/login">เข้าสู่ระบบ ' + ARROW + "</a></nav></header>" +
+    '<a href="#/orders">ติดตามคำสั่งซื้อ</a><a class="pill teal" href="../">เข้าสู่ระบบ ' + ARROW + "</a></nav></header>" +
     '<main><section class="lp-wrap lp-hero"><div class="lp-hero-copy"><p class="lp-eyebrow">ผลิต · ติดตั้ง · ดูแล</p>' +
     "<h1>เครื่องทำน้ำแข็ง<br><em>สั่งผลิตได้ในที่เดียว</em></h1>" +
     '<p class="lp-lead">เลือกรุ่น ขอใบเสนอราคา แล้วติดตามได้ทุกขั้น ตั้งแต่โรงงานเริ่มผลิต ตรวจ QC จนช่างติดตั้งถึงหน้าร้านคุณ</p>' +
@@ -278,7 +284,7 @@ export function renderLanding() {
     '<section class="lp-wrap lp-sec flush"><h2>ใครใช้ NamKheang</h2><ul class="lp-users">' +
     users.map(([t, d]) => "<li><h3>" + t + "</h3><p>" + d + "</p></li>").join("") +
     '</ul><div class="lp-cta"><p>พร้อมสั่งเครื่องแล้ว?</p><a class="pill teal" href="#/sign-up">สมัครสมาชิก ' + ARROW +
-    '</a><a class="pill line" href="#/login">มีบัญชีแล้ว เข้าสู่ระบบ ' + ARROW + "</a></div></section></main>" +
+    '</a><a class="pill line" href="../">มีบัญชีแล้ว เข้าสู่ระบบ ' + ARROW + "</a></div></section></main>" +
     '<footer class="lp-wrap lp-foot"><span>NamKheang · ระบบสั่งผลิตเครื่องทำน้ำแข็ง</span><span>รูปเครื่องเป็นภาพประกอบ ราคายืนยันตามใบเสนอราคาจากร้าน</span></footer></div>';
   document.querySelectorAll("[data-scroll]").forEach((b) =>
     b.addEventListener("click", () =>

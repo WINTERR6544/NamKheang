@@ -7,11 +7,10 @@ const db = supabase.createClient(
 );
 
 // admin/, factory/ and the portal share one stored session. When it ends (sign-out here or in
-// another tab, or a refresh that fails), reload to this site's own sign-in screen instead of
-// staying on a page whose requests now run signed out (empty lists, 401 errors). Nothing happens
-// while the sign-in screen is already showing, so its error messages stay visible.
+// another tab, or a refresh that fails), go to the universal sign-in page instead of
+// staying on a page whose requests now run signed out (empty lists, 401 errors).
 let signedIn = false;
-const toGate = () => { if (document.getElementById("app")?.hidden === false) location.reload(); };
+const toGate = () => location.replace("../");
 db.auth.onAuthStateChange((event, session) => {
   if (session) signedIn = true;
   else if (signedIn && event === "SIGNED_OUT") toGate();

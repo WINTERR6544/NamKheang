@@ -136,31 +136,18 @@ async function refreshCounts() {
 // ---- login gate ----
 async function boot() {
   const { data } = await db.auth.getSession();
-  if (!data.session) return showLogin();
+  if (!data.session) return location.replace("../"); // universal sign-in
   const { data: u } = await db.from("users").select("user_id, name, role, is_active").eq("auth_id", data.session.user.id).maybeSingle();
-  if (!u || !u.is_active || !["admin", "shop"].includes(u.role)) return showLogin("บัญชีนี้ไม่มีสิทธิ์เข้าใช้งานฝั่งร้าน");
+  if (!u || !u.is_active || !["admin", "shop"].includes(u.role)) return location.replace("../"); // the portal opens the site that matches this account
   window.ME = u;
-  $("#gate").hidden = true; $("#app").hidden = false;
+  $("#app").hidden = false;
   $("#side").innerHTML = sidebar(u);
   $("#mename").textContent = u.name + " · " + u.role; $("#av").textContent = (u.name || "?").trim().charAt(0).toUpperCase();
   $("#bell").onclick = () => { location.hash = "#/dashboard"; };
   $("#upd").textContent = "Last updated " + dateTH(new Date(), true);
-  $("#logout").onclick = async () => { await db.auth.signOut(); location.hash = ""; location.reload(); };
+  $("#logout").onclick = async () => { await db.auth.signOut(); location.replace("../"); };
   await navigate();
   refreshCounts();
-}
-function showLogin(msg) {
-  $("#gate").hidden = false; $("#app").hidden = true;
-  const err = $("#gerr");
-  err.textContent = msg || ""; err.hidden = !msg;
-  $("#gform").onsubmit = async (e) => {
-    e.preventDefault();
-    err.hidden = true;
-    const { error } = await db.auth.signInWithPassword({ email: $("#gemail").value, password: $("#gpass").value });
-    if (error) { err.textContent = /invalid login/i.test(error.message) ? "อีเมลหรือรหัสผ่านไม่ถูกต้อง" : errText(error); err.hidden = false; return; }
-    boot();
-  };
-  if (msg) db.auth.signOut();
 }
 
 // generic table: cols = [{h, f(row)->html, cls}], rows, onClick(row)->href

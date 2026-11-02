@@ -100,32 +100,19 @@ function sidebar(user) {
 // ---- login gate ----
 async function boot() {
   const { data } = await db.auth.getSession();
-  if (!data.session) return showLogin();
+  if (!data.session) return location.replace("../"); // universal sign-in
   const { data: u } = await db.from("users").select("user_id, name, role, factory_id, is_active").eq("auth_id", data.session.user.id).maybeSingle();
-  if (!u || !u.is_active || u.role !== "factory" || !u.factory_id) return showLogin("บัญชีนี้ไม่มีสิทธิ์เข้าใช้งานฝั่งโรงงาน");
+  if (!u || !u.is_active || u.role !== "factory" || !u.factory_id) return location.replace("../"); // the portal opens the site that matches this account
   window.ME = u;
-  $("#gate").hidden = true; $("#app").hidden = false;
+  $("#app").hidden = false;
   $("#side").innerHTML = sidebar(u);
   $("#bell").innerHTML = icon("bell") + $("#bell").innerHTML;
   $("#mename").textContent = u.name; $("#av").textContent = initials(u.name);
   $("#logout").innerHTML = icon("logout", 16);
-  $("#logout").onclick = async () => { await db.auth.signOut(); location.hash = ""; location.reload(); };
+  $("#logout").onclick = async () => { await db.auth.signOut(); location.replace("../"); };
   if (!location.hash) history.replaceState(null, "", "#/dashboard");
   await navigate();
   refreshShell();
-}
-function showLogin(msg) {
-  $("#gate").hidden = false; $("#app").hidden = true;
-  const err = $("#gerr");
-  err.textContent = msg || ""; err.hidden = !msg;
-  $("#gform").onsubmit = async (e) => {
-    e.preventDefault();
-    err.hidden = true;
-    const { error } = await db.auth.signInWithPassword({ email: $("#gemail").value, password: $("#gpass").value });
-    if (error) { err.textContent = /invalid login/i.test(error.message) ? "อีเมลหรือรหัสผ่านไม่ถูกต้อง" : errText(error); err.hidden = false; return; }
-    boot();
-  };
-  if (msg) db.auth.signOut();
 }
 
 // bell dot (unread messages, requests waiting for a reply, production due by tomorrow) refreshed after every action
