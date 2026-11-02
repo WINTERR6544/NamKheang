@@ -72,6 +72,8 @@ export function layout(profile, page) {
   menu.onclick = () => {
     const open = $("#app-nav").classList.toggle("open");
     menu.setAttribute("aria-expanded", String(open));
+    // menu open: it already lists notifications and sign-out, so the profile chip hides until it closes
+    $(".app-top").classList.toggle("menu-open", open);
   };
   $("#profile-button").onclick = () =>
     window.dispatchEvent(new CustomEvent("customer:profile"));
