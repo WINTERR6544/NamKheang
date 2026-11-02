@@ -58,10 +58,10 @@ async function uploadSlip(file, prefix) {
 function crumbsFor(path) {
   let grp = "", item = null;
   for (const n of NAV) { if (n.group) grp = n.group; else if (n.href === "#" + path) { item = n; if (!n.sub) grp = ""; break; } }
-  const parts = ["Shop / Admin"];
+  const parts = [];
   if (/^\/order\/\d+$/.test(path)) parts.push("Orders", "Order detail");
   else if (item) { if (grp) parts.push(grp); parts.push(item.label); }
-  return parts.map((p, i) => (i === parts.length - 1 ? `<b>${p}</b>` : p)).join(" / ");
+  return `<span>NamKheang / Shop</span>${icon("chevronRight", 14)}<b>${parts.map(esc).join(" / ")}</b>`;
 }
 
 // ---- features: one file per page, loaded when its route is first opened ----
@@ -99,27 +99,29 @@ window.addEventListener("hashchange", navigate);
 // ---- sidebar ----
 const G = (label) => ({ group: label });
 const NAV = [
-  { label: "Dashboard", href: "#/dashboard" },
+  { label: "Dashboard", href: "#/dashboard", icon: "grid" },
   G("Orders"),
-  { label: "All Orders", href: "#/orders", sub: 1 }, { label: "New Orders", href: "#/orders/new", sub: 1, key: "new" },
-  { label: "Quotations", href: "#/orders/quotations", sub: 1 }, { label: "Cancelled", href: "#/orders/cancelled", sub: 1 },
+  { label: "All Orders", href: "#/orders", sub: 1, icon: "list" }, { label: "New Orders", href: "#/orders/new", sub: 1, key: "new", icon: "inbox" },
+  { label: "Quotations", href: "#/orders/quotations", sub: 1, icon: "fileText" }, { label: "Cancelled", href: "#/orders/cancelled", sub: 1, icon: "ban" },
   G("Manufacturing"),
-  { label: "Factory Requests", href: "#/mfg/requests", sub: 1 }, { label: "Order Status", href: "#/mfg/status", sub: 1 },
-  { label: "Installation", href: "#/installation" },
+  { label: "Factory Requests", href: "#/mfg/requests", sub: 1, icon: "clipboard" }, { label: "Order Status", href: "#/mfg/status", sub: 1, icon: "activity" },
+  { label: "Installation", href: "#/installation", sub: 1, icon: "wrench" },
   G("Payments"),
-  { label: "Deposit", href: "#/payments/deposit", sub: 1, key: "dep" }, { label: "Final Payment", href: "#/payments/final", sub: 1, key: "fin" },
-  { label: "Refund", href: "#/payments/refund", sub: 1, key: "ref" },
+  { label: "Deposit", href: "#/payments/deposit", sub: 1, key: "dep", icon: "wallet" }, { label: "Final Payment", href: "#/payments/final", sub: 1, key: "fin", icon: "receipt" },
+  { label: "Refund", href: "#/payments/refund", sub: 1, key: "ref", icon: "undo" },
   G("Admin"),
-  { label: "Customers", href: "#/customers" }, { label: "Factories", href: "#/factories" },
-  { label: "Users & Roles", href: "#/users", sub: 1 },
+  { label: "Customers", href: "#/customers", sub: 1, icon: "users" }, { label: "Factories", href: "#/factories", sub: 1, icon: "building" },
+  { label: "Users & Roles", href: "#/users", sub: 1, icon: "shield" },
 ];
+const initials = (name) => (name || "?").trim().split(/\s+/).slice(0, 2).map((w) => w.charAt(0)).join("");
+// same frame as the factory site: icon menu, the signed-in person at the bottom, sign-out in the top bar
 function sidebar(user) {
   return `<a class="nk-logo" href="#/dashboard">Nam<b>Kheang</b></a><span class="nk-tag">ร้าน · Shop / Admin</span>` +
     NAV.map((n) =>
       n.group ? `<div class="group">${n.group}</div>` :
-      n.soon ? `<a class="nav soon ${n.sub ? "sub" : ""}" aria-disabled="true">${n.label}<span class="small">soon</span></a>` :
-      `<a class="nav ${n.sub ? "sub" : ""}" href="${n.href}">${n.label}${n.key ? `<span class="count" id="c-${n.key}" hidden></span>` : ""}</a>`).join("") +
-    `<div class="who">${esc(user.name)} · ${esc(user.role)}<br><button class="btn sm ghost" id="logout" style="margin-top:8px">Log out</button></div>`;
+      `<a class="nav" href="${n.href}">${icon(n.icon)}<span>${n.label}</span>${n.key ? `<span class="count" id="c-${n.key}" hidden></span>` : ""}</a>`).join("") +
+    `<div class="grow"></div>
+    <div class="who"><span class="avatar">${esc(initials(user.name))}</span><div><b>${esc(user.name)}</b><div class="small">${user.role === "admin" ? "ผู้ดูแลระบบ" : "พนักงานร้าน"}</div></div></div>`;
 }
 async function refreshCounts() {
   const [n, p] = await Promise.all([
@@ -142,9 +144,9 @@ async function boot() {
   window.ME = u;
   $("#app").hidden = false;
   $("#side").innerHTML = sidebar(u);
-  $("#mename").textContent = u.name + " · " + u.role; $("#av").textContent = (u.name || "?").trim().charAt(0).toUpperCase();
-  $("#bell").onclick = () => { location.hash = "#/dashboard"; };
-  $("#upd").textContent = "Last updated " + dateTH(new Date(), true);
+  $("#bell").innerHTML = icon("bell") + $("#bell").innerHTML;
+  $("#mename").textContent = u.name; $("#av").textContent = initials(u.name);
+  $("#logout").innerHTML = icon("logout", 16);
   $("#logout").onclick = async () => { await db.auth.signOut(); location.replace("../"); };
   await navigate();
   refreshCounts();
