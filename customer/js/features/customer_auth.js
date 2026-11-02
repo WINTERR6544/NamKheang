@@ -69,7 +69,7 @@ export async function renderAuth(page) {
   $("#app").innerHTML =
     '<div class="auth-shell"><section class="auth-art"><a class="auth-logo" href="#/index">Nam<b>Kheang</b></a>' +
     brandRows() +
-    '</section><main class="auth-area"><div class="auth-top"><a href="#/index">← กลับหน้าหลัก</a></div><form class="auth-card" id="auth-form" novalidate><p class="auth-role">' +
+    '</section><main class="auth-area"><form class="auth-card" id="auth-form" novalidate><p class="auth-role">' +
     (reset ? "ลูกค้า · กู้คืนบัญชี" : "ลูกค้า · Customer") +
     "</p><h1>" +
     title +
@@ -99,7 +99,6 @@ export async function renderAuth(page) {
             type: register || reset ? "email" : "text",
             required: true,
             autocomplete: "username",
-            placeholder: "name@company.co.th",
             maxLength: 254,
           },
         )
@@ -125,14 +124,13 @@ export async function renderAuth(page) {
           ? "บันทึกรหัสผ่าน"
           : "ส่งลิงก์กู้คืนบัญชี"
         : "เข้าสู่ระบบ") +
-    '</button><div class="rule"></div><p class="auth-switch">' +
+    '</button><p class="auth-switch">' +
     (register
       ? 'มีบัญชีแล้ว? <a href="#/login">เข้าสู่ระบบ</a>'
-      : 'ยังไม่มีบัญชี? <a href="#/sign-up">สมัครสมาชิก</a>') +
+      : reset
+        ? '<a href="#/login">กลับไปเข้าสู่ระบบ</a>'
+        : 'ยังไม่มีบัญชี? <a href="#/sign-up">สมัครสมาชิก</a> · พนักงาน <a href="../">เข้าสู่ระบบร้าน / โรงงาน</a>') +
     "</p>" +
-    (register || reset
-      ? ""
-      : '<p class="auth-switch staff-link">พนักงานร้านหรือโรงงาน? <a href="../">เข้าสู่ระบบพนักงาน</a></p>') +
     "</form></main></div>";
   const form = $("#auth-form"),
     rules = {};
