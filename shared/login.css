@@ -1,6 +1,12 @@
 /* NamKheang sign-in screen shared by the portal, admin/ and factory/ (customer/ has its own copy in
    customer.css). Split layout: drifting brand-name rows on the left, the form on the right.
    Loaded after admin.css where both are present; everything is scoped under .nk-login. */
+.nk-login,
+.nk-login *,
+.nk-login *::before,
+.nk-login *::after {
+  box-sizing: border-box;
+}
 .nk-login {
   --nk-ink: #14302f;
   --nk-muted: #4d6664;

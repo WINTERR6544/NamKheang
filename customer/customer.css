@@ -1108,10 +1108,6 @@ input[readonly] {
   padding: 36px 48px;
   min-height: 100vh;
 }
-.auth-art .brand {
-  position: relative;
-  z-index: 1;
-}
 .auth-snow {
   position: absolute;
   opacity: 0.24;
@@ -1858,15 +1854,37 @@ h2,
     animation: none;
   }
 }
-.auth-art .brand {
-  color: var(--ink);
-  background: rgba(255, 255, 255, 0.85);
-  padding: 8px 16px 8px 8px;
-  border-radius: 16px;
+/* same wordmark and role pill as the staff sign-in screens (shared/login.css) */
+.auth-logo {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
   width: max-content;
+  background: rgba(255, 255, 255, 0.88);
+  padding: 8px 18px;
+  border-radius: 16px;
+  color: var(--teal-dark);
+  font: 400 34px/1 var(--logo);
+  letter-spacing: 0.05em;
+  text-decoration: none;
 }
-.auth-art .brand small {
-  color: var(--muted);
+.auth-logo b {
+  font-weight: 400;
+  color: var(--coral);
+}
+.auth-card > .auth-role {
+  display: inline-block;
+  margin: 0 0 10px;
+  padding: 3px 12px;
+  border-radius: 99px;
+  background: var(--soft);
+  color: var(--teal-dark);
+  font: 600 13px var(--display);
+  letter-spacing: 0.04em;
+}
+.auth-card .btn.block {
+  background: var(--teal-dark);
+  border-color: var(--teal-dark);
 }
 .auth-snow {
   display: none;
