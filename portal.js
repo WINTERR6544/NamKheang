@@ -77,6 +77,8 @@ async function resume() {
   } catch { /* fall through to the form */ }
   $("#pstatus").hidden = true;
   $("#pform").hidden = false;
+  if (new URLSearchParams(location.search).get("reset") === "success")
+    showError("ตั้งรหัสผ่านใหม่แล้ว กรุณาเข้าสู่ระบบอีกครั้ง");
   $("#pemail").focus();
 }
 
