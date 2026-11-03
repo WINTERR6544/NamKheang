@@ -93,7 +93,9 @@ function orderNext(d, reload) {
   /* ----- actions ----- */
   const run = async (fn) => { try { await fn(); reload(); } catch (e) { toast(errText(e), true); } };
   const form = (title, body, ok, onOk, onOpen) => modal(title, body, { ok, onOk, onOpen }).then((done) => done && reload());
-  const facOptions = d.facs.map((f) => `<option value="${f.factory_id}">${esc(f.name)}${d.asg.some((a) => a.factory_id === f.factory_id && a.response === "rejected") ? " (declined before)" : ""}</option>`).join("");
+  // UC5: factories that declined this order are left out of the list
+  const declined = new Set(d.asg.filter((a) => a.response === "rejected").map((a) => a.factory_id));
+  const facOptions = d.facs.filter((f) => !declined.has(f.factory_id)).map((f) => `<option value="${f.factory_id}">${esc(f.name)}</option>`).join("");
   const cancelForm = () => form("Cancel order", `<label>Reason</label><textarea id="r" rows="3"></textarea>${[2, 3].includes(o.status) ? `<p class="small">A verified deposit exists. A refund entry will be created.</p>` : ""}`, "Confirm cancel",
     (m) => rpc("staff_cancel_order", { p_order: o.order_id, p_reason: $("#r", m).value }, "Cancelled"));
   const dateInput = (min) => `<input id="dt" type="datetime-local" ${min ? `min="${min}"` : ""}>`;
@@ -121,8 +123,10 @@ function orderNext(d, reload) {
           calc();
         });
     },
-    send: () => form(lastAsg?.response === "rejected" ? "Choose another factory" : "Send production order to a factory", `<label>Factory</label><select id="f">${facOptions}</select>`, "Send production order",
-      (m) => rpc("staff_send_to_factory", { p_order: o.order_id, p_factory: Number($("#f", m).value) }, "Production order sent")),
+    send: () => facOptions
+      ? form(lastAsg?.response === "rejected" ? "Choose another factory" : "Send production order to a factory", `<label>Factory</label><select id="f">${facOptions}</select>`, "Send production order",
+        (m) => rpc("staff_send_to_factory", { p_order: o.order_id, p_factory: Number($("#f", m).value) }, "Production order sent"))
+      : form("No factory available", `<p>Every active factory has declined this order. You can cancel the order; a verified deposit is refunded (UC5 alt).</p>`, "Cancel order instead", () => { setTimeout(cancelForm); return true; }),
     forward: () => run(() => rpc("staff_forward_problem", { p_order: o.order_id }, "Problem sent to the factory")),
     withdraw: () => form("Withdraw the production request", `<p>The factory has not replied. The request is withdrawn and the factory is told. You can then choose another factory.</p><label>Note (optional)</label><textarea id="r" rows="3"></textarea>`, "Withdraw request",
       (m) => rpc("staff_withdraw_request", { p_order: o.order_id, p_reason: $("#r", m).value.trim() || null }, "Request withdrawn. Choose another factory")),
