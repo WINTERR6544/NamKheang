@@ -99,7 +99,7 @@
 
 ## 4.1 ER Diagram
 
-[ภาพที่ 4.1 แสดง ER Diagram] — วาดจาก Mermaid ด้านล่าง (วางที่ mermaid.live แล้วส่งออกเป็นรูป)
+[ภาพที่ 4.1 แสดง ER Diagram] — ใช้รูป [`er/er-diagram.png`](er/er-diagram.png) (สัญลักษณ์ Crow's foot, PK ขีดเส้นใต้, FK ตัวเอียง) วาดใหม่ได้ด้วย `python3 SA-project/er/er_dot.py er.dot && dot -Tpng er.dot -o er.png` · Mermaid ด้านล่างเป็นฉบับย่อ (ความสัมพันธ์อย่างเดียว)
 
 ```mermaid
 erDiagram
@@ -111,6 +111,7 @@ erDiagram
   orders ||--o{ order_status_logs : logs
   order_statuses ||--o{ order_status_logs : of
   users ||--o{ order_status_logs : changed_by
+  order_statuses ||--o{ status_transitions : from_to
   orders ||--o{ quotations : has
   quotations ||--o{ quotation_items : contains
   users ||--o{ quotations : created_by
@@ -118,17 +119,31 @@ erDiagram
   users ||--o{ payments : verified_by
   orders ||--o{ factory_assignments : sent_to
   factories ||--o{ factory_assignments : receives
+  users ||--o{ factory_assignments : sent_by
   orders ||--o{ production_updates : tracks
+  users ||--o{ production_updates : updated_by
   orders ||--o{ qc_results : checked
   qc_items ||--o{ qc_results : criterion
   factories ||--o{ qc_results : of
+  users ||--o{ qc_results : checked_by
+  orders ||--o{ qc_reviews : reviewed
+  users ||--o{ qc_reviews : reviewed_by
   orders ||--o{ appointments : scheduled
+  users ||--o{ appointments : created_by
+  orders ||--o{ customer_reschedule_requests : "customer asks to move"
+  customers ||--o{ customer_reschedule_requests : asks
+  appointments ||--o{ customer_reschedule_requests : about
+  orders ||--o{ install_reschedule_requests : "factory asks to move"
+  appointments ||--o{ install_reschedule_requests : about
+  users ||--o{ install_reschedule_requests : requested_by
   orders ||--o{ acceptance_checks : accepted
   orders ||--o{ notifications : notifies
-  order_statuses ||--o{ status_transitions : from_to
+  users ||--o| shop_payment_details : updated_by
 ```
 
-**หมายเหตุ:** `business_rules` ไม่มีความสัมพันธ์กับตารางอื่น (ตารางค่าคงที่) ส่วน `notifications` ใช้ `recipient_type` + `recipient_id` แทน FK ตรง
+**หมายเหตุ:** `business_rules` ไม่มีความสัมพันธ์กับตารางอื่น (ตารางค่าคงที่) ส่วน `notifications` ใช้ `recipient_type` + `recipient_id` แทน FK ตรง `shop_payment_details` มีแถวเดียว (บัญชีรับเงินของร้าน) `qc_reviews.failed_items` เก็บ item_id ของ `qc_items` เป็น array (ไม่ใช่ FK)
+
+**อัปเดต 3 พ.ย. 2569 (ตรงกับฐานข้อมูลจริง):** เพิ่ม 4 ตาราง `qc_reviews` (ร้านยืนยันผล QC, UC7) · `customer_reschedule_requests` (ลูกค้าขอเลื่อนนัด, UC8) · `install_reschedule_requests` (โรงงานขอเลื่อนนัด, UC8) · `shop_payment_details` (บัญชีรับเงินของร้าน, UC3/UC10) และเพิ่มเส้นความสัมพันธ์กับ `users` ที่ขาดไป
 
 ## 4.2 ER Diagram ที่มี Query
 
@@ -144,7 +159,7 @@ erDiagram
 | Q1.2 | 1 | สมัครสมาชิก | `INSERT INTO customers (auth_id, name, phone, email, created_at) VALUES (:auth_id, :name, :phone, :email, NOW());` |
 | Q1.3 | 1 | เข้าสู่ระบบ | `SELECT c.customer_id, c.name, c.is_active FROM customers c WHERE c.auth_id = :auth_id;` |
 | Q2.1 | 2 | สร้างคำสั่งซื้อ | `SELECT m.model_id, m.code, m.name, m.machine_type, m.capacity, m.price FROM machine_models m WHERE m.is_active = true;` |
-| Q2.2 | 2 | สร้างคำสั่งซื้อ | `INSERT INTO orders (order_code, customer_id, model_id, machine_type, capacity, install_address, install_power, install_space, status, created_at) VALUES (:order_code, :customer_id, :model_id, :machine_type, :capacity, :install_address, :install_power, :install_space, 0, NOW());` |
+| Q2.2 | 2 | สร้างคำสั่งซื้อ | `INSERT INTO orders (order_code, customer_id, model_id, machine_type, capacity, quantity, install_address, install_power, install_space, status, created_at) VALUES (:order_code, :customer_id, :model_id, :machine_type, :capacity, :quantity, :install_address, :install_power, :install_space, 0, NOW());` |
 | Q2.3 | 2 | สร้างคำสั่งซื้อ | `INSERT INTO order_status_logs (order_id, status, changed_by, changed_at) VALUES (:order_id, 0, NULL, NOW());` |
 | Q3.1 | 3 | ออกใบเสนอราคา | `SELECT o.order_id, o.order_code, o.machine_type, o.capacity, o.install_address, o.status FROM orders o WHERE o.status = 0;` |
 | Q3.2 | 3 | ออกใบเสนอราคา | `INSERT INTO quotations (order_id, subtotal, vat, total_price, deposit_amount, valid_until, status, created_by, created_at) VALUES (:order_id, :subtotal, :vat, :total_price, :deposit_amount, :valid_until, 'sent', :user_id, NOW());` |
@@ -154,26 +169,34 @@ erDiagram
 | Q3.6 | 3 | ชำระมัดจำ | `INSERT INTO payments (order_id, amount, pay_type, payment_method, slip_path, verified, paid_at) VALUES (:order_id, :amount, 'deposit', :method, :slip_path, false, NOW());` |
 | Q3.7 | 3 | ตรวจสลิปมัดจำ | `UPDATE payments SET verified = true, verified_by = :user_id WHERE payment_id = :payment_id;` |
 | Q3.8 | 3 | ตรวจสลิปมัดจำ | `UPDATE orders SET status = 2 WHERE order_id = :order_id;` |
+| Q3.9 | 3, 10 | แสดงบัญชีรับเงินของร้าน | `SELECT s.bank_name, s.account_name, s.account_number, s.promptpay_id, s.qr_url, s.note FROM shop_payment_details s WHERE s.id = 1;` |
+| Q3.10 | 3, 10 | Admin แก้บัญชีรับเงิน | `UPDATE shop_payment_details SET bank_name = :bank, account_name = :account_name, account_number = :account_number, promptpay_id = :promptpay, qr_url = :qr_url, note = :note, updated_at = NOW(), updated_by = :user_id WHERE id = 1;` |
 | Q4.1 | 4 | ส่งคำสั่งผลิต | `SELECT f.factory_id, f.name, f.capacity_per_month FROM factories f WHERE f.is_active = true;` |
 | Q4.2 | 4 | ส่งคำสั่งผลิต | `INSERT INTO factory_assignments (order_id, factory_id, sent_by, sent_at, response) VALUES (:order_id, :factory_id, :user_id, NOW(), 'pending');` |
 | Q4.3 | 4 | ส่งคำสั่งผลิต | `UPDATE orders SET status = 3, factory_id = :factory_id, sent_at = NOW() WHERE order_id = :order_id;` |
 | Q4.4 | 4 | โรงงานตอบรับ | `UPDATE factory_assignments SET response = :response, reject_reason = :reason, responded_at = NOW() WHERE assignment_id = :assignment_id;` |
-| Q4.5 | 4 | แจ้งเตือนโรงงานไม่ตอบ | `SELECT fa.assignment_id, fa.order_id, fa.sent_at FROM factory_assignments fa WHERE fa.response = 'pending' AND fa.sent_at < NOW() - (:factory_reply_days * INTERVAL '1 day');` |
+| Q4.5 | 4 | แจ้งเตือนโรงงานไม่ตอบ (ทำอัตโนมัติทุกวัน) | `SELECT fa.assignment_id, fa.order_id, fa.sent_at FROM factory_assignments fa WHERE fa.response = 'pending' AND fa.reminded_at IS NULL AND fa.sent_at < NOW() - (:factory_reply_days * INTERVAL '1 day');` แล้ว `UPDATE factory_assignments SET reminded_at = NOW() WHERE assignment_id = :assignment_id;` |
 | Q5.1 | 5 | เลือกโรงงานใหม่ | `SELECT f.factory_id, f.name FROM factories f WHERE f.is_active = true AND f.factory_id NOT IN (SELECT fa.factory_id FROM factory_assignments fa WHERE fa.order_id = :order_id AND fa.response = 'rejected');` |
 | Q5.2 | 5 | เลือกโรงงานใหม่ | `UPDATE orders SET factory_id = :new_factory_id, sent_at = NOW() WHERE order_id = :order_id;` |
 | Q6.1 | 6 | เริ่มผลิต | `UPDATE orders SET status = 4, started_at = NOW(), est_finish_date = :est_finish_date WHERE order_id = :order_id;` |
 | Q6.2 | 6 | เริ่มผลิต | `INSERT INTO production_updates (order_id, stage, est_finish_date, note, updated_by, created_at) VALUES (:order_id, :stage, :est_finish_date, :note, :user_id, NOW());` |
 | Q6.3 | 6 | แจ้งผลิตเสร็จ | `UPDATE orders SET status = 5, finished_at = NOW() WHERE order_id = :order_id;` |
 | Q7.1 | 7 | ตรวจ QC | `SELECT qi.item_id, qi.item_name FROM qc_items qi WHERE qi.is_active = true;` |
-| Q7.2 | 7, 9 | ตรวจ QC (โรงงาน) / On-site QC หลังติดตั้ง | `INSERT INTO qc_results (order_id, factory_id, round_no, item_id, stage, passed, note, checked_by, checked_at) VALUES (:order_id, :factory_id, :round_no, :item_id, :stage, :passed, :note, :user_id, NOW());`  (`stage` = 'production' หรือ 'onsite', **คอลัมน์ใหม่ที่เสนอ**) |
+| Q7.2 | 7, 9 | ตรวจ QC (โรงงาน) / On-site QC หลังติดตั้ง | `INSERT INTO qc_results (order_id, factory_id, round_no, item_id, stage, passed, note, checked_by, checked_at) VALUES (:order_id, :factory_id, :round_no, :item_id, :stage, :passed, :note, :user_id, NOW());`  (`stage` = 'production' หรือ 'onsite') |
 | Q7.3 | 7, 9 | ตรวจผลรวมของรอบ | `SELECT COUNT(q.qc_id) FROM qc_results q WHERE q.order_id = :order_id AND q.stage = :stage AND q.round_no = :round_no AND q.passed = false;` |
-| Q7.4 | 7 | ร้านยืนยันผล QC | `INSERT INTO qc_reviews (order_id, round_no, passed, failed_items, note, reviewed_by) VALUES (...); UPDATE orders SET status = :status WHERE order_id = :order_id;`  (`:status` = 7 ผ่าน, 6 ส่งกลับแก้ไข) |
+| Q7.4 | 7 | รอบ QC ที่รอร้านตรวจ | `SELECT q.order_id, MAX(q.round_no) AS round_no FROM qc_results q WHERE q.stage = 'production' GROUP BY q.order_id HAVING NOT EXISTS (SELECT r.review_id FROM qc_reviews r WHERE r.order_id = q.order_id AND r.round_no = MAX(q.round_no));` |
+| Q7.5 | 7 | ร้านยืนยันผล QC / ส่งกลับแก้ไข | `INSERT INTO qc_reviews (order_id, round_no, passed, failed_items, note, reviewed_by, reviewed_at) VALUES (:order_id, :round_no, :passed, :failed_items, :note, :user_id, NOW());` แล้ว `UPDATE orders SET status = :status WHERE order_id = :order_id;`  (`:status` = 7 ผ่าน, 6 ส่งกลับแก้ไข) |
 | Q8.1 | 8 | นัดวันติดตั้ง | `INSERT INTO appointments (order_id, install_datetime, status, created_by, created_at) VALUES (:order_id, :install_datetime, 'scheduled', :user_id, NOW());` |
 | Q8.2 | 8 | นัดวันติดตั้ง | `UPDATE orders SET status = 8 WHERE order_id = :order_id;` |
-| Q8.3 | 8 | เลื่อนนัด | `UPDATE appointments SET install_datetime = :new_datetime, status = 'rescheduled', reschedule_count = reschedule_count + 1, reschedule_reason = :reason WHERE appointment_id = :appointment_id;` |
+| Q8.3 | 8 | เลื่อนนัด (ร้าน) | `UPDATE appointments SET status = 'rescheduled', reschedule_count = reschedule_count + 1, reschedule_reason = :reason WHERE appointment_id = :appointment_id;` แล้วสร้างนัดใหม่ด้วย Q8.1 |
+| Q8.4 | 8 | ลูกค้าขอเลื่อนนัด | `INSERT INTO customer_reschedule_requests (order_id, customer_id, appointment_id, preferred_datetime, reason, status, created_at) VALUES (:order_id, :customer_id, :appointment_id, :preferred_datetime, :reason, 'pending', NOW());` |
+| Q8.5 | 8 | โรงงานขอเลื่อนนัด | `INSERT INTO install_reschedule_requests (order_id, appointment_id, proposed_datetime, reason, status, requested_by, created_at) VALUES (:order_id, :appointment_id, :proposed_datetime, :reason, 'pending', :user_id, NOW());` |
+| Q8.6 | 8 | ร้านดูคำขอเลื่อนที่รออยู่ | `SELECT r.request_id, r.order_id, r.preferred_datetime, r.reason, r.created_at FROM customer_reschedule_requests r WHERE r.status = 'pending' ORDER BY r.created_at;` (คำขอของโรงงานใช้ `install_reschedule_requests` แบบเดียวกัน) เมื่อร้านนัดใหม่ `UPDATE ... SET status = 'resolved', resolved_at = NOW() WHERE order_id = :order_id AND status = 'pending';` |
+| Q8.7 | 8 | โรงงานยืนยันวันนัด | `UPDATE appointments SET factory_confirmed_at = NOW() WHERE appointment_id = :appointment_id;` |
 | Q9.1 | 9 | ยืนยันติดตั้งเสร็จ | `UPDATE orders SET status = 9, installed_at = NOW() WHERE order_id = :order_id;` |
 | Q9.2 | 9 | ยืนยันติดตั้งเสร็จ | `UPDATE appointments SET status = 'completed' WHERE order_id = :order_id AND status IN ('scheduled', 'rescheduled');` |
 | Q10.1 | 10 | ลูกค้าตรวจรับ (ไม่ผ่าน = แจ้งปัญหาถึงร้าน) | `INSERT INTO acceptance_checks (order_id, passed, note, checked_at) VALUES (:order_id, :passed, :note, NOW());` |
+| Q10.5 | 10 | ร้านส่งปัญหาต่อให้โรงงาน | `UPDATE acceptance_checks SET forwarded_at = NOW() WHERE check_id = :check_id;` |
 | Q10.2 | 10 | ชำระยอดคงเหลือ | `INSERT INTO payments (order_id, amount, pay_type, payment_method, slip_path, verified, paid_at) VALUES (:order_id, :amount, 'final', :method, :slip_path, false, NOW());` |
 | Q10.3 | 10 | ตรวจสลิป/ออกใบเสร็จ | `UPDATE payments SET verified = true, verified_by = :user_id, receipt_no = :receipt_no WHERE payment_id = :payment_id;` |
 | Q10.4 | 10 | ปิดคำสั่งซื้อ | `UPDATE orders SET status = 10, accepted_at = NOW() WHERE order_id = :order_id;` |
@@ -191,7 +214,7 @@ erDiagram
 | Q15.2 | 15 | จัดการผู้ใช้ | `INSERT INTO users (auth_id, name, email, role, factory_id, is_active) VALUES (:auth_id, :name, :email, :role, :factory_id, true);` |
 | Q15.3 | 15 | จัดการผู้ใช้ | `UPDATE users SET role = :role, factory_id = :factory_id, is_active = :is_active WHERE user_id = :user_id;` |
 
-> ใน DB จริง การเปลี่ยนสถานะ (Q3.4, Q3.8, Q4.3 ฯลฯ) ถูกตรวจโดย trigger `trg_check_status` กับตาราง `status_transitions` และเขียน `order_status_logs` + `notifications` อัตโนมัติ การดำเนินการของลูกค้าบางอย่างผ่าน RPC (`customer_accept_quote`, `customer_cancel_order`, `customer_submit_acceptance`) ตารางข้างบนเขียนเป็น SQL ตรงเพื่อให้ตรงกับรูปแบบของวิชา
+> ใน DB จริง การเปลี่ยนสถานะ (Q3.4, Q3.8, Q4.3 ฯลฯ) ถูกตรวจโดย trigger `trg_check_status` กับตาราง `status_transitions` และเขียน `order_status_logs` + `notifications` อัตโนมัติ การเขียนข้อมูลทำผ่านฟังก์ชันฝั่งฐานข้อมูล (เช่น `customer_create_order_v2`, `staff_create_quote`, `staff_qc_review`, `customer_request_reschedule_v2`, `admin_update_payment_details`) ตารางข้างบนเขียนเป็น SQL ตรงเพื่อให้ตรงกับรูปแบบของวิชา
 
 ## 4.4 Table Structure
 
@@ -267,6 +290,9 @@ erDiagram
 | cancel_reason | text | | | |
 | cancelled_by | text | | | `customer` / `shop` / `system` |
 | cancelled_at | timestamptz | | | |
+| quantity | integer | | ✔ | default 1, 1–20 เครื่อง |
+| finish_reminded_at | timestamptz | | | เตือนโรงงานใกล้วันผลิตเสร็จแล้ว |
+| final_reminded_at | timestamptz | | | เตือนลูกค้าชำระยอดคงเหลือแล้ว |
 | created_at | timestamptz | | ✔ | |
 
 ### 4.4.6 order_statuses
@@ -342,6 +368,7 @@ erDiagram
 | response | text | | ✔ | `pending` / `accepted` / `rejected` |
 | reject_reason | text | | | |
 | responded_at | timestamptz | | | |
+| reminded_at | timestamptz | | | เตือนโรงงานแล้ว (ไม่ตอบภายใน 3 วัน) |
 
 ### 4.4.13 production_updates
 | Column | Type | Key | NN | หมายเหตุ |
@@ -359,21 +386,27 @@ erDiagram
 |---|---|---|---|
 | item_id | bigint | PK | ✔ |
 | item_name | text | | ✔ |
+| item_name_th | text | | |
+| description_th | text | | |
+| description_en | text | | |
+| fix_example_th | text | | |
 | is_active | boolean | | ✔ |
 
 ### 4.4.15 qc_results
 | Column | Type | Key | NN | หมายเหตุ |
 |---|---|---|---|---|
 | qc_id | bigint | PK | ✔ | |
-| order_id | bigint | FK→orders | ✔ | |
+| order_id | bigint | FK→orders, UQ* | ✔ | |
 | factory_id | bigint | FK→factories | ✔ | |
-| item_id | bigint | FK→qc_items | ✔ | |
-| round_no | integer | | ✔ | default 1 |
-| stage | text | | ✔ | `production` / `onsite` — **เสนอเพิ่ม (ยังไม่มีใน DB)** แยก QC ระหว่างผลิตกับ On-site QC หลังติดตั้ง |
+| item_id | bigint | FK→qc_items, UQ* | ✔ | |
+| round_no | integer | UQ* | ✔ | default 1 |
+| stage | text | UQ* | ✔ | `production` (QC ระหว่างผลิต) / `onsite` (On-site QC หลังติดตั้ง) |
 | passed | boolean | | ✔ | |
 | note | text | | | |
 | checked_by | bigint | FK→users | | |
 | checked_at | timestamptz | | ✔ | |
+
+> UQ* = Unique ร่วมกัน (order_id, round_no, item_id, stage): หนึ่งหัวข้อมีผลเดียวต่อรอบ
 
 ### 4.4.16 appointments
 | Column | Type | Key | NN | หมายเหตุ |
@@ -386,6 +419,7 @@ erDiagram
 | reschedule_reason | text | | | |
 | created_by | bigint | FK→users | | |
 | created_at | timestamptz | | ✔ | |
+| factory_confirmed_at | timestamptz | | | โรงงานยืนยันวันนัด |
 
 ### 4.4.17 acceptance_checks
 | Column | Type | Key | NN |
@@ -395,8 +429,9 @@ erDiagram
 | passed | boolean | | ✔ |
 | note | text | | |
 | checked_at | timestamptz | | ✔ |
+| forwarded_at | timestamptz | | |
 
-> ตารางนี้เก็บผลตรวจรับของ **ลูกค้า** เท่านั้น เมื่อ `passed = false` ระบบแจ้งร้าน (ลูกค้าติดต่อร้าน) แล้วร้านประสานโรงงานและนัดเข้าแก้ไขใหม่
+> ตารางนี้เก็บผลตรวจรับของ **ลูกค้า** เท่านั้น เมื่อ `passed = false` ระบบแจ้งร้าน (ลูกค้าติดต่อร้าน) ร้านส่งปัญหาต่อให้โรงงาน (`forwarded_at`) แล้วนัดเข้าแก้ไขใหม่
 
 ### 4.4.18 notifications
 | Column | Type | Key | NN | หมายเหตุ |
@@ -416,6 +451,59 @@ erDiagram
 | value | numeric | | ✔ |
 | unit | text | | ✔ |
 | description | text | | ✔ |
+
+### 4.4.20 qc_reviews (ร้านยืนยันผล QC แต่ละรอบ, UC7)
+| Column | Type | Key | NN | หมายเหตุ |
+|---|---|---|---|---|
+| review_id | bigint | PK | ✔ | identity |
+| order_id | bigint | FK→orders, UQ* | ✔ | |
+| round_no | integer | UQ* | ✔ | รอบ QC ระหว่างผลิตที่ตรวจ |
+| passed | boolean | | ✔ | true = ผ่าน (→ qc_passed), false = ส่งกลับแก้ไข (→ rework) |
+| failed_items | bigint[] | | ✔ | item_id ของ qc_items ที่ร้านให้แก้, default `{}` |
+| note | text | | | รายละเอียดที่ต้องแก้ (โรงงานเห็น) |
+| reviewed_by | bigint | FK→users | | |
+| reviewed_at | timestamptz | | ✔ | default now() |
+
+> UQ* = Unique ร่วมกัน (order_id, round_no): หนึ่งรอบตรวจได้ครั้งเดียว
+
+### 4.4.21 customer_reschedule_requests (ลูกค้าขอเลื่อนนัดติดตั้ง, UC8)
+| Column | Type | Key | NN | หมายเหตุ |
+|---|---|---|---|---|
+| request_id | bigint | PK | ✔ | identity |
+| order_id | bigint | FK→orders | ✔ | |
+| customer_id | bigint | FK→customers | ✔ | |
+| appointment_id | bigint | FK→appointments | | นัดเดิมที่ขอเลื่อน |
+| preferred_datetime | timestamptz | | ✔ | วันเวลาที่ลูกค้าต้องการ |
+| reason | text | | ✔ | 5–1,000 ตัวอักษร |
+| status | text | | ✔ | `pending` / `resolved` |
+| created_at | timestamptz | | ✔ | |
+| resolved_at | timestamptz | | | ร้านนัดใหม่แล้ว |
+
+### 4.4.22 install_reschedule_requests (โรงงานขอเลื่อนนัดติดตั้ง, UC8)
+| Column | Type | Key | NN | หมายเหตุ |
+|---|---|---|---|---|
+| request_id | bigint | PK | ✔ | identity |
+| order_id | bigint | FK→orders | ✔ | |
+| appointment_id | bigint | FK→appointments | | นัดเดิมที่ขอเลื่อน |
+| proposed_datetime | timestamptz | | ✔ | วันเวลาที่โรงงานเสนอ |
+| reason | text | | ✔ | |
+| status | text | | ✔ | `pending` / `resolved` |
+| requested_by | bigint | FK→users | | ผู้ใช้โรงงาน |
+| created_at | timestamptz | | ✔ | |
+| resolved_at | timestamptz | | | ร้านนัดใหม่แล้ว |
+
+### 4.4.23 shop_payment_details (บัญชีรับเงินของร้าน, UC3 / UC10)
+| Column | Type | Key | NN | หมายเหตุ |
+|---|---|---|---|---|
+| id | smallint | PK | ✔ | มีแถวเดียว (id = 1) |
+| bank_name | text | | | |
+| account_name | text | | | |
+| account_number | text | | | 8–20 หลัก |
+| promptpay_id | text | | | เบอร์ 10 หลัก หรือเลขประจำตัว 13 หลัก |
+| qr_url | text | | | รูป QR ใน bucket `shop-assets` |
+| note | text | | | ข้อความถึงลูกค้า |
+| updated_at | timestamptz | | ✔ | |
+| updated_by | bigint | FK→users | | admin ที่แก้ล่าสุด |
 
 ---
 
