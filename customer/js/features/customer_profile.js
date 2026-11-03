@@ -8,6 +8,7 @@ import {
   banner,
   toast,
   icon,
+  field,
 } from "../components/customer_ui.js";
 import {
   profileCard,
@@ -23,7 +24,7 @@ import {
   getProfile,
   saveProfile,
 } from "../services/customer_profile_service.js";
-import { changeEmail } from "../services/customer_auth_service.js";
+import { changeEmail, changePassword } from "../services/customer_auth_service.js";
 import { errorMessage, errorField } from "../customer_errors.js";
 import { updateProfile } from "../components/customer_layout.js";
 
@@ -42,6 +43,45 @@ export async function openProfile(context) {
     },
   });
 }
+// Change password while signed in (Supabase auth updateUser); the email reset link stays on the sign-in page.
+const passwordCard = () =>
+  `<form id="password-form" class="card profile-card profile-password" novalidate>
+    <h2>เปลี่ยนรหัสผ่าน</h2><p class="muted">อย่างน้อย 8 ตัวอักษร</p>
+    <input type="text" name="username" autocomplete="username" hidden>` +
+  field("new_password", "รหัสผ่านใหม่", { type: "password", required: true, autocomplete: "new-password", maxLength: 128 }) +
+  field("confirm_new_password", "ยืนยันรหัสผ่านใหม่", { type: "password", required: true, autocomplete: "new-password", maxLength: 128 }) +
+  `<div data-banner hidden role="alert"></div>
+    <div class="profile-edit-actions"><button type="submit" class="btn">เปลี่ยนรหัสผ่าน</button></div></form>`;
+function bindPassword(el, email) {
+  const form = $("#password-form", el);
+  form.elements.namedItem("username").value = email || "";
+  const validation = bindValidation(form, {
+    new_password: validators.password,
+    confirm_new_password: (value, all) =>
+      value && value === all.new_password ? "" : "รหัสผ่านทั้งสองช่องไม่ตรงกัน",
+  });
+  form.onsubmit = async (event) => {
+    event.preventDefault();
+    if (!validation.validate()) return;
+    await busy(form, async () => {
+      try {
+        await changePassword(validation.values().new_password);
+        form.reset();
+        toast("เปลี่ยนรหัสผ่านแล้ว");
+      } catch (error) {
+        const m = String(error?.message || "");
+        banner(
+          form,
+          /different from the old/i.test(m)
+            ? "รหัสผ่านใหม่ต้องไม่ซ้ำกับรหัสเดิม"
+            : /reauth|recent/i.test(m)
+              ? "เพื่อความปลอดภัย กรุณาออกจากระบบแล้วเข้าใหม่ก่อนเปลี่ยนรหัสผ่าน"
+              : errorMessage(error),
+        );
+      }
+    });
+  };
+}
 export async function render(context, el) {
   let profile = await getProfile();
   context.profile = profile;
@@ -52,8 +92,9 @@ export async function render(context, el) {
       heading(
         "ข้อมูลส่วนตัวและการติดต่อ",
         "จัดการข้อมูลสำหรับติดต่อและประสานงาน",
-      ) + `<div class="profile-page">${profileCard(profile)}</div>`;
+      ) + `<div class="profile-page">${profileCard(profile)}${passwordCard()}</div>`;
     $("[data-edit]", el).onclick = edit;
+    bindPassword(el, profile.email);
   }
   function edit() {
     el.innerHTML =

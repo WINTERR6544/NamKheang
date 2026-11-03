@@ -112,6 +112,8 @@ const NAV = [
   G("Admin"),
   { label: "Customers", href: "#/customers", sub: 1, icon: "users" }, { label: "Factories", href: "#/factories", sub: 1, icon: "building" },
   { label: "Users & Roles", href: "#/users", sub: 1, icon: "shield" },
+  G("Account"),
+  { label: "Profile", href: "#/profile", sub: 1, icon: "user" },
 ];
 const initials = (name) => (name || "?").trim().split(/\s+/).slice(0, 2).map((w) => w.charAt(0)).join("");
 // same frame as the factory site: icon menu, the signed-in person at the bottom, sign-out in the top bar
@@ -121,7 +123,7 @@ function sidebar(user) {
       n.group ? `<div class="group">${n.group}</div>` :
       `<a class="nav" href="${n.href}">${icon(n.icon)}<span>${n.label}</span>${n.key ? `<span class="count" id="c-${n.key}" hidden></span>` : ""}</a>`).join("") +
     `<div class="grow"></div>
-    <div class="who"><span class="avatar">${esc(initials(user.name))}</span><div><b>${esc(user.name)}</b><div class="small">${user.role === "admin" ? "ผู้ดูแลระบบ" : "พนักงานร้าน"}</div></div><button class="menu-btn" type="button" title="ออกจากระบบ" aria-label="ออกจากระบบ"></button></div>`;
+    <div class="who"><a class="who-link" href="#/profile" title="โปรไฟล์ของฉัน"><span class="avatar">${esc(initials(user.name))}</span><div><b>${esc(user.name)}</b><div class="small">${user.role === "admin" ? "ผู้ดูแลระบบ" : "พนักงานร้าน"}</div></div></a><button class="menu-btn" type="button" title="ออกจากระบบ" aria-label="ออกจากระบบ"></button></div>`;
 }
 async function refreshCounts() {
   const [n, p] = await Promise.all([
