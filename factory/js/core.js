@@ -77,6 +77,7 @@ async function boot() {
   $("#side").innerHTML = sidebar(u);
   $("#bell").innerHTML = icon("bell") + $("#bell").innerHTML;
   $("#mename").textContent = u.name; $("#av").textContent = initials(u.name);
+  NKAvatar.paint([$("#av"), $(".who .avatar")], NKAvatar.urlOf(data.session.user)); // profile picture, if set
   // sign-out sits in the top bar and, while the sidebar is open (top bar group hidden), next to the name
   $$("#logout, .who .menu-btn").forEach((b) => {
     b.innerHTML = icon("logout", 16);

@@ -4,6 +4,7 @@
 // - view: name, email, role, factory (factory users), status, member since
 // - edit name: staff_update_my_profile (role, factory, email and active flag are changed by an admin on Users & Roles)
 // - change password: supabase auth updateUser
+// - profile picture: ../shared/avatar.js (NKAvatar)
 const ROLE_TH = { admin: "ผู้ดูแลระบบ", shop: "พนักงานร้าน", factory: "ผู้ใช้โรงงาน" };
 const longDateTH = (s) => (s ? new Date(s).toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric" }) : "-");
 
@@ -16,6 +17,7 @@ route(/^\/profile$/, async (el) => {
     ? (await db.from("factories").select("name").eq("factory_id", me.factory_id).maybeSingle()).data
     : null;
   const email = auth.user.email || me.email || "-";
+  let avatarUrl = NKAvatar.urlOf(auth.user);
 
   const draw = (editing) => {
     el.innerHTML = `
@@ -25,7 +27,8 @@ route(/^\/profile$/, async (el) => {
           <div class="profile-id">
             <span class="avatar lg">${esc(initials(me.name))}</span>
             <div><h2>${esc(me.name)}</h2><div class="muted">${esc(email)}</div>
-              <span class="pill dot ${me.is_active ? "ok" : "bad"}">${me.is_active ? "ใช้งานอยู่" : "ปิดการใช้งาน"}</span></div>
+              <span class="pill dot ${me.is_active ? "ok" : "bad"}">${me.is_active ? "ใช้งานอยู่" : "ปิดการใช้งาน"}</span>
+              <div class="row av-actions" id="pf-av"></div></div>
           </div>
           <hr>
           ${editing ? `
@@ -61,6 +64,11 @@ route(/^\/profile$/, async (el) => {
           </form>
         </div>
       </div>`;
+
+    // picture: shown in the big circle, the top bar and the sidebar
+    const paintAll = (url) => NKAvatar.paint([$(".avatar.lg", el), $("#av"), $(".who .avatar")], url);
+    paintAll(avatarUrl);
+    NKAvatar.picker($("#pf-av"), db, avatarUrl, (url) => { avatarUrl = url; paintAll(url); }, toast);
 
     if (editing) {
       $("#pf-n").focus();

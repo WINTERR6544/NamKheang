@@ -26,8 +26,28 @@ import {
 } from "../services/customer_profile_service.js";
 import { changeEmail, changePassword } from "../services/customer_auth_service.js";
 import { errorMessage, errorField } from "../customer_errors.js";
-import { updateProfile } from "../components/customer_layout.js";
+import { updateProfile, paintTopAvatar } from "../components/customer_layout.js";
+import { client } from "../services/customer_supabase_client.js";
+import { session } from "../services/customer_auth_service.js";
 
+// profile picture (../shared/avatar.js): shown in the card's circle; change/remove on the profile page
+async function paintCardAvatar(root, url) {
+  if (!window.NKAvatar) return;
+  if (url === undefined) url = window.NKAvatar.urlOf((await session().catch(() => null))?.user);
+  window.NKAvatar.paint([$(".profile-identity .avatar", root)], url);
+  return url;
+}
+async function mountPicture(el) {
+  if (!window.NKAvatar) return;
+  const url = await paintCardAvatar(el);
+  const box = document.createElement("div");
+  box.className = "av-actions";
+  $(".profile-identity > div", el)?.append(box);
+  window.NKAvatar.picker(box, client(), url, (next) => {
+    paintCardAvatar(el, next);
+    paintTopAvatar(next);
+  }, (message, bad) => toast(message, bad ? "error" : "success"));
+}
 export async function openProfile(context) {
   context.profile = await getProfile();
   if (context.isCurrent && !context.isCurrent()) return;
@@ -36,6 +56,7 @@ export async function openProfile(context) {
     headerHtml: profileHeader(),
     showFooter: false,
     onOpen(dialog) {
+      paintCardAvatar(dialog);
       $("[data-edit]", dialog).onclick = () => {
         $(".close", dialog).click();
         location.assign("#/profile?edit=1");
@@ -95,6 +116,7 @@ export async function render(context, el) {
       ) + `<div class="profile-page">${profileCard(profile)}${passwordCard()}</div>`;
     $("[data-edit]", el).onclick = edit;
     bindPassword(el, profile.email);
+    mountPicture(el);
   }
   function edit() {
     el.innerHTML =

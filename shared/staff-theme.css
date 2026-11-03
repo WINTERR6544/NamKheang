@@ -97,3 +97,7 @@ dl.spec2 dt { color: var(--muted); font-size: .8rem; } dl.spec2 dd { font-weight
 .me-link { display: flex; align-items: center; gap: 10px; color: inherit; text-decoration: none; border-radius: 99px; padding: 2px 8px 2px 2px; }
 .me-link:hover { background: var(--f-teal-soft); }
 .me-link:hover b { text-decoration: underline; }
+
+/* profile picture inside the initials circle (shared/avatar.js) */
+.avatar.has-img { background-size: cover; background-position: center; background-repeat: no-repeat; color: transparent; }
+.av-actions { margin-top: 10px; gap: 8px; }

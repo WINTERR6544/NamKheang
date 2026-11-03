@@ -2652,3 +2652,21 @@ select:focus {
 .profile-password > .muted {
   margin: 0 0 14px;
 }
+
+/* profile picture inside the initials circle (../shared/avatar.js) */
+.avatar.has-img {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: transparent;
+}
+.profile-identity .av-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.av-actions .btn.sm {
+  min-height: 32px;
+  padding: 0 14px;
+  font-size: 13px;
+}
