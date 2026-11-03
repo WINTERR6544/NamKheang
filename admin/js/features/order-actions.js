@@ -1,8 +1,8 @@
 // Shared by the order page and the order popup: loads one order, works out the shop's next step for it,
-// and holds the handlers behind the buttons (quote, verify slip, send to factory, QC, schedule, cancel ...).
+// and holds the handlers behind the buttons (quote, verify slip, send to factory, QC review, schedule, cancel ...).
 async function loadOrder(id) {
   const q = (t, sel, o = "created_at", asc = true) => db.from(t).select(sel).eq("order_id", id).order(o, { ascending: asc });
-  const [o, logs, quotes, pays, asg, prod, qc, ap, ac, notes, facs, items, rules, moves] = await Promise.all([
+  const [o, logs, quotes, pays, asg, prod, qc, ap, ac, notes, facs, items, rules, moves, cmoves, reviews] = await Promise.all([
     db.from("orders").select("*, customers(name, phone, email), factories(name), machine_models(name, code, price)").eq("order_id", id).maybeSingle().then(must),
     q("order_status_logs", "status, changed_at", "changed_at").then(must),
     q("quotations", "*, quotation_items(description, amount)", "created_at", false).then(must),
@@ -17,9 +17,11 @@ async function loadOrder(id) {
     db.from("qc_items").select("item_id, item_name").eq("is_active", true).order("item_id").then(must),
     db.from("business_rules").select("rule_key, value").then(must),
     q("install_reschedule_requests", "request_id, proposed_datetime, reason, status, created_at, resolved_at").then(must),
+    q("customer_reschedule_requests", "request_id, preferred_datetime, reason, status, created_at, resolved_at").then(must),
+    q("qc_reviews", "round_no, passed, failed_items, note, reviewed_at", "round_no").then(must),
   ]);
   if (!o) throw new Error("Order not found");
-  return { o, logs, moves, quote: quotes[0] ?? null, pays, asg, prod, qc, ap, ac, notes, facs, items, rules: Object.fromEntries(rules.map((r) => [r.rule_key, Number(r.value)])) };
+  return { o, logs, moves, cmoves, reviews, quote: quotes[0] ?? null, pays, asg, prod, qc, ap, ac, notes, facs, items, rules: Object.fromEntries(rules.map((r) => [r.rule_key, Number(r.value)])) };
 }
 
 
@@ -30,10 +32,16 @@ function orderNext(d, reload) {
   const waited = lastAsg ? (Date.now() - new Date(lastAsg.sent_at).getTime()) / 86400000 : 0; // days since the request was sent
   const sched = d.ap.find((a) => a.status === "scheduled");
   const lastAcc = d.ac[d.ac.length - 1];
-  const prodQc = d.qc.filter((x) => x.stage !== "onsite"); // manufacturing QC (the factory records it; the shop only views it)
-  const failedQc = (() => { const r = Math.max(0, ...prodQc.map((x) => x.round_no)); return prodQc.filter((x) => x.round_no === r && !x.passed); })();
+  const prodQc = d.qc.filter((x) => x.stage !== "onsite"); // manufacturing QC: the factory records each round, the shop reviews it (UC7)
+  const qcRound = Math.max(0, ...prodQc.map((x) => x.round_no));
+  const lastRound = prodQc.filter((x) => x.round_no === qcRound);
+  const lastReview = d.reviews.find((r) => r.round_no === qcRound);
+  const toReview = o.status === 5 && qcRound > 0 && !lastReview; // recorded, waiting for the shop
+  const itemName = (id) => esc(d.items.find((i) => i.item_id === id)?.item_name ?? lastRound.find((x) => x.item_id === id)?.qc_items?.item_name ?? "#" + id);
+  const qcRows = lastRound.map((x) => `<tr><td>${esc(x.qc_items?.item_name)}</td><td>${x.passed ? `<span class="pill ok">Pass</span>` : `<span class="pill bad">Fail</span>`}</td><td>${esc(x.note ?? "")}</td></tr>`).join("");
   const canCancel = [0, 1, 2, 3].includes(o.status);
   const move = d.moves.find((m) => m.status === "pending"); // the factory asked to move the booked install
+  const cmove = d.cmoves.find((m) => m.status === "pending"); // the customer asked to move it (UC8 alt)
 
   /* ----- next-action panel ----- */
   const btn = (act, label, cls = "") => `<button class="btn ${cls}" data-act="${act}">${label}</button>`;
@@ -51,14 +59,21 @@ function orderNext(d, reload) {
       else panel = `<p><b>${esc(lastAsg?.factories?.name)}</b> accepted. Waiting for the factory to start production.</p>`;
       break;
     case 4: panel = `<p>In production at the factory · estimated finish ${dateTH(o.est_finish_date)}</p>`; break;
-    case 5: panel = `<p>QC round ${Math.max(0, ...prodQc.map((x) => x.round_no)) + 1} (up to ${d.rules.max_qc_rounds} rounds before considering another factory). Waiting for the factory to record the QC result.</p>`; break;
-    case 6: panel = `<p>QC failed: ${failedQc.map((x) => esc(x.qc_items?.item_name) + (x.note ? ` (${esc(x.note)})` : "")).join(", ")}. Waiting for the factory to fix it.</p>`; break;
+    case 5: panel = toReview
+      ? `<p><b>The factory recorded QC round ${qcRound}. Please check the result.</b></p>
+        <div class="tw"><table class="t"><thead><tr><th>Item</th><th>Factory result</th><th>Note</th></tr></thead><tbody>${qcRows}</tbody></table></div>
+        <div class="row" style="margin-top:10px">${lastRound.every((x) => x.passed) ? btn("qc_pass", "Pass QC", "green") : ""}${btn("qc_back", "Send back to fix", lastRound.every((x) => x.passed) ? "ghost" : "red")}</div>`
+      : `<p>QC round ${qcRound + 1} (up to ${d.rules.max_qc_rounds} rounds before considering another factory). Waiting for the factory to record the QC result.</p>`; break;
+    case 6: panel = `<p>QC round ${qcRound} sent back to the factory: ${(lastReview?.failed_items ?? []).map(itemName).join(", ") || "-"}${lastReview?.note ? ` · ${esc(lastReview.note)}` : ""}. Waiting for the factory to fix it.</p>`; break;
     case 7: panel = `<p>QC passed. Arrange the install date with the customer and the factory.</p>${btn("schedule", "Schedule install")}`; break;
     case 8: panel = sched
       ? `<p>Install scheduled for <b>${dateTH(sched.install_datetime, true)}</b> (the factory installs, does the on-site QC, then confirms the install)</p>` +
         (move ? `<div class="card" style="margin:10px 0"><p><b>The factory asks to move the install to ${dateTH(move.proposed_datetime, true)}</b></p><p class="small">Reason: ${esc(move.reason)}</p>
-          <div class="row">${btn("book_move", "Book the requested date", "green")}${btn("schedule", "Choose another date", "ghost")}</div></div>`
-          : `<div class="row">${btn("schedule", "Reschedule", "ghost")}</div>`)
+          <div class="row">${btn("book_move", "Book the requested date", "green")}${btn("schedule", "Choose another date", "ghost")}</div></div>` : "") +
+        (cmove ? `<div class="card" style="margin:10px 0"><p><b>The customer asks to move the install to ${dateTH(cmove.preferred_datetime, true)}</b></p><p class="small">Reason: ${esc(cmove.reason)} · asked ${dateTH(cmove.created_at, true)}</p>
+          <p class="small muted">Check the date with the factory first.</p>
+          <div class="row">${btn("book_cmove", "Book the customer's date", "green")}${btn("schedule", "Choose another date", "ghost")}</div></div>` : "") +
+        (move || cmove ? "" : `<div class="row">${btn("schedule", "Reschedule", "ghost")}</div>`)
       : `<p class="err">The customer reported a problem after inspection: ${esc(lastAcc?.note ?? "-")}. Coordinate a fix with the factory, then set a new date.</p>${btn("schedule", "Schedule a new install date")}`; break;
     case 9: { const p = pay("final");
       if (p) panel = `<p>The customer accepted the machine and sent a slip for the balance of ${baht(p.amount)} THB.</p>${payBtns(p)}`;
@@ -78,7 +93,9 @@ function orderNext(d, reload) {
   /* ----- actions ----- */
   const run = async (fn) => { try { await fn(); reload(); } catch (e) { toast(errText(e), true); } };
   const form = (title, body, ok, onOk, onOpen) => modal(title, body, { ok, onOk, onOpen }).then((done) => done && reload());
-  const facOptions = d.facs.map((f) => `<option value="${f.factory_id}">${esc(f.name)}${d.asg.some((a) => a.factory_id === f.factory_id && a.response === "rejected") ? " (declined before)" : ""}</option>`).join("");
+  // UC5: factories that declined this order are left out of the list
+  const declined = new Set(d.asg.filter((a) => a.response === "rejected").map((a) => a.factory_id));
+  const facOptions = d.facs.filter((f) => !declined.has(f.factory_id)).map((f) => `<option value="${f.factory_id}">${esc(f.name)}</option>`).join("");
   const cancelForm = () => form("Cancel order", `<label>Reason</label><textarea id="r" rows="3"></textarea>${[2, 3].includes(o.status) ? `<p class="small">A verified deposit exists. A refund entry will be created.</p>` : ""}`, "Confirm cancel",
     (m) => rpc("staff_cancel_order", { p_order: o.order_id, p_reason: $("#r", m).value }, "Cancelled"));
   const dateInput = (min) => `<input id="dt" type="datetime-local" ${min ? `min="${min}"` : ""}>`;
@@ -106,14 +123,27 @@ function orderNext(d, reload) {
           calc();
         });
     },
-    send: () => form(lastAsg?.response === "rejected" ? "Choose another factory" : "Send production order to a factory", `<label>Factory</label><select id="f">${facOptions}</select>`, "Send production order",
-      (m) => rpc("staff_send_to_factory", { p_order: o.order_id, p_factory: Number($("#f", m).value) }, "Production order sent")),
+    send: () => facOptions
+      ? form(lastAsg?.response === "rejected" ? "Choose another factory" : "Send production order to a factory", `<label>Factory</label><select id="f">${facOptions}</select>`, "Send production order",
+        (m) => rpc("staff_send_to_factory", { p_order: o.order_id, p_factory: Number($("#f", m).value) }, "Production order sent"))
+      : form("No factory available", `<p>Every active factory has declined this order. You can cancel the order; a verified deposit is refunded (UC5 alt).</p>`, "Cancel order instead", () => { setTimeout(cancelForm); return true; }),
     forward: () => run(() => rpc("staff_forward_problem", { p_order: o.order_id }, "Problem sent to the factory")),
     withdraw: () => form("Withdraw the production request", `<p>The factory has not replied. The request is withdrawn and the factory is told. You can then choose another factory.</p><label>Note (optional)</label><textarea id="r" rows="3"></textarea>`, "Withdraw request",
       (m) => rpc("staff_withdraw_request", { p_order: o.order_id, p_reason: $("#r", m).value.trim() || null }, "Request withdrawn. Choose another factory")),
     schedule: () => form(sched ? "Reschedule install" : o.status === 9 ? "Schedule a fix visit" : "Schedule install", `<label>Date and time</label>${dateInput()}${sched ? `<label style="margin-top:10px">Reason for rescheduling</label><input id="r">` : ""}`, "Save appointment",
       (m) => { if (!$("#dt", m).value) throw new Error("Please choose a date and time"); return rpc("staff_schedule_install", { p_order: o.order_id, p_datetime: new Date($("#dt", m).value).toISOString(), p_reason: $("#r", m)?.value || null }, "Appointment saved. The customer was notified"); }),
     book_move: () => run(() => rpc("staff_schedule_install", { p_order: o.order_id, p_datetime: move.proposed_datetime, p_reason: `Factory request: ${move.reason}`.slice(0, 500) }, "Appointment saved. The customer and the factory were notified")),
+    book_cmove: () => run(() => rpc("staff_schedule_install", { p_order: o.order_id, p_datetime: cmove.preferred_datetime, p_reason: `Customer request: ${cmove.reason}`.slice(0, 500) }, "Appointment saved. The customer and the factory were notified")),
+    qc_pass: () => form(`Pass QC round ${qcRound}`, `<p>Every item passed at the factory. Passing QC lets you book the install.</p><label>Note (optional)</label><input id="r">`, "Pass QC",
+      (m) => rpc("staff_qc_review", { p_order: o.order_id, p_pass: true, p_note: $("#r", m).value.trim() || null }, "QC passed. Book the install next")),
+    qc_back: () => form(`Send QC round ${qcRound} back to fix`, `<p class="small">Tick what the factory must fix. The factory's failed items are ticked.</p>
+        ${lastRound.map((x) => `<label class="row" style="font-weight:400;gap:8px"><input type="checkbox" class="fi" value="${x.item_id}" ${x.passed ? "" : "checked"} style="width:auto"> ${esc(x.qc_items?.item_name)}${x.note ? ` <span class="muted small">(${esc(x.note)})</span>` : ""}</label>`).join("")}
+        <label style="margin-top:10px">What to fix (the factory sees this)</label><textarea id="r" rows="3"></textarea>`, "Send back",
+      (m) => {
+        const ids = $$(".fi:checked", m).map((c) => Number(c.value)), note = $("#r", m).value.trim();
+        if (!ids.length && !note) throw new Error("Tick an item or write what needs fixing");
+        return rpc("staff_qc_review", { p_order: o.order_id, p_pass: false, p_note: note || null, p_failed_items: ids }, "Sent back. The factory was told what to fix");
+      }),
     cancel: cancelForm,
   };
   const handle = (key) => {

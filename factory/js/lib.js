@@ -101,9 +101,10 @@ function stagePill(j) {
 }
 
 // ---- QC / Rework (UC7) ----
-// The factory records manufacturing QC (staff_qc_submit) and sends fixed work back (staff_rework_done); the shop only views it.
-//   5 waiting_qc -> record a round: every item passes -> 7 qc_passed, any item fails -> 6 rework
-//   6 rework     -> fix the failed items, send back -> 5 waiting_qc (next round)
+// The factory records the QC checklist (staff_qc_submit); the shop reviews each round (staff_qc_review):
+//   5 waiting_qc -> record a round; it then waits for the shop's review (state "review")
+//                   shop passes -> 7 qc_passed, shop sends back with items + note -> 6 rework
+//   6 rework     -> fix what the shop sent back, send back -> 5 waiting_qc (next round)
 //   7 qc_passed  -> read-only here; the shop books the install
 const QC_ACTIVE = [5, 6, 7];
 async function fetchQcJobs() {
@@ -130,7 +131,15 @@ async function fetchQcRounds(orderIds, stage = "production") {
     if (!round) list.push(round = { round_no: x.round_no, at: x.checked_at, items: [] });
     round.items.push(x);
   }
-  for (const list of byOrder.values()) for (const k of list) k.failed = k.items.filter((i) => !i.passed);
+  // the shop's review of each production round (qc_reviews): what it sent back, and its note
+  const rv = stage === "production" && byOrder.size
+    ? await db.from("qc_reviews").select("order_id, round_no, passed, failed_items, note, reviewed_at").in("order_id", orderIds) : { data: [] };
+  for (const x of rv.error ? [] : rv.data) { const k = byOrder.get(x.order_id)?.find((r) => r.round_no === x.round_no); if (k) k.review = x; }
+  for (const list of byOrder.values()) for (const k of list) {
+    k.failed = k.items.filter((i) => !i.passed);
+    // items to fix: the shop's choice when it sent the round back, else what the factory failed
+    k.toFix = k.review && !k.review.passed ? k.items.filter((i) => k.review.failed_items.includes(i.item_id)) : k.failed;
+  }
   return byOrder;
 }
 async function fetchQcItems() {
@@ -140,13 +149,15 @@ async function fetchQcItems() {
 let maxRoundsP;
 const qcMaxRounds = () => (maxRoundsP ??= db.from("business_rules").select("value").eq("rule_key", "max_qc_rounds").maybeSingle()
   .then((r) => Number(r.data?.value ?? 3)).catch(() => 3));
-// state of a QC job for the list: pending (first check), recheck (sent back after a fix), fail (6), pass (7)
+// state of a QC job for the list: pending (first check), review (recorded, waiting for the shop),
+// recheck (sent back after a fix), fail (6), pass (7)
 function qcState(j, rounds) {
   if (j.o.status === 6) return "fail";
   if (j.o.status === 7) return "pass";
+  if (rounds[0] && !rounds[0].review) return "review";
   return rounds.length ? "recheck" : "pending";
 }
-const QC_STATE = { pending: ["รอตรวจ QC", "warn"], recheck: ["รอตรวจซ้ำหลังแก้ไข", "warn"], fail: ["ไม่ผ่าน · รอแก้ไข", "bad"], pass: ["ผ่าน QC", "ok"] };
+const QC_STATE = { pending: ["รอตรวจ QC", "warn"], review: ["รอร้านตรวจผล", "warn"], recheck: ["รอตรวจซ้ำหลังแก้ไข", "warn"], fail: ["ไม่ผ่าน · รอแก้ไข", "bad"], pass: ["ผ่าน QC", "ok"] };
 const qcPill = (s) => `<span class="pill dot ${QC_STATE[s][1]}">${QC_STATE[s][0]}</span>`;
 // "ระบบทำความเย็นและการผลิตน้ำแข็ง" over "Cooling system and ice production", and what to check (Thai / English) under it.
 // The Thai name, descriptions and the fix example live in qc_items (migration qc_items_thai), so an admin edits them in the database;

@@ -12,7 +12,7 @@ route(/^\/qc$/, async (el) => {
 
   const metric = (ic, cls, label, n, sub) => `<div class="metric"><span class="tile ${cls}">${icon(ic, 20)}</span>
     <div><div class="small muted">${label}</div><div class="n">${n}</div><div class="small muted">${sub}</div></div></div>`;
-  el.innerHTML = `<div class="head"><div><h1>ภาพรวมการตรวจ QC</h1><div class="muted">ตรวจ QC งานที่ผลิตเสร็จ บันทึกผลทุกหัวข้อ และแก้ไขงานที่ไม่ผ่านก่อนส่งตรวจใหม่</div></div></div>
+  el.innerHTML = `<div class="head"><div><h1>ภาพรวมการตรวจ QC</h1><div class="muted">ตรวจ QC งานที่ผลิตเสร็จ บันทึกผลทุกหัวข้อ ร้านตรวจผลแล้วผ่านหรือส่งกลับให้แก้ไข</div></div></div>
     <div class="metrics">
       ${metric("clock", "warm", "รอตรวจ", count("pending"), "ผลิตเสร็จ ยังไม่มีผลตรวจ")}
       ${metric("circleCheck", "", "ผ่าน", count("pass"), "รอร้านนัดวันติดตั้ง")}
@@ -28,26 +28,28 @@ route(/^\/qc$/, async (el) => {
     <div class="banner">${icon("info", 20)}<div class="small">แสดงผล QC รอบล่าสุดของแต่ละคำสั่งซื้อ · ไม่ผ่านได้สูงสุด ${maxRounds} รอบ ก่อนร้านพิจารณาเปลี่ยนโรงงาน</div></div>
     <div class="card flush"><div id="tb"></div></div>`;
 
-  const ORDER = { fail: 0, pending: 1, recheck: 1, pass: 2 };
+  const ORDER = { fail: 0, pending: 1, recheck: 1, review: 2, pass: 3 };
   const roundCell = (j) => {
     const last = j.rounds[0];
+    if (j.qc === "review") return `รอบ ${last.round_no}<div class="small muted">ส่งผลแล้ว</div>`;
     return j.o.status === 5 ? `รอบ ${(last?.round_no ?? 0) + 1}<div class="small muted">รอตรวจ</div>` : `รอบ ${last?.round_no ?? "-"}<div class="small muted">ผลล่าสุด</div>`;
   };
   const sub = (j) => {
     const last = j.rounds[0];
-    if (j.qc === "fail") return `ไม่ผ่าน ${last?.failed.length ?? 0} ข้อ`;
+    if (j.qc === "fail") return `ร้านส่งกลับให้แก้ ${last?.toFix.length ?? 0} ข้อ`;
+    if (j.qc === "review") return last.failed.length ? `ไม่ผ่าน ${last.failed.length} ข้อ · รอร้านตรวจ` : "ผ่านทุกข้อ · รอร้านตรวจ";
     if (j.qc === "pass") return "พร้อมนัดวันติดตั้ง";
     if (j.qc === "recheck") return `แก้ไขจากรอบ ${last.round_no} แล้ว`;
     return `ผลิตเสร็จ ${dateTH(j.o.finished_at)}`;
   };
-  const act = { pending: `${icon("arrowUpRight", 16)}ตรวจ QC`, recheck: `${icon("arrowUpRight", 16)}ตรวจ QC`, fail: `${icon("arrowUpRight", 16)}แก้ไขงาน`, pass: "ดูผล QC" };
+  const act = { pending: `${icon("arrowUpRight", 16)}ตรวจ QC`, recheck: `${icon("arrowUpRight", 16)}ตรวจ QC`, fail: `${icon("arrowUpRight", 16)}แก้ไขงาน`, review: "ดูผล QC", pass: "ดูผล QC" };
   const row = (j) => `<tr class="click" data-href="#/qc/${j.o.order_id}">
       <td><b class="mono">${esc(j.o.order_code)}</b><div class="small muted">ผลิตเสร็จ ${dateTH(j.o.finished_at)}</div></td>
       <td>${esc(j.o.customers?.name ?? "-")}</td>
       <td><b>${esc(modelName(j.o))}</b><div class="small muted">${esc(j.o.capacity)}</div></td>
       <td>${roundCell(j)}</td>
       <td>${qcPill(j.qc)}<div class="small muted">${sub(j)}</div></td>
-      <td>${j.rounds[0] && j.o.status !== 5 ? dateTH(j.rounds[0].at) : `<span class="muted">—</span>`}</td>
+      <td>${j.rounds[0] && (j.o.status !== 5 || j.qc === "review") ? dateTH(j.rounds[0].at) : `<span class="muted">—</span>`}</td>
       <td><div class="acts"><a class="btn ghost eval" href="#/qc/${j.o.order_id}">${act[j.qc]}</a></div></td>
     </tr>`;
   const draw = () => {

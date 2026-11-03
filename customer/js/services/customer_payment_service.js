@@ -2,6 +2,20 @@
 import { client, unwrap, customerRpc } from "./customer_supabase_client.js";
 import { CustomerError } from "../customer_errors.js";
 import { MAX_SLIP_BYTES, SLIP_TYPES } from "../customer_constants.js";
+import { CONFIG } from "../customer_config.js";
+// The shop's account / PromptPay / QR, entered by the admin (Admin > Payment details). Falls back to customer_config.js.
+export async function shopPaymentDetails() {
+  const r = await client().from("shop_payment_details").select("bank_name,account_name,account_number,promptpay_id,qr_url,note").eq("id", 1).maybeSingle();
+  const d = r.error ? null : r.data;
+  return {
+    name: d?.bank_name || CONFIG.bank.name,
+    accountName: d?.account_name || CONFIG.bank.accountName,
+    accountNumber: d?.account_number || CONFIG.bank.accountNumber,
+    promptpay: d?.promptpay_id || "",
+    qrImage: d?.qr_url || CONFIG.bank.qrImage,
+    note: d?.note || "",
+  };
+}
 export async function listPayments(
   customerId,
   { page = 1, size = 20, type = "all", state = "all" } = {},

@@ -5,6 +5,7 @@ One file per sidebar item. The shell (`../core.js`) loads a feature's file the f
 | File | Sidebar item | Route |
 |---|---|---|
 | `dashboard.js` | Dashboard | `#/dashboard` |
+| `notifications.js` | Notifications (also the bell): shop messages, mark read | `#/notifications` |
 | `orders-all.js` | Orders > All Orders | `#/orders` |
 | `orders-new.js` | Orders > New Orders | `#/orders/new` |
 | `orders-quotations.js` | Orders > Quotations | `#/orders/quotations` |
@@ -13,9 +14,10 @@ One file per sidebar item. The shell (`../core.js`) loads a feature's file the f
 | `mfg-requests.js` | Manufacturing > Factory Requests | `#/mfg/requests` |
 | `customers.js` | Admin > Customers (view only) | `#/customers` |
 | `factories.js` | Admin > Factories (UC14: view for the shop, add / edit / deactivate for role `admin`) | `#/factories` |
+| `payment-details.js` | Admin > Payment details (bank / PromptPay / QR customers pay to; role `admin` edits) | `#/settings/payment` |
 | `users-roles.js` | Admin > Users & Roles (UC15: view for the shop, add / edit for role `admin`) | `#/users` |
 | `mfg-status.js` | Manufacturing > Order Status (view only, reported by the factory) | `#/mfg/status` |
-| `installation.js` | Installation (also lists the factory's reschedule requests; "Book this date" answers one, as does the order page) | `#/installation` |
+| `installation.js` | Installation (also lists the factory's and the customer's reschedule requests; "Book this date" answers one, as does the order page) | `#/installation` |
 | `payments-deposit.js` | Payments > Deposit | `#/payments/deposit` |
 | `payments-final.js` | Payments > Final Payment | `#/payments/final` |
 | `payments-refund.js` | Payments > Refund | `#/payments/refund` |

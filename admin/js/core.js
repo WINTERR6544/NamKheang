@@ -67,11 +67,11 @@ function crumbsFor(path) {
 // ---- features: one file per page, loaded when its route is first opened ----
 // A feature file calls route(...) when it loads. If a file is missing (branch not merged yet) the page says so.
 const FEATURES = [
-  [/^\/dashboard$/, "dashboard"],
+  [/^\/dashboard$/, "dashboard"], [/^\/notifications$/, "notifications"],
   [/^\/orders$/, "orders-all"], [/^\/orders\/new$/, "orders-new"], [/^\/orders\/quotations$/, "orders-quotations"], [/^\/orders\/cancelled$/, "orders-cancelled"],
   [/^\/order\/\d+$/, "order-detail"],
   [/^\/mfg\/requests$/, "mfg-requests"], [/^\/mfg\/status$/, "mfg-status"],
-  [/^\/installation$/, "installation"], [/^\/customers$/, "customers"], [/^\/factories$/, "factories"], [/^\/users$/, "users-roles"],
+  [/^\/installation$/, "installation"], [/^\/customers$/, "customers"], [/^\/factories$/, "factories"], [/^\/users$/, "users-roles"], [/^\/settings\/payment$/, "payment-details"],
   [/^\/payments\/deposit$/, "payments-deposit"], [/^\/payments\/final$/, "payments-final"], [/^\/payments\/refund$/, "payments-refund"],
 ];
 async function navigate() {
@@ -100,6 +100,7 @@ window.addEventListener("hashchange", navigate);
 const G = (label) => ({ group: label });
 const NAV = [
   { label: "Dashboard", href: "#/dashboard", icon: "grid" },
+  { label: "Notifications", href: "#/notifications", key: "note", icon: "bell" },
   G("Orders"),
   { label: "All Orders", href: "#/orders", sub: 1, icon: "list" }, { label: "New Orders", href: "#/orders/new", sub: 1, key: "new", icon: "inbox" },
   { label: "Quotations", href: "#/orders/quotations", sub: 1, icon: "fileText" }, { label: "Cancelled", href: "#/orders/cancelled", sub: 1, icon: "ban" },
@@ -112,6 +113,7 @@ const NAV = [
   G("Admin"),
   { label: "Customers", href: "#/customers", sub: 1, icon: "users" }, { label: "Factories", href: "#/factories", sub: 1, icon: "building" },
   { label: "Users & Roles", href: "#/users", sub: 1, icon: "shield" },
+  { label: "Payment details", href: "#/settings/payment", sub: 1, icon: "wallet" },
   G("Account"),
   { label: "Profile", href: "#/profile", sub: 1, icon: "user" },
 ];
@@ -126,15 +128,16 @@ function sidebar(user) {
     <div class="who"><a class="who-link" href="#/profile" title="โปรไฟล์ของฉัน"><span class="avatar">${esc(initials(user.name))}</span><div><b>${esc(user.name)}</b><div class="small">${user.role === "admin" ? "ผู้ดูแลระบบ" : "พนักงานร้าน"}</div></div></a><button class="menu-btn" type="button" title="ออกจากระบบ" aria-label="ออกจากระบบ"></button></div>`;
 }
 async function refreshCounts() {
-  const [n, p] = await Promise.all([
+  const [n, p, u] = await Promise.all([
     db.from("orders").select("order_id", { count: "exact", head: true }).eq("status", 0),
     db.from("payments").select("pay_type").eq("verified", false),
+    db.from("notifications").select("notification_id", { count: "exact", head: true }).eq("recipient_type", "shop").is("read_at", null),
   ]);
-  const c = { new: n.count ?? 0, dep: 0, fin: 0, ref: 0 };
+  const c = { new: n.count ?? 0, dep: 0, fin: 0, ref: 0, note: u.count ?? 0 };
   (p.data ?? []).forEach((x) => { c[{ deposit: "dep", final: "fin", refund: "ref" }[x.pay_type]]++; });
   for (const [k, v] of Object.entries(c)) { const el = $("#c-" + k); if (el) { el.textContent = v; el.hidden = !v; } }
-  const total = Object.values(c).reduce((a, b) => a + b, 0);
-  $("#bellc").textContent = total; $("#bellc").hidden = !total;
+  // the bell shows unread shop notifications and opens the notifications page
+  $("#bellc").textContent = c.note; $("#bellc").hidden = !c.note;
 }
 
 // ---- login gate ----
