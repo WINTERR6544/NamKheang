@@ -21,13 +21,14 @@ import {
   uploadSlip,
   submitPayment,
   discardSlip,
+  shopPaymentDetails,
 } from "../services/customer_payment_service.js";
 import { balance, money, esc, todayBangkok, orderUrl } from "../lib.js";
 import { paymentGate } from "../customer_rules.js";
-import { CONFIG } from "../customer_config.js";
 import { MAX_SLIP_BYTES, SLIP_TYPES } from "../customer_constants.js";
 import { errorMessage } from "../customer_errors.js";
 export async function render(context, el) {
+  const bank = await shopPaymentDetails();
   const d = await getOrder(context.orderId, context.profile.customer_id),
     type = context.page === "deposit" ? "deposit" : "final";
   const q = d.quote,
@@ -78,20 +79,21 @@ export async function render(context, el) {
     card(
       "1. เลือกช่องทางชำระเงิน",
       '<p class="muted small">เลือกรูปแบบในฟอร์มหลักฐานด้านขวา</p>' +
-        (CONFIG.bank.accountNumber
-          ? '<dl class="summary-dl"><dt>ธนาคาร</dt><dd>' +
-            esc(CONFIG.bank.name) +
-            "</dd><dt>ชื่อบัญชี</dt><dd>" +
-            esc(CONFIG.bank.accountName) +
-            "</dd><dt>เลขบัญชี</dt><dd>" +
-            esc(CONFIG.bank.accountNumber) +
-            "</dd></dl>"
-          : '<div class="banner warning">กรุณาขอข้อมูลบัญชีธนาคารหรือ QR ที่ยืนยันแล้วจากร้านก่อนโอนเงิน</div>') +
-        (CONFIG.bank.qrImage
+        (bank.accountNumber || bank.promptpay
+          ? '<dl class="summary-dl">' +
+            (bank.accountNumber
+              ? "<dt>ธนาคาร</dt><dd>" + esc(bank.name) + "</dd><dt>ชื่อบัญชี</dt><dd>" + esc(bank.accountName) +
+                "</dd><dt>เลขบัญชี</dt><dd>" + esc(bank.accountNumber) + "</dd>"
+              : "") +
+            (bank.promptpay ? "<dt>พร้อมเพย์</dt><dd>" + esc(bank.promptpay) + "</dd>" : "") +
+            "</dl>"
+          : '<div class="banner warning">ร้านยังไม่ได้ใส่บัญชีรับเงิน กรุณาขอบัญชีธนาคารหรือ QR จากร้านก่อนโอนเงิน</div>') +
+        (bank.qrImage
           ? '<img class="file-preview" src="' +
-            esc(CONFIG.bank.qrImage) +
+            esc(bank.qrImage) +
             '" alt="QR ชำระเงินของร้าน">'
           : "") +
+        (bank.note ? '<p class="small muted">' + esc(bank.note) + "</p>" : "") +
         '<div class="rule"></div><p class="small">สถานะชำระเงินจะเปลี่ยนเมื่อร้านตรวจสอบยอดและหลักฐานแล้ว</p>',
     ) +
     '<form class="card" id="payment-form" novalidate><h2>2. แนบหลักฐานการชำระเงิน</h2>' +

@@ -71,7 +71,7 @@ const FEATURES = [
   [/^\/orders$/, "orders-all"], [/^\/orders\/new$/, "orders-new"], [/^\/orders\/quotations$/, "orders-quotations"], [/^\/orders\/cancelled$/, "orders-cancelled"],
   [/^\/order\/\d+$/, "order-detail"],
   [/^\/mfg\/requests$/, "mfg-requests"], [/^\/mfg\/status$/, "mfg-status"],
-  [/^\/installation$/, "installation"], [/^\/customers$/, "customers"], [/^\/factories$/, "factories"], [/^\/users$/, "users-roles"],
+  [/^\/installation$/, "installation"], [/^\/customers$/, "customers"], [/^\/factories$/, "factories"], [/^\/users$/, "users-roles"], [/^\/settings\/payment$/, "payment-details"],
   [/^\/payments\/deposit$/, "payments-deposit"], [/^\/payments\/final$/, "payments-final"], [/^\/payments\/refund$/, "payments-refund"],
 ];
 async function navigate() {
@@ -113,6 +113,7 @@ const NAV = [
   G("Admin"),
   { label: "Customers", href: "#/customers", sub: 1, icon: "users" }, { label: "Factories", href: "#/factories", sub: 1, icon: "building" },
   { label: "Users & Roles", href: "#/users", sub: 1, icon: "shield" },
+  { label: "Payment details", href: "#/settings/payment", sub: 1, icon: "wallet" },
   G("Account"),
   { label: "Profile", href: "#/profile", sub: 1, icon: "user" },
 ];
