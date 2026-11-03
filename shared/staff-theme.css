@@ -87,3 +87,13 @@ aside .who { position: sticky; bottom: -18px; margin: 0 -14px -18px; padding: 12
 .who-link:hover b { text-decoration: underline; }
 .who-link > div { min-width: 0; }
 .profile-grid > .card + .card { margin-top: 0; }
+
+/* label / value table with row lines (profile page, factory installation) */
+dl.spec2 { display: grid; grid-template-columns: minmax(110px, 170px) 1fr; margin: 12px 0 0; font-size: .86rem; }
+dl.spec2 dt, dl.spec2 dd { padding: 11px 0; border-bottom: 1px solid #eef0ef; margin: 0; }
+dl.spec2 dt { color: var(--muted); font-size: .8rem; } dl.spec2 dd { font-weight: 500; }
+
+/* top-right name + picture open the profile */
+.me-link { display: flex; align-items: center; gap: 10px; color: inherit; text-decoration: none; border-radius: 99px; padding: 2px 8px 2px 2px; }
+.me-link:hover { background: var(--f-teal-soft); }
+.me-link:hover b { text-decoration: underline; }
