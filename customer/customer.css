@@ -2641,3 +2641,14 @@ select:focus {
 .app-top.menu-open .app-me {
   display: none;
 }
+
+/* profile: change password card under the contact card */
+.profile-password {
+  margin-top: 18px;
+}
+.profile-password h2 {
+  margin: 0 0 4px;
+}
+.profile-password > .muted {
+  margin: 0 0 14px;
+}

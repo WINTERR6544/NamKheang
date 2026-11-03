@@ -22,7 +22,7 @@ const FEATURES = [
   [/^\/dashboard$/, "dashboard"],
   [/^\/requests$/, "requests"], [/^\/requests\/\d+\/evaluate$/, "request-evaluate"],
   [/^\/production$/, "production"], [/^\/production\/\d+$/, "production-detail"], [/^\/qc$/, "qc"], [/^\/qc\/\d+$/, "qc-detail"], [/^\/installation$/, "installation"], [/^\/installation\/\d+(\/confirm)?$/, "installation-detail"],
-  [/^\/notifications$/, "notifications"], [/^\/profile$/, "profile"],
+  [/^\/notifications$/, "notifications"], // #/profile: ../shared/staff-profile.js
 ];
 async function navigate() {
   const path = (location.hash || "#/dashboard").slice(1).split("?")[0];
@@ -63,7 +63,7 @@ function sidebar(user) {
     <div class="group">Workspace</div>` +
     NAV.map((n) => `<a class="nav" href="${n.href}">${icon(n.icon)}<span>${n.label}</span></a>`).join("") +
     `<div class="grow"></div>
-    <div class="who"><span class="avatar">${esc(initials(user.name))}</span><div><b>${esc(user.name)}</b><div class="small">ผู้จัดการโรงงาน</div></div><button class="menu-btn" type="button" title="ออกจากระบบ" aria-label="ออกจากระบบ"></button></div>`;
+    <div class="who"><a class="who-link" href="#/profile" title="โปรไฟล์ของฉัน"><span class="avatar">${esc(initials(user.name))}</span><div><b>${esc(user.name)}</b><div class="small">ผู้จัดการโรงงาน</div></div></a><button class="menu-btn" type="button" title="ออกจากระบบ" aria-label="ออกจากระบบ"></button></div>`;
 }
 
 // ---- login gate ----

@@ -75,3 +75,15 @@ h1 { font-size: 1.85rem; margin-bottom: 6px; } h2 { font-size: 1.12rem; margin-b
 .who .menu-btn { flex: none; }
 /* keep the person + sign-out in view at the bottom of a long sidebar (shop menu scrolls) */
 aside .who { position: sticky; bottom: -18px; margin: 0 -14px -18px; padding: 12px 20px 18px; background: var(--nk-soft, #e2f7f6); z-index: 1; }
+
+/* profile page (shared/staff-profile.js) */
+.profile-grid { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: start; }
+@media (max-width: 900px) { .profile-grid { grid-template-columns: 1fr; } }
+.profile-id { display: flex; gap: 16px; align-items: center; }
+.profile-id h2 { margin: 0 0 2px; font-size: 1.25rem; }
+.profile-id .pill { margin-top: 8px; }
+.avatar.lg { width: 64px; height: 64px; font-size: 1.3rem; flex: none; }
+.who-link { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; color: inherit; text-decoration: none; border-radius: 8px; }
+.who-link:hover b { text-decoration: underline; }
+.who-link > div { min-width: 0; }
+.profile-grid > .card + .card { margin-top: 0; }
