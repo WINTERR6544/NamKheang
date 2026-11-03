@@ -1,7 +1,7 @@
 import { $, confirm, toast } from "./customer_ui.js";
 import { esc, initials } from "../lib.js";
 import { errorMessage } from "../customer_errors.js";
-import { signOut } from "../services/customer_auth_service.js";
+import { signOut, session } from "../services/customer_auth_service.js";
 import { unreadCount } from "../services/customer_notification_service.js";
 // NamKheang app shell: the landing page's top bar (wordmark, menu, pill button) over a centred page.
 const nav = [
@@ -95,6 +95,7 @@ export function layout(profile, page) {
   };
   $("#logout").onclick = logout;
   $("#logout-m").onclick = logout;
+  paintTopAvatar();
   refreshUnread(profile);
 }
 export async function refreshUnread(profile) {
@@ -110,6 +111,12 @@ export async function refreshUnread(profile) {
   }
 }
 
+// profile picture (../shared/avatar.js) in the top-right chip; url given after a change, else read from the session
+export async function paintTopAvatar(url) {
+  if (!window.NKAvatar) return;
+  if (url === undefined) url = window.NKAvatar.urlOf((await session().catch(() => null))?.user);
+  window.NKAvatar.paint([$("#profile-button .avatar")], url);
+}
 export function updateProfile(profile) {
   const firstName = profile.name.split(" ")[0];
   const top = $("#profile-button");

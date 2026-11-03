@@ -19,7 +19,7 @@
         <div class="me">
           <a class="bell" id="bell" href="#/notifications" title="การแจ้งเตือน" aria-label="การแจ้งเตือน"><span class="dot" id="belld" hidden></span></a>
           <span class="sep"></span>
-          <span class="avatar" id="av"></span><b id="mename"></b>
+          <a class="me-link" href="#/profile" title="โปรไฟล์ของฉัน" aria-label="โปรไฟล์ของฉัน"><span class="avatar" id="av"></span><b id="mename"></b></a>
           <button class="menu-btn" id="logout" title="ออกจากระบบ" aria-label="ออกจากระบบ"></button>
         </div>
       </header>
@@ -27,6 +27,7 @@
     </div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="../shared/avatar.js"></script>
   <script src="../shared/staff-lib.js"></script>
   <script src="js/core.js"></script>
   <script src="../shared/staff-profile.js"></script>
