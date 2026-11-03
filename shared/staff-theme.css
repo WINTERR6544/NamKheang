@@ -101,3 +101,20 @@ dl.spec2 dt { color: var(--muted); font-size: .8rem; } dl.spec2 dd { font-weight
 /* profile picture inside the initials circle (shared/avatar.js) */
 .avatar.has-img { background-size: cover; background-position: center; background-repeat: no-repeat; color: transparent; }
 .av-actions { margin-top: 10px; gap: 8px; }
+
+/* tabs + notification list (factory and shop notifications pages) */
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+.tabs button { border: 0; background: #eceeed; color: #3d4a48; border-radius: 6px; padding: 9px 14px; font: inherit; font-size: .82rem; cursor: pointer; }
+.tabs button:hover { background: #e2e6e5; }
+.tabs button[aria-selected="true"] { background: #111; color: #fff; font-weight: 600; }
+.card.notes { max-width: 980px; margin: 0 auto; padding: 28px 30px; }
+.card.notes .tile { width: 48px; height: 48px; background: var(--f-teal-note); color: var(--f-teal); }
+.notes-bar { margin: 22px 0 18px; padding-bottom: 18px; border-bottom: 1px solid var(--f-line); flex-wrap: wrap; }
+article.note { border: 1px solid var(--f-line); border-radius: var(--r); padding: 18px 20px; margin-top: 14px; }
+article.note.unread { background: var(--f-teal-note); border-color: #cdebe8; }
+article.note h2 { margin: 8px 0 6px; font-size: 1.05rem; }
+article.note .desc { margin-bottom: 4px; }
+article.note .cat { color: var(--f-teal); font-weight: 600; }
+article.note .cat.bad { color: var(--f-red); } article.note .cat.warn { color: var(--amber); }
+
+.card.notes > .notes-bar:first-child { margin-top: 0; }
