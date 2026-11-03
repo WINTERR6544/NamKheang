@@ -1,7 +1,7 @@
 // QC / Rework > one order (UC7). One page that follows the order's status:
 //   5 waiting_qc -> ตรวจ QC: pass / fail every active checklist item (a failed item needs what to fix) -> staff_qc_submit
-//                   every item passes -> 7 qc_passed, any fails -> 6 rework (the shop is told, with the failed items)
-//   6 rework     -> แก้ไขงานจากผล QC: the failed items of the latest round; confirm fixed -> staff_rework_done -> 5 (next round)
+//                   the round then waits for the shop (state "review"): the shop passes it -> 7, or sends it back -> 6
+//   6 rework     -> แก้ไขงานจากผล QC: the items the shop sent back and its note; confirm fixed -> staff_rework_done -> 5 (next round)
 //   7 qc_passed  -> read-only result; the shop books the install
 route(/^\/qc\/(\d+)$/, async (el, [id]) => {
   const [j, items, maxRounds, roundsBy] = await Promise.all([fetchQcJob(Number(id)), fetchQcItems(), qcMaxRounds(), fetchQcRounds([Number(id)])]);
@@ -9,11 +9,14 @@ route(/^\/qc\/(\d+)$/, async (el, [id]) => {
   const st = qcState(j, rounds), next = (last?.round_no ?? 0) + 1;
   setCrumbs("QC / Rework", o.order_code);
   el.onclick = null;
-  const TITLE = { 5: ["ตรวจ QC", `QC รอบ ${next} · ตรวจทุกหัวข้อแล้วบันทึกผล`], 6: ["แก้ไขงานจากผล QC", `QC รอบ ${last?.round_no} ไม่ผ่าน · แก้ไขทุกจุดแล้วส่งตรวจใหม่`],
+  const review = st === "review"; // the latest round is recorded and waits for the shop
+  const TITLE = review ? ["รอร้านตรวจผล QC", `QC รอบ ${last.round_no} · ส่งผลให้ร้านแล้ว`] : { 5: ["ตรวจ QC", `QC รอบ ${next} · ตรวจทุกหัวข้อแล้วบันทึกผล`], 6: ["แก้ไขงานจากผล QC", `QC รอบ ${last?.round_no} ไม่ผ่าน · แก้ไขทุกจุดแล้วส่งตรวจใหม่`],
     7: ["ผลการตรวจ QC", `ผ่าน QC รอบ ${last?.round_no} · รอร้านนัดวันติดตั้ง`] }[o.status];
-  const STEPS = o.status === 5 ? ["ผลิตเสร็จ", `ตรวจ QC รอบ ${next}`, "แก้ไขงาน (ถ้าไม่ผ่าน)", "ผ่าน QC"]
+  const shopNote = (r) => r?.review?.note && !/^Recorded before/.test(r.review.note) ? `<div class="note-box small"><b>ร้านแจ้ง:</b> ${esc(r.review.note)}</div>` : "";
+  const STEPS = review ? ["ผลิตเสร็จ", `ตรวจ QC รอบ ${last.round_no}`, "ร้านตรวจผล", "ผ่าน QC"]
+    : o.status === 5 ? ["ผลิตเสร็จ", `ตรวจ QC รอบ ${next}`, "ร้านตรวจผล", "ผ่าน QC"]
     : o.status === 6 ? ["ผลิตเสร็จ", `QC รอบ ${last?.round_no} ไม่ผ่าน`, "แก้ไขงาน", "ส่งตรวจ QC ใหม่"] : ["ผลิตเสร็จ", "ตรวจ QC", "แก้ไขงาน", "ผ่าน QC"];
-  const done = { 5: 1, 6: 2, 7: 4 }[o.status];
+  const done = review ? 2 : { 5: 1, 6: 2, 7: 4 }[o.status];
   const overLimit = rounds.filter((r) => r.failed.length).length >= maxRounds;
 
   const job = `<div class="card"><div class="row-sb"><h2>งานที่ต้องตรวจ QC</h2>${qcPill(st)}</div>
@@ -36,7 +39,10 @@ route(/^\/qc\/(\d+)$/, async (el, [id]) => {
       ${i.note ? `<div class="small"><span class="muted">จุดที่ต้องแก้:</span> ${esc(i.note)}</div>` : ""}</div>`).join("")}</div>`;
 
   let left = "", right = "";
-  if (o.status === 5) {
+  if (review) {
+    left = itemsCard(`ผลตรวจ QC รอบ ${last.round_no}`, `บันทึกเมื่อ ${dateTimeTH(last.at)} · ${last.failed.length ? `ไม่ผ่าน ${last.failed.length} หัวข้อ` : "ผ่านทุกหัวข้อ"}`, last.items);
+    right = `<div class="card primary"><h2>รอร้านตรวจผล</h2><p class="small muted">ร้านจะตรวจผลรอบนี้ แล้วกดผ่าน QC หรือส่งกลับให้แก้ไขพร้อมรายละเอียด โรงงานจะได้รับแจ้งทันที</p></div>${limit}${history}`;
+  } else if (o.status === 5) {
     const prevFail = new Map((last?.failed ?? []).map((i) => [i.item_id, i.note]));
     left = !items.length ? `<div class="card"><div class="err">โหลดหัวข้อ QC ไม่ได้ · ต้องรัน migration factory_qc ก่อน (ให้โรงงานอ่าน qc_items ได้)</div></div>`
       : `<div class="card"><div class="row-sb"><h2>QC Checklist · รอบ ${next}</h2><span class="pill dot">${items.length} หัวข้อ</span></div>
@@ -52,8 +58,8 @@ route(/^\/qc\/(\d+)$/, async (el, [id]) => {
       <label class="check"><input type="checkbox" id="ok"><span>ตรวจเครื่องครบทุกหัวข้อแล้ว และผลที่บันทึกถูกต้อง</span></label>
       <button class="btn wide" id="go" disabled>${icon("check", 16)}บันทึกผล QC</button></div>${limit}${history}`;
   } else if (o.status === 6) {
-    left = itemsCard("รายการ QC ที่ไม่ผ่าน", `ผลตรวจรอบ ${last?.round_no} · ต้องแก้ไขทั้ง ${last?.failed.length ?? 0} จุดก่อนส่งตรวจใหม่`, last?.failed ?? [],
-      `<span class="pill dot bad">${last?.failed.length ?? 0} จุดต้องแก้</span>`);
+    left = shopNote(last) + itemsCard("รายการที่ร้านส่งกลับให้แก้", `ผลตรวจรอบ ${last?.round_no} · ต้องแก้ไขทั้ง ${last?.toFix.length ?? 0} จุดก่อนส่งตรวจใหม่`, (last?.toFix ?? []).map((i) => ({ ...i, passed: false })),
+      `<span class="pill dot bad">${last?.toFix.length ?? 0} จุดต้องแก้</span>`);
     right = `<div class="card primary"><h2>ดำเนินการแก้ไข</h2>
       <div class="note-box small">เมื่อยืนยันแก้ไขเสร็จ สถานะจะกลับเป็น <b>"รอตรวจ QC"</b> เพื่อตรวจรอบ ${next} และร้านจะได้รับแจ้ง</div>
       <label class="check"><input type="checkbox" id="ok"><span>แก้ไขครบทุกจุดที่ไม่ผ่าน และทดสอบซ้ำในโรงงานแล้ว</span></label>
@@ -71,7 +77,7 @@ route(/^\/qc\/(\d+)$/, async (el, [id]) => {
     <div class="grid cols-prod" style="margin-top:18px"><div class="stack">${left}</div><div class="stack">${right}</div></div>`;
 
   const ok = $("#ok", el), go = $("#go", el);
-  if (o.status === 5 && items.length) {
+  if (o.status === 5 && !review && items.length) {
     const rows = $$(".qc-item[data-i]", el);
     const read = () => rows.map((r) => ({ item_id: Number(r.dataset.i), v: $("input[type=radio]:checked", r)?.value, note: $(".fix", r).value.trim() }));
     const sync = () => {
@@ -80,8 +86,8 @@ route(/^\/qc\/(\d+)$/, async (el, [id]) => {
       const pass = res.filter((x) => x.v === "1").length, fail = res.filter((x) => x.v === "0").length, left = res.length - pass - fail;
       const missing = res.some((x) => x.v === "0" && !x.note);
       $("#sum", el).innerHTML = left ? `ผ่าน ${pass} · ไม่ผ่าน ${fail} · <b>ยังไม่ตรวจ ${left} หัวข้อ</b>`
-        : fail ? `ไม่ผ่าน ${fail} หัวข้อ → สถานะเป็น <b>"QC ไม่ผ่าน · รอแก้ไข"</b> และส่งกลับให้โรงงานแก้${missing ? `<div class="red">ระบุจุดที่ต้องแก้ให้ครบทุกหัวข้อที่ไม่ผ่าน</div>` : ""}`
-        : `ผ่านทุกหัวข้อ → สถานะเป็น <b>"ผ่าน QC"</b> และเข้าสู่ขั้นตอนนัดวันติดตั้ง`;
+        : fail ? `ไม่ผ่าน ${fail} หัวข้อ → ส่งผลให้ร้านตรวจ ร้านจะส่งกลับให้แก้ไข${missing ? `<div class="red">ระบุจุดที่ต้องแก้ให้ครบทุกหัวข้อที่ไม่ผ่าน</div>` : ""}`
+        : `ผ่านทุกหัวข้อ → ส่งผลให้ร้านตรวจ แล้วร้านจะยืนยันผ่าน QC`;
       go.disabled = !(ok.checked && !left && !missing);
       go.className = "btn wide" + (fail && !left ? " red" : "");
     };
@@ -89,9 +95,9 @@ route(/^\/qc\/(\d+)$/, async (el, [id]) => {
     go.onclick = async () => {
       go.disabled = true;
       try {
-        const s = await rpc("staff_qc_submit", { p_order: o.order_id, p_stage: "production",
+        await rpc("staff_qc_submit", { p_order: o.order_id, p_stage: "production",
           p_results: read().map((x) => ({ item_id: x.item_id, passed: x.v === "1", note: x.v === "0" ? x.note : null })) });
-        toast(s === 7 ? "ผ่าน QC ทุกหัวข้อ เข้าสู่ขั้นตอนนัดวันติดตั้ง" : "บันทึกผลแล้ว QC ไม่ผ่าน ส่งกลับแก้ไข", s !== 7);
+        toast("บันทึกผล QC แล้ว ส่งให้ร้านตรวจ");
         refreshShell(); navigate();
       } catch (e) { toast(errText(e), true); go.disabled = false; }
     };
