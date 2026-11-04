@@ -17,14 +17,14 @@
         <h1>เข้าสู่ระบบ</h1>
         <p class="nk-sub">ใช้บัญชีเดียว ระบบจะพาไปหน้าของคุณเอง</p>
         <div class="nk-field"><label for="pemail">อีเมลหรือเบอร์โทรศัพท์</label><input id="pemail" type="text" inputmode="email" required autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="name@example.com หรือ 0812345678"></div>
-        <div class="nk-field"><label for="ppass">รหัสผ่าน</label><input id="ppass" type="password" required autocomplete="current-password"></div>
+        <div class="nk-field"><label for="ppass">รหัสผ่าน</label><div class="nk-pass"><input id="ppass" type="password" required autocomplete="current-password"><button type="button" class="nk-reveal" aria-controls="ppass" aria-label="แสดงรหัสผ่าน" aria-pressed="false"></button></div></div>
         <div class="nk-row">
           <label class="nk-check"><input id="premember" type="checkbox" checked> จดจำการเข้าสู่ระบบ</label>
           <a href="customer/index.html#/reset-password">ลืมรหัสผ่าน?</a>
         </div>
         <div id="perr" class="nk-err" role="alert" hidden></div>
         <button id="pbtn" class="nk-btn">เข้าสู่ระบบ</button>
-        <p class="nk-switch">ลูกค้าใหม่? <a href="customer/index.html#/sign-up">สมัครสมาชิก</a> · <a href="customer/index.html#/login">เข้าด้วยเบอร์โทรศัพท์</a></p>
+        <p class="nk-switch">ลูกค้าใหม่? <a href="customer/index.html#/sign-up">สมัครสมาชิก</a></p>
       </form>
       <p id="pstatus" class="nk-status" role="status" hidden>กำลังตรวจสอบการเข้าสู่ระบบ…</p>
     </main>

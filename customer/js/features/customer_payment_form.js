@@ -27,6 +27,20 @@ import { balance, money, esc, todayBangkok, orderUrl } from "../lib.js";
 import { paymentGate } from "../customer_rules.js";
 import { MAX_SLIP_BYTES, SLIP_TYPES } from "../customer_constants.js";
 import { errorMessage } from "../customer_errors.js";
+// Demo QR picture (not scannable): three finder squares, a "DEMO" band and a few data dots.
+const finder = (x, y) =>
+  '<rect x="' + x + '" y="' + y + '" width="28" height="28" rx="3"/>' +
+  '<rect x="' + (x + 4) + '" y="' + (y + 4) + '" width="20" height="20" rx="2" fill="#fff"/>' +
+  '<rect x="' + (x + 8) + '" y="' + (y + 8) + '" width="12" height="12" rx="1.5"/>';
+const DEMO_QR =
+  '<svg class="qr-demo" viewBox="0 0 120 120" role="img" aria-label="QR ตัวอย่าง">' +
+  finder(4, 4) +
+  finder(88, 4) +
+  finder(4, 88) +
+  [[44, 8], [56, 8], [68, 20], [44, 28], [80, 32], [44, 90], [56, 90], [80, 90], [100, 90], [68, 102], [92, 102], [56, 110], [80, 110], [104, 110]]
+    .map(([x, y]) => '<rect class="dot" x="' + x + '" y="' + y + '" width="6" height="6" rx="1"/>')
+    .join("") +
+  '<rect class="band" x="0" y="45" width="120" height="30"/><text x="60" y="66" text-anchor="middle">DEMO</text></svg>';
 export async function render(context, el) {
   const bank = await shopPaymentDetails();
   const d = await getOrder(context.orderId, context.profile.customer_id),
@@ -75,36 +89,31 @@ export async function render(context, el) {
         "</dd></dl></div>",
       "tint",
     ) +
-    '<div class="grid cols2" style="margin-top:18px">' +
+    '<form class="grid cols2" id="payment-form" novalidate style="margin-top:18px">' +
     card(
-      "1. เลือกช่องทางชำระเงิน",
-      '<p class="muted small">เลือกรูปแบบในฟอร์มหลักฐานด้านขวา</p>' +
-        (bank.accountNumber || bank.promptpay
-          ? '<dl class="summary-dl">' +
-            (bank.accountNumber
-              ? "<dt>ธนาคาร</dt><dd>" + esc(bank.name) + "</dd><dt>ชื่อบัญชี</dt><dd>" + esc(bank.accountName) +
-                "</dd><dt>เลขบัญชี</dt><dd>" + esc(bank.accountNumber) + "</dd>"
-              : "") +
-            (bank.promptpay ? "<dt>พร้อมเพย์</dt><dd>" + esc(bank.promptpay) + "</dd>" : "") +
-            "</dl>"
-          : '<div class="banner warning">ร้านยังไม่ได้ใส่บัญชีรับเงิน กรุณาขอบัญชีธนาคารหรือ QR จากร้านก่อนโอนเงิน</div>') +
+      "1. ช่องทางชำระเงิน",
+      (bank.accountNumber || bank.promptpay
+        ? '<div class="pay-account"><h3>' +
+          icon("imgAccountMultipleOutline", "236:13997") +
+          'รายละเอียดบัญชี</h3><dl class="summary-dl">' +
+          (bank.accountNumber
+            ? "<dt>ธนาคาร</dt><dd>" + esc(bank.name) + "</dd><dt>ชื่อบัญชี</dt><dd>" + esc(bank.accountName) +
+              "</dd><dt>เลขบัญชี</dt><dd><b>" + esc(bank.accountNumber) + "</b></dd>"
+            : "") +
+          (bank.promptpay ? "<dt>พร้อมเพย์</dt><dd>" + esc(bank.promptpay) + "</dd>" : "") +
+          "</dl></div>"
+        : '<div class="banner warning">ร้านยังไม่ได้ใส่บัญชีรับเงิน กรุณาขอบัญชีธนาคารหรือ QR จากร้านก่อนโอนเงิน</div>') +
+        // The shop's own QR when it has uploaded one, otherwise a demo picture.
+        '<div class="pay-qr">' +
         (bank.qrImage
-          ? '<img class="file-preview" src="' +
-            esc(bank.qrImage) +
-            '" alt="QR ชำระเงินของร้าน">'
-          : "") +
+          ? '<img src="' + esc(bank.qrImage) + '" alt="QR ชำระเงินของร้าน"><div><strong>QR Payment</strong><p class="small muted">สแกนเพื่อชำระเงินเข้าบัญชีร้าน</p></div>'
+          : DEMO_QR +
+            '<div><strong>QR Payment (ภาพสาธิต)</strong><p class="small muted">สำหรับแสดงรูปแบบการชำระเงินเท่านั้น ไม่เชื่อมกับบัญชีหรือระบบรับเงินใด ๆ</p></div>') +
+        "</div>" +
         (bank.note ? '<p class="small muted">' + esc(bank.note) + "</p>" : "") +
         '<div class="rule"></div><p class="small">สถานะชำระเงินจะเปลี่ยนเมื่อร้านตรวจสอบยอดและหลักฐานแล้ว</p>',
     ) +
-    '<form class="card" id="payment-form" novalidate><h2>2. แนบหลักฐานการชำระเงิน</h2>' +
-    field("method", "ช่องทางชำระเงิน", {
-      value: "transfer",
-      options: [
-        { value: "transfer", label: "โอนผ่านธนาคาร" },
-        { value: "qr", label: "QR / PromptPay" },
-        { value: "cash", label: "เงินสดที่ร้าน" },
-      ],
-    }) +
+    '<section class="card"><h2>2. แนบหลักฐานการชำระเงิน</h2>' +
     '<div class="grid cols2">' +
     field("paid_date", "วันที่ชำระ", {
       type: "date",
@@ -122,7 +131,7 @@ export async function render(context, el) {
     icon("imgCamera", "231:6699") +
     '<p>เลือกไฟล์หลักฐานการชำระเงิน</p><input id="slip" type="file" name="slip" accept="image/jpeg,image/png,application/pdf" aria-describedby="slip-error"><p class="upload-note">ขนาดไม่เกิน 10 MB</p><div id="preview"></div></div><p id="slip-error" class="field-error" data-error="slip" hidden></p></div>' +
     checkbox("confirmed", "ตรวจสอบยอด วันที่ และหลักฐานว่าถูกต้องแล้ว") +
-    '<div data-banner hidden role="alert"></div><button class="btn block" type="submit">ส่งหลักฐานการชำระเงิน</button></form></div>';
+    '<div data-banner hidden role="alert"></div><button class="btn block" type="submit">ส่งหลักฐานการชำระเงิน</button></section></form>';
   const form = $("#payment-form");
   let file = null,
     objectUrl = null;
@@ -132,9 +141,6 @@ export async function render(context, el) {
     paid_time: (v) => (v ? "" : "กรุณาระบุเวลาชำระ"),
     confirmed: (v) => (v ? "" : "กรุณายืนยันความถูกต้อง"),
   });
-  form.elements.method.onchange = () => {
-    $("#slip-field").hidden = form.elements.method.value === "cash";
-  };
   $("#slip").onchange = () => {
     if (objectUrl) URL.revokeObjectURL(objectUrl);
     objectUrl = null;
@@ -191,7 +197,7 @@ export async function render(context, el) {
     e.preventDefault();
     if (!validation.validate()) return;
     const v = validation.values();
-    if (v.method !== "cash" && !file) {
+    if (!file) {
       $("#slip-error").textContent = "กรุณาแนบหลักฐานการชำระ";
       $("#slip-error").hidden = false;
       $("#slip").focus();
@@ -215,12 +221,11 @@ export async function render(context, el) {
     await busy(form, async () => {
       let path = null;
       try {
-        if (v.method !== "cash")
-          path = await uploadSlip(file, context.profile.auth_id, d.o.order_id);
+        path = await uploadSlip(file, context.profile.auth_id, d.o.order_id);
         await submitPayment({
           orderId: d.o.order_id,
           type,
-          method: v.method,
+          method: "transfer",
           path,
           amount,
           paidAt: paidAt.toISOString(),

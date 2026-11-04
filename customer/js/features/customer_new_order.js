@@ -19,6 +19,8 @@ import { getCatalog, createOrder } from "../services/customer_order_service.js";
 
 import { TYPE_LABELS } from "../customer_constants.js";
 import { errorMessage, errorField } from "../customer_errors.js";
+// Machines per order the customer can pick (the database still accepts up to 20).
+const MAX_QTY = 5;
 // AI illustration per model code (customer/img/models/<code>.webp); hidden if the file is missing.
 const modelPhoto = (m) =>
   '<figure class="model-photo"><img src="img/models/' +
@@ -123,8 +125,8 @@ export async function render(context, el) {
           .join("") +
         '</div><p class="field-error" data-error="model_id" hidden></p>' +
         field("quantity", "จำนวนเครื่อง", {
-          value: draft.quantity || "1",
-          options: Array.from({ length: 20 }, (_, i) => ({
+          value: String(Math.min(MAX_QTY, Math.max(1, Number(draft.quantity) || 1))),
+          options: Array.from({ length: MAX_QTY }, (_, i) => ({
             value: String(i + 1),
             label: String(i + 1) + " เครื่อง",
           })),
@@ -164,7 +166,7 @@ export async function render(context, el) {
   function update() {
     const v = validation.values(),
       m = models.find((m) => String(m.model_id) === v.model_id),
-      qty = Math.min(20, Math.max(1, Number(v.quantity) || 1));
+      qty = Math.min(MAX_QTY, Math.max(1, Number(v.quantity) || 1));
     $("#order-review").innerHTML =
       "<h2>ตรวจสอบคำสั่งซื้อ</h2><h3>" +
       esc(m?.name) +

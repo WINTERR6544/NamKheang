@@ -147,6 +147,36 @@
   outline-offset: 1px;
   border-color: var(--nk-teal);
 }
+.nk-pass {
+  position: relative;
+}
+.nk-card .nk-pass input {
+  padding-right: 52px;
+}
+.nk-reveal {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--nk-muted);
+  cursor: pointer;
+}
+.nk-reveal:hover {
+  color: var(--nk-teal);
+  background: var(--nk-soft);
+}
+.nk-reveal:focus-visible {
+  outline: 3px solid rgba(0, 119, 122, 0.35);
+  outline-offset: 0;
+}
 .nk-row {
   display: flex;
   justify-content: space-between;

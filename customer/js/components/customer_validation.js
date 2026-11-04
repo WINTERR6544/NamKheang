@@ -5,7 +5,7 @@ export const validators = {
   name: (value) =>
     String(value ?? "").trim().length >= 2 && String(value).trim().length <= 120
       ? ""
-      : "กรุณากรอกชื่อ 2–120 ตัวอักษร",
+      : "กรุณากรอกชื่อ-นามสกุล",
   phone: (value) =>
     /^0\d{8,9}$/.test(normalizePhone(value))
       ? ""
@@ -18,17 +18,17 @@ export const validators = {
   password: (value) =>
     String(value ?? "").length >= 8 && String(value).length <= 128
       ? ""
-      : "รหัสผ่านต้องมี 8–128 ตัวอักษร",
+      : "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร",
   address: (value) =>
     String(value ?? "").trim().length >= 10 &&
     String(value).trim().length <= 1000
       ? ""
-      : "กรุณาระบุที่อยู่ให้ครบถ้วน 10–1,000 ตัวอักษร",
+      : "กรุณาระบุที่อยู่ให้ครบถ้วน",
   note: (value) =>
     String(value ?? "").trim().length >= 5 &&
     String(value).trim().length <= 1000
       ? ""
-      : "กรุณาระบุรายละเอียด 5–1,000 ตัวอักษร",
+      : "กรุณาระบุรายละเอียดเพิ่มเติมให้ครบถ้วน",
   account: (value) =>
     /^\d{8,20}$/.test(String(value ?? "").replace(/[-\s]/g, ""))
       ? ""
