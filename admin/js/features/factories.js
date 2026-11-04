@@ -1,6 +1,7 @@
-// Sidebar: Admin > Factories (UC14). Everyone on the shop side can view; only role "admin" can add, edit and deactivate
+// Admin > บัญชีและสิทธิ์ > tab โรงงาน (UC14): add, edit and deactivate factory companies (role "admin", enforced by the database).
 // (enforced by the database). A factory is deactivated, never deleted, because orders already refer to it.
-route(/^\/factories$/, async (el) => {
+// renderFactories(el, embedded): embedded = drawn inside the accounts page (no page heading)
+async function renderFactories(el, embedded) {
   const { data: au } = await db.auth.getUser();
   const [facs, asg, me] = await Promise.all([db.from("factories").select("*").order("name").then(must),
     db.from("factory_assignments").select("factory_id, response").then(must),
@@ -26,7 +27,7 @@ route(/^\/factories$/, async (el) => {
   };
   const done = (ok) => ok && navigate();
 
-  el.innerHTML = head("โรงงาน", isAdmin ? "เพิ่มและแก้ไขโรงงานที่ร้านส่งคำสั่งผลิตให้" : "โรงงานที่ร้านส่งคำสั่งผลิตให้ (แก้ไขได้เฉพาะผู้ดูแลระบบ)") +
+  el.innerHTML = (embedded ? "" : head("โรงงาน", "เพิ่มและแก้ไขโรงงานที่ร้านส่งคำสั่งผลิตให้")) +
     (isAdmin ? `<div class="row" style="margin-bottom:12px"><button class="btn" id="add">เพิ่มโรงงาน</button></div>` : "") +
     `<div class="card"><h2>โรงงาน (${facs.length})</h2>${table([
       { h: "ชื่อ", f: (f) => esc(f.name) }, { h: "ผู้ติดต่อ", f: (f) => esc(f.contact_name ?? "-") }, { h: "เบอร์โทร", f: (f) => esc(f.phone ?? "-") },
@@ -55,4 +56,4 @@ route(/^\/factories$/, async (el) => {
         toast("บันทึกแล้ว");
       } }));
   };
-});
+}

@@ -15,12 +15,13 @@
     customer_unique_phone: "เบอร์โทรศัพท์นี้มีคนใช้แล้ว กรุณาใช้เบอร์อื่น",
     "User not found": "ไม่พบผู้ใช้นี้ อาจถูกลบไปแล้ว กรุณาโหลดหน้าใหม่",
     "Unknown role": "กรุณาเลือกบทบาทของผู้ใช้",
-    "A factory user needs a factory": "ผู้ใช้ฝั่งโรงงานต้องเลือกโรงงานที่สังกัดด้วย",
+    "A factory user needs a factory": "กรุณาเลือกโรงงานที่สังกัด (ต้องเป็นโรงงานที่เปิดใช้งาน)",
     "This email already has an account": "อีเมลนี้เป็นผู้ใช้ในระบบอยู่แล้ว",
     "You cannot demote or deactivate your own account": "ไม่สามารถลดสิทธิ์หรือปิดใช้งานบัญชีของตัวเองได้",
     "Please enter a name and an email": "กรุณาเลือกบัญชีและกรอกชื่อให้ครบ",
     "Please enter a name": "กรุณากรอกชื่อ",
     "Please enter the customer's account": "กรุณาระบุบัญชีของลูกค้า",
+    "This customer still has orders in progress": "ลูกค้ารายนี้ยังมีคำสั่งซื้อที่กำลังดำเนินการ ต้องให้เสร็จหรือยกเลิกก่อนจึงเปลี่ยนบทบาทได้",
 
     // input checks
     INVALID_NAME: "กรุณากรอกชื่อ 2–120 ตัวอักษร",
@@ -145,6 +146,7 @@
     const code = e?.code, status = e?.status;
     if (/fetch|network|offline|timeout|load failed/i.test(text)) return "เชื่อมต่ออินเทอร์เน็ตไม่ได้ กรุณาตรวจสอบแล้วลองใหม่";
     if (status === 429 || /rate limit|too many/i.test(text)) return "ทำรายการถี่เกินไป กรุณารอสักครู่แล้วลองใหม่";
+    if (/banned/i.test(text)) return "บัญชีนี้ถูกปิดใช้งาน กรุณาติดต่อร้าน";
     if (/invalid login|invalid credentials/i.test(text)) return "อีเมลหรือรหัสผ่านไม่ถูกต้อง";
     if (/not confirmed/i.test(text)) return "กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ";
     if (/already registered|user_already_exists|email_exists/i.test(text + code)) return "อีเมลนี้มีบัญชีแล้ว กรุณาเข้าสู่ระบบ";

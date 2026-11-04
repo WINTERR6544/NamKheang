@@ -71,7 +71,7 @@ const FEATURES = [
   [/^\/orders$/, "orders-all"], [/^\/orders\/new$/, "orders-new"], [/^\/orders\/quotations$/, "orders-quotations"], [/^\/orders\/cancelled$/, "orders-cancelled"],
   [/^\/order\/\d+$/, "order-detail"],
   [/^\/mfg\/requests$/, "mfg-requests"], [/^\/mfg\/status$/, "mfg-status"],
-  [/^\/installation$/, "installation"], [/^\/customers$/, "customers"], [/^\/factories$/, "factories"], [/^\/users$/, "users-roles"], [/^\/settings\/payment$/, "payment-details"],
+  [/^\/installation$/, "installation"], [/^\/(accounts|customers|users|factories)$/, "accounts"], [/^\/settings\/payment$/, "payment-details"],
   [/^\/payments\/deposit$/, "payments-deposit"], [/^\/payments\/final$/, "payments-final"], [/^\/payments\/refund$/, "payments-refund"],
 ];
 async function navigate() {
@@ -111,8 +111,7 @@ const NAV = [
   { label: "มัดจำ", href: "#/payments/deposit", sub: 1, key: "dep", icon: "wallet" }, { label: "ยอดคงเหลือ", href: "#/payments/final", sub: 1, key: "fin", icon: "receipt" },
   { label: "คืนเงิน", href: "#/payments/refund", sub: 1, key: "ref", icon: "undo" },
   G("ผู้ดูแลระบบ"),
-  { label: "ลูกค้า", href: "#/customers", sub: 1, icon: "users" }, { label: "โรงงาน", href: "#/factories", sub: 1, icon: "building" },
-  { label: "ผู้ใช้และสิทธิ์", href: "#/users", sub: 1, icon: "shield" },
+  { label: "บัญชีและสิทธิ์", href: "#/accounts", sub: 1, icon: "shield" },
   { label: "บัญชีรับเงิน", href: "#/settings/payment", sub: 1, icon: "wallet" },
   G("บัญชีของฉัน"),
   { label: "โปรไฟล์", href: "#/profile", sub: 1, icon: "user" },
