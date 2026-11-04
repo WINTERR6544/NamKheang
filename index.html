@@ -20,11 +20,33 @@
         <div class="nk-field"><label for="ppass">รหัสผ่าน</label><input id="ppass" type="password" required autocomplete="current-password"></div>
         <div class="nk-row">
           <label class="nk-check"><input id="premember" type="checkbox" checked> จดจำการเข้าสู่ระบบ</label>
-          <a href="customer/index.html#/reset-password">ลืมรหัสผ่าน?</a>
+          <a href="#forgot">ลืมรหัสผ่าน?</a>
         </div>
         <div id="perr" class="nk-err" role="alert" hidden></div>
         <button id="pbtn" class="nk-btn">เข้าสู่ระบบ</button>
-        <p class="nk-switch">ลูกค้าใหม่? <a href="customer/index.html#/sign-up">สมัครสมาชิก</a> · <a href="customer/index.html#/login">เข้าด้วยเบอร์โทรศัพท์</a></p>
+        <p class="nk-switch">ลูกค้าใหม่? <a href="#sign-up">สมัครสมาชิก</a></p>
+      </form>
+      <form id="sform" class="nk-card" novalidate hidden>
+        <p class="nk-role">ลูกค้า · สมัครสมาชิก</p>
+        <h1>สร้างบัญชี</h1>
+        <p class="nk-sub">สั่งเครื่องและติดตามการผลิตได้ในที่เดียว</p>
+        <div class="nk-field"><label for="sname">ชื่อ–นามสกุล</label><input id="sname" type="text" required autocomplete="name" maxlength="120"></div>
+        <div class="nk-field"><label for="sphone">เบอร์โทรศัพท์</label><input id="sphone" type="tel" required autocomplete="tel" maxlength="20" placeholder="0812345678"></div>
+        <div class="nk-field"><label for="semail">อีเมล</label><input id="semail" type="email" required autocomplete="email" autocapitalize="none" spellcheck="false" maxlength="254"></div>
+        <div class="nk-field"><label for="spass">รหัสผ่าน (8 ตัวอักษรขึ้นไป)</label><input id="spass" type="password" required autocomplete="new-password" maxlength="128"></div>
+        <div class="nk-field"><label for="spass2">ยืนยันรหัสผ่าน</label><input id="spass2" type="password" required autocomplete="new-password" maxlength="128"></div>
+        <div class="nk-err" role="alert" hidden></div>
+        <button class="nk-btn">สมัครสมาชิก</button>
+        <p class="nk-switch">มีบัญชีแล้ว? <a href="#login">เข้าสู่ระบบ</a></p>
+      </form>
+      <form id="fform" class="nk-card" novalidate hidden>
+        <p class="nk-role">กู้คืนบัญชี</p>
+        <h1>ลืมรหัสผ่าน</h1>
+        <p class="nk-sub">ใส่อีเมลของบัญชี ระบบจะส่งลิงก์ตั้งรหัสผ่านใหม่ให้</p>
+        <div class="nk-field"><label for="femail">อีเมล</label><input id="femail" type="email" required autocomplete="email" autocapitalize="none" spellcheck="false" maxlength="254"></div>
+        <div class="nk-err" role="alert" hidden></div>
+        <button class="nk-btn">ส่งลิงก์กู้คืนบัญชี</button>
+        <p class="nk-switch"><a href="#login">กลับไปเข้าสู่ระบบ</a></p>
       </form>
       <p id="pstatus" class="nk-status" role="status" hidden>กำลังตรวจสอบการเข้าสู่ระบบ…</p>
     </main>

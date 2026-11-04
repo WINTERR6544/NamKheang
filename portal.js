@@ -1,3 +1,5 @@
+// Single sign-in page for every actor; sign-up (customers) and "forgot password" live on the same
+// page as #sign-up and #forgot, switched without leaving it.
 // Single sign-in for every actor. Signs in once, reads the account's role, then hands the session
 // to the right site and opens it:
 //   users.role = factory (active, with factory_id) -> factory/
@@ -78,11 +80,33 @@ async function roleOf(client, authId) {
   throw new Error("บัญชีนี้ไม่มีสิทธิ์เข้าใช้งาน");
 }
 
-function showError(msg) {
-  const err = $("#perr");
-  err.textContent = msg;
-  err.hidden = !msg;
+// message box of a form; ok = green success note instead of a red error
+function note(form, msg, ok = false) {
+  const box = form.querySelector(".nk-err");
+  box.textContent = msg;
+  box.classList.toggle("nk-ok", ok);
+  box.hidden = !msg;
 }
+const showError = (msg) => note($("#pform"), msg);
+
+// which form shows: #sign-up, #forgot, anything else = sign-in
+const VIEWS = { "#sign-up": ["#sform", "สมัครสมาชิก"], "#forgot": ["#fform", "ลืมรหัสผ่าน"] };
+function showView() {
+  const [id, title] = VIEWS[location.hash] || ["#pform", "เข้าสู่ระบบ"];
+  for (const f of ["#pform", "#sform", "#fform"]) $(f).hidden = f !== id;
+  document.title = "NamKheang · " + title;
+  $(id).querySelector("input").focus();
+}
+window.addEventListener("hashchange", () => { if (!$("#pstatus").hidden) return; showView(); });
+
+// the email links still open the customer site, which takes the token from the URL
+// (same targets as customer/js/lib.js authRedirect, already allowed in Supabase Auth)
+const customerLink = (page) => {
+  const u = new URL("customer/index.html", location.href);
+  u.searchParams.set("customer_page", page);
+  return u.href;
+};
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function busy(on) {
   $("#pbtn").disabled = on;
@@ -102,11 +126,58 @@ async function resume() {
     if (c.session) return location.replace(DEST.customer);
   } catch { /* fall through to the form */ }
   $("#pstatus").hidden = true;
-  $("#pform").hidden = false;
+  showView();
   if (new URLSearchParams(location.search).get("reset") === "success")
-    showError("ตั้งรหัสผ่านใหม่แล้ว กรุณาเข้าสู่ระบบอีกครั้ง");
-  $("#pemail").focus();
+    note($("#pform"), "ตั้งรหัสผ่านใหม่แล้ว กรุณาเข้าสู่ระบบอีกครั้ง", true);
 }
+
+// customer sign-up; the session (if Supabase returns one) is kept where customer/ reads it
+$("#sform").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const f = e.currentTarget, btn = f.querySelector("button");
+  const name = $("#sname").value.trim(), phone = normalizePhone($("#sphone").value.trim());
+  const email = $("#semail").value.trim(), password = $("#spass").value;
+  const bad = name.length < 2 ? "กรุณากรอกชื่อ 2–120 ตัวอักษร"
+    : !/^0[0-9]{8,9}$/.test(phone) ? "กรุณากรอกเบอร์โทรศัพท์ไทย 9–10 หลัก"
+    : !EMAIL_RE.test(email) ? "รูปแบบอีเมลไม่ถูกต้อง"
+    : password.length < 8 ? "รหัสผ่านต้องมี 8–128 ตัวอักษร"
+    : password !== $("#spass2").value ? "รหัสผ่านทั้งสองช่องไม่ตรงกัน" : "";
+  if (bad) return note(f, bad);
+  note(f, ""); btn.disabled = true; btn.textContent = "กำลังสร้างบัญชี…";
+  try {
+    localStorage.setItem(REMEMBER, "yes");
+    const { data, error } = await customerClient().auth.signUp({
+      email, password,
+      options: { emailRedirectTo: customerLink("dashboard"), data: { customer_module: true, name, phone } },
+    });
+    if (error) throw error;
+    if (data.session) return location.replace(DEST.customer);
+    f.reset();
+    note(f, "ตรวจสอบอีเมลเพื่อยืนยันบัญชี หากอีเมลนี้มีบัญชีอยู่แล้ว ให้เข้าสู่ระบบหรือกู้คืนรหัสผ่าน", true);
+  } catch (err) {
+    note(f, /registered|exists/i.test(err.message || "") ? "อีเมลนี้มีบัญชีแล้ว กรุณาเข้าสู่ระบบ"
+      : /rate|too many/i.test(err.message || "") ? "ทำรายการถี่เกินไป กรุณารอแล้วลองใหม่"
+      : err.message || "สมัครสมาชิกไม่สำเร็จ กรุณาลองใหม่");
+  }
+  btn.disabled = false; btn.textContent = "สมัครสมาชิก";
+});
+
+// password reset email; the link opens customer/ to set the new password, then returns here
+$("#fform").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const f = e.currentTarget, btn = f.querySelector("button");
+  const email = $("#femail").value.trim();
+  if (!EMAIL_RE.test(email)) return note(f, "รูปแบบอีเมลไม่ถูกต้อง");
+  note(f, ""); btn.disabled = true;
+  try {
+    const { error } = await customerClient().auth.resetPasswordForEmail(email, { redirectTo: customerLink("reset-password") });
+    if (error) throw error;
+    note(f, "หากอีเมลนี้มีบัญชี ระบบจะส่งลิงก์กู้คืนให้ กรุณาตรวจสอบกล่องจดหมาย", true);
+  } catch (err) {
+    note(f, /rate|too many/i.test(err.message || "") ? "ทำรายการถี่เกินไป กรุณารอแล้วลองใหม่" : "ส่งลิงก์ไม่สำเร็จ กรุณาลองใหม่");
+  }
+  btn.disabled = false;
+});
 
 $("#pform").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -147,6 +218,6 @@ $("#pform").addEventListener("submit", async (e) => {
   }
 });
 
-$("#pform").hidden = true;
+for (const f of ["#pform", "#sform", "#fform"]) $(f).hidden = true;
 $("#pstatus").hidden = false;
 resume();
