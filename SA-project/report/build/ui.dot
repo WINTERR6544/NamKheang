@@ -1,0 +1,21 @@
+digraph UI {
+  rankdir=LR; splines=ortho; nodesep=0.12; ranksep=0.5;
+  node [shape=box, style="rounded,filled", fillcolor=white, color="#555555", fontname="Loma", fontsize=11, margin="0.12,0.05"];
+  edge [color="#777777", arrowsize=0.6];
+  login [label="หน้าเข้าสู่ระบบ (ทุก Role)\n• สมัครสมาชิก\n• ลืมรหัสผ่าน", fillcolor="#CFE8F7"];
+  C [label="ลูกค้า", fillcolor="#FCE4EC"]; A [label="ร้าน (ผู้ดูแลระบบ)", fillcolor="#E8F5E9"]; F [label="โรงงาน", fillcolor="#FFF3E0"];
+  login -> C; login -> A; login -> F;
+  c1 [label="หน้าหลัก"]; c2 [label="แค็ตตาล็อก / สร้างคำสั่งซื้อ"]; c4 [label="คำสั่งซื้อของฉัน"];
+  c5 [label="ติดตามคำสั่งซื้อ\n• ใบเสนอราคา / ชำระมัดจำ\n• นัดหมายติดตั้ง\n• ตรวจรับ / ชำระยอดคงเหลือ\n• ใบเสร็จ\n• ยกเลิกคำสั่งซื้อ"];
+  c6 [label="การชำระเงิน"]; c7 [label="แจ้งเตือน"]; c8 [label="ข้อมูลส่วนตัว"];
+  C -> {c1 c2 c4 c6 c7 c8}; c4 -> c5;
+  a1 [label="แดชบอร์ด / การแจ้งเตือน"];
+  a3 [label="คำสั่งซื้อ\n• คำสั่งซื้อทั้งหมด\n• คำสั่งซื้อใหม่\n• ใบเสนอราคา\n• ยกเลิกแล้ว"];
+  a4 [label="การผลิต\n• คำขอผลิตถึงโรงงาน\n• สถานะการผลิต\n• การติดตั้ง"];
+  a5 [label="การชำระเงิน\n• มัดจำ\n• ยอดคงเหลือ\n• คืนเงิน"];
+  a6 [label="ผู้ดูแลระบบ\n• บัญชีและสิทธิ์\n   (บัญชีผู้ใช้ / โรงงาน)\n• บัญชีรับเงิน"];
+  a7 [label="โปรไฟล์"];
+  A -> {a1 a3 a4 a5 a6 a7};
+  f1 [label="แดชบอร์ด"]; f2 [label="คำขอผลิต"]; f3 [label="การผลิต"]; f4 [label="QC / แก้ไข"]; f5 [label="การติดตั้ง"]; f6 [label="การแจ้งเตือน"]; f7 [label="โปรไฟล์"];
+  F -> {f1 f2 f3 f4 f5 f6 f7};
+}
