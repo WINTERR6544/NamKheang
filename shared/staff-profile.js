@@ -6,6 +6,15 @@
 // - change password: supabase auth updateUser
 // - profile picture: ../shared/avatar.js (NKAvatar)
 const ROLE_TH = { admin: "ผู้ดูแลระบบ", shop: "พนักงานร้าน", factory: "ผู้ใช้โรงงาน" };
+// show / hide password button (same eye / eye-off icons as the sign-in page): eye = show, eye-off = hide
+const revealBtn = (id) =>
+  `<button type="button" class="pass-reveal" data-reveal="${id}" aria-controls="${id}" aria-label="แสดงรหัสผ่าน" aria-pressed="false">${icon("eye", 20)}</button>`;
+function setShown(btn, shown) {
+  document.getElementById(btn.dataset.reveal).type = shown ? "text" : "password";
+  btn.innerHTML = icon(shown ? "eyeOff" : "eye", 20);
+  btn.setAttribute("aria-pressed", String(shown));
+  btn.setAttribute("aria-label", shown ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน");
+}
 const longDateTH = (s) => (s ? new Date(s).toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric" }) : "-");
 
 route(/^\/profile$/, async (el) => {
@@ -56,9 +65,9 @@ route(/^\/profile$/, async (el) => {
           <form id="pf-pass" style="margin-top:14px" novalidate>
             <input type="text" autocomplete="username" value="${esc(email)}" hidden>
             <label for="pf-p1">รหัสผ่านใหม่</label>
-            <input id="pf-p1" type="password" minlength="8" required autocomplete="new-password">
+            <div class="pass-wrap"><input id="pf-p1" type="password" minlength="8" required autocomplete="new-password">${revealBtn("pf-p1")}</div>
             <label for="pf-p2" style="margin-top:12px">ยืนยันรหัสผ่านใหม่</label>
-            <input id="pf-p2" type="password" minlength="8" required autocomplete="new-password">
+            <div class="pass-wrap"><input id="pf-p2" type="password" minlength="8" required autocomplete="new-password">${revealBtn("pf-p2")}</div>
             <div class="err" id="pf-per" hidden></div>
             <div class="row end" style="margin-top:14px"><button class="btn" id="pf-psave">${icon("shield", 16)}เปลี่ยนรหัสผ่าน</button></div>
           </form>
@@ -96,8 +105,15 @@ route(/^\/profile$/, async (el) => {
       $("#pf-edit").onclick = () => draw(true);
     }
 
+    const reveals = [...el.querySelectorAll("[data-reveal]")];
+    reveals.forEach((b) => (b.onclick = () => {
+      const input = document.getElementById(b.dataset.reveal);
+      setShown(b, input.type === "password");
+      input.focus();
+    }));
     $("#pf-pass").onsubmit = async (e) => {
       e.preventDefault();
+      reveals.forEach((b) => setShown(b, false)); // hide again so the password isn't left on screen
       const er = $("#pf-per"), p1 = $("#pf-p1").value, p2 = $("#pf-p2").value;
       er.hidden = true;
       const fail = (msg) => { er.textContent = msg; er.hidden = false; };

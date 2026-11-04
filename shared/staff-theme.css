@@ -87,6 +87,13 @@ aside .who { position: sticky; bottom: -18px; margin: 0 -14px -18px; padding: 12
 .who-link:hover b { text-decoration: underline; }
 .who-link > div { min-width: 0; }
 .profile-grid > .card + .card { margin-top: 0; }
+/* change password: show / hide button inside the field */
+.pass-wrap { position: relative; }
+.pass-wrap input { padding-right: 48px; }
+.pass-reveal { position: absolute; top: 50%; right: 4px; transform: translateY(-50%); display: grid; place-items: center;
+  width: 38px; height: 38px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--muted); cursor: pointer; }
+.pass-reveal:hover { color: var(--f-teal); background: var(--f-teal-soft); }
+.pass-reveal:focus-visible { outline: 3px solid rgba(0, 119, 122, .35); outline-offset: 0; }
 
 /* label / value table with row lines (profile page, factory installation) */
 dl.spec2 { display: grid; grid-template-columns: minmax(110px, 170px) 1fr; margin: 12px 0 0; font-size: .86rem; }

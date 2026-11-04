@@ -54,14 +54,14 @@ const NAV = [
   { label: "การผลิต", href: "#/production", icon: "factory" },
   { label: "QC / แก้ไข", href: "#/qc", icon: "circleCheck" },
   { label: "การติดตั้ง", href: "#/installation", icon: "wrench" },
-  { label: "การแจ้งเตือน", href: "#/notifications", icon: "bell" },
+  { label: "การแจ้งเตือน", href: "#/notifications", key: "note", icon: "bell" },
   { label: "โปรไฟล์", href: "#/profile", icon: "user" },
 ];
 const initials = (name) => (name || "?").trim().split(/\s+/).slice(0, 2).map((w) => w.charAt(0)).join("");
 function sidebar(user) {
   return `<a class="nk-logo" href="#/dashboard">Nam<b>Kheang</b></a><span class="nk-tag">โรงงาน</span>
     <div class="group">เมนู</div>` +
-    NAV.map((n) => `<a class="nav" href="${n.href}">${icon(n.icon)}<span>${n.label}</span></a>`).join("") +
+    NAV.map((n) => `<a class="nav" href="${n.href}">${icon(n.icon)}<span>${n.label}</span>${n.key ? `<span class="count" id="c-${n.key}" hidden></span>` : ""}</a>`).join("") +
     `<div class="grow"></div>
     <div class="who"><a class="who-link" href="#/profile" title="โปรไฟล์ของฉัน"><span class="avatar">${esc(initials(user.name))}</span><div><b>${esc(user.name)}</b><div class="small">ผู้จัดการโรงงาน</div></div></a><button class="menu-btn" type="button" title="ออกจากระบบ" aria-label="ออกจากระบบ"></button></div>`;
 }
@@ -88,10 +88,15 @@ async function boot() {
   refreshShell();
 }
 
-// bell dot (unread messages, requests waiting for a reply, production due by tomorrow) refreshed after every action
+// bell dot (unread messages, requests waiting for a reply, production due by tomorrow) and the unread count badge
+// beside "การแจ้งเตือน" in the sidebar (same badge as the shop site), refreshed after every action
 async function refreshShell() {
   try {
-    const [reqs, jobs, notes] = await Promise.all([fetchRequests(), fetchProduction(), fetchFactoryNotes(50)]);
+    const [reqs, jobs, notes, unread] = await Promise.all([fetchRequests(), fetchProduction(), fetchFactoryNotes(50),
+      db.from("notifications").select("notification_id", { count: "exact", head: true })
+        .eq("recipient_type", "factory").eq("recipient_id", ME.factory_id).is("read_at", null)]);
+    const c = $("#c-note");
+    if (c) { c.textContent = unread.count ?? 0; c.hidden = !unread.count; }
     $("#belld").hidden = !notes.some((n) => !n.read_at) && !reqs.some((r) => r.state === "pending") && !jobs.some(dueSoon);
   } catch { /* the shell still works without these */ }
 }

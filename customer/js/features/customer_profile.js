@@ -1,4 +1,4 @@
-import { routeParams, normalizePhone } from "../lib.js";
+import { routeParams, normalizePhone, esc, initials } from "../lib.js";
 import {
   $,
   heading,
@@ -8,7 +8,8 @@ import {
   banner,
   toast,
   icon,
-  field,
+  passwordField,
+  bindReveal,
 } from "../components/customer_ui.js";
 import {
   profileCard,
@@ -69,8 +70,8 @@ const passwordCard = () =>
   `<form id="password-form" class="card profile-card profile-password" novalidate>
     <h2>เปลี่ยนรหัสผ่าน</h2><p class="muted">อย่างน้อย 8 ตัวอักษร</p>
     <input type="text" name="username" autocomplete="username" hidden>` +
-  field("new_password", "รหัสผ่านใหม่", { type: "password", required: true, autocomplete: "new-password", maxLength: 128 }) +
-  field("confirm_new_password", "ยืนยันรหัสผ่านใหม่", { type: "password", required: true, autocomplete: "new-password", maxLength: 128 }) +
+  passwordField("new_password", "รหัสผ่านใหม่") +
+  passwordField("confirm_new_password", "ยืนยันรหัสผ่านใหม่") +
   `<div data-banner hidden role="alert"></div>
     <div class="profile-edit-actions"><button type="submit" class="btn">เปลี่ยนรหัสผ่าน</button></div></form>`;
 function bindPassword(el, email) {
@@ -81,8 +82,10 @@ function bindPassword(el, email) {
     confirm_new_password: (value, all) =>
       value && value === all.new_password ? "" : "รหัสผ่านทั้งสองช่องไม่ตรงกัน",
   });
+  const hidePasswords = bindReveal(form);
   form.onsubmit = async (event) => {
     event.preventDefault();
+    hidePasswords();
     if (!validation.validate()) return;
     await busy(form, async () => {
       try {
@@ -103,29 +106,42 @@ function bindPassword(el, email) {
     });
   };
 }
+// Same layout as the staff profile page (../shared/staff-profile.js): account card with the picture on the
+// left, change-password card on the right. The account card switches between details and the edit form.
+const longDateTH = (s) =>
+  s ? new Date(s).toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric" }) : "-";
+const identity = (profile) =>
+  `<div class="profile-identity"><span class="avatar">${esc(initials(profile.name))}</span><div><h2>${esc(profile.name)}</h2><p class="muted">${esc(profile.email)}</p><span class="badge"><i></i>บัญชีใช้งานอยู่</span></div></div><div class="rule"></div>`;
+const spec = (label, value) => `<dt>${esc(label)}</dt><dd>${esc(value || "ยังไม่ระบุ")}</dd>`;
+const accountCard = (profile) =>
+  `<section class="card profile-card profile-account">${identity(profile)}
+    <dl class="profile-spec">${spec("ชื่อ–นามสกุล", profile.name)}${spec("เบอร์โทรศัพท์", profile.phone)}${spec("อีเมล", profile.email)}${spec("บริษัท / องค์กร", profile.company)}${spec("ที่อยู่ติดต่อ", profile.contact_address)}<dt>เข้าร่วมเมื่อ</dt><dd>${longDateTH(profile.created_at)}</dd></dl>
+    <div class="profile-edit-actions"><button type="button" class="btn ghost" data-edit>${icon("imgPencil", "236:13997")}แก้ไขข้อมูล</button></div>
+  </section>`;
 export async function render(context, el) {
   let profile = await getProfile();
   context.profile = profile;
+  const page = (left) =>
+    heading("โปรไฟล์ของฉัน", "ดูและแก้ไขข้อมูลบัญชีของคุณ") +
+    `<div class="profile-page profile-grid">${left}${passwordCard()}</div>`;
   function show() {
     if (document.body.dataset.ready === "true")
       history.replaceState(null, "", "#/profile");
-    el.innerHTML =
-      heading(
-        "ข้อมูลส่วนตัวและการติดต่อ",
-        "จัดการข้อมูลสำหรับติดต่อและประสานงาน",
-      ) + `<div class="profile-page">${profileCard(profile)}${passwordCard()}</div>`;
+    el.innerHTML = page(accountCard(profile));
     $("[data-edit]", el).onclick = edit;
     bindPassword(el, profile.email);
     mountPicture(el);
   }
   function edit() {
-    el.innerHTML =
-      heading("แก้ไขข้อมูลลูกค้า", "บันทึกเฉพาะข้อมูลในบัญชีของคุณ") +
-      `<div class="profile-page"><form id="profile-form" class="card profile-edit" novalidate>
-        <h2>แก้ไขข้อมูล</h2>${profileFields(profile)}
+    el.innerHTML = page(
+      `<form id="profile-form" class="card profile-card profile-account profile-edit" novalidate>${identity(profile)}
+        ${profileFields(profile)}
         <div data-banner hidden role="alert"></div><div class="rule"></div>
         <div class="profile-edit-actions"><button type="button" class="btn ghost" id="discard">ยกเลิก</button>
-        <button type="submit" class="btn">${icon("imgCheck", "236:13712")}บันทึก</button></div></form></div>`;
+        <button type="submit" class="btn">${icon("imgCheck", "236:13712")}บันทึก</button></div></form>`,
+    );
+    bindPassword(el, profile.email);
+    mountPicture(el);
     const form = $("#profile-form", el);
     const validation = bindValidation(form, {
       name: validators.name,

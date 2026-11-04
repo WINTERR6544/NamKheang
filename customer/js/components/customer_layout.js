@@ -75,8 +75,8 @@ export function layout(profile, page) {
     // menu open: it already lists notifications and sign-out, so the profile chip hides until it closes
     $(".app-top").classList.toggle("menu-open", open);
   };
-  $("#profile-button").onclick = () =>
-    window.dispatchEvent(new CustomEvent("customer:profile"));
+  // opens the profile page (picture, details, change password) like the staff sites' profile link
+  $("#profile-button").onclick = () => location.assign("#/profile");
   const logout = async () => {
     if (
       await confirm(

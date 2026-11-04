@@ -2724,6 +2724,50 @@ select:focus {
 .profile-password {
   margin-top: 18px;
 }
+/* profile page: account card left, change password right (same layout as the staff profile page) */
+.profile-page.profile-grid {
+  max-width: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.profile-grid .profile-password {
+  margin-top: 0;
+  padding: 24px;
+}
+.profile-account .profile-identity .avatar {
+  width: 80px;
+  height: 80px;
+  font-size: 26px;
+}
+.profile-spec {
+  display: grid;
+  grid-template-columns: minmax(110px, 1fr) 2fr;
+  margin: 0 0 16px;
+}
+.profile-spec dt,
+.profile-spec dd {
+  margin: 0;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+.profile-spec dt {
+  color: var(--muted);
+}
+.profile-spec dd {
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+.profile-account [data-edit] {
+  margin-left: auto;
+}
+@media (max-width: 900px) {
+  .profile-page.profile-grid {
+    grid-template-columns: 1fr;
+  }
+}
 .profile-password h2 {
   margin: 0 0 4px;
 }
