@@ -132,7 +132,8 @@
 }
 .nk-card input[type="email"],
 .nk-card input[type="password"],
-.nk-card input[type="text"] {
+.nk-card input[type="text"],
+.nk-card input[type="tel"] {
   width: 100%;
   min-height: 46px;
   padding: 10px 14px;
@@ -169,6 +170,15 @@
   height: 16px;
   margin: 0;
   accent-color: var(--nk-teal);
+}
+.nk-ok {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--nk-soft);
+  border: 1px solid #a9dedb;
+  color: var(--nk-teal-h);
+  font-size: 14px;
 }
 .nk-err {
   margin: 0 0 14px;
