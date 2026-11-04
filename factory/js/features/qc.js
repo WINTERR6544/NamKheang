@@ -21,7 +21,7 @@ route(/^\/qc$/, async (el) => {
     </div>
     <div class="tabs" role="tablist">${TABS.map(([k, l, n]) => `<button role="tab" data-tab="${k}">${l} ${n}</button>`).join("")}</div>
     <div class="toolbar">
-      <label class="search">${icon("search")}<input id="q" placeholder="ค้นหา Order No., ลูกค้า หรือรุ่นเครื่อง" aria-label="ค้นหา"></label>
+      <label class="search">${icon("search")}<input id="q" placeholder="ค้นหาเลขคำสั่งซื้อ, ลูกค้า หรือรุ่นเครื่อง" aria-label="ค้นหา"></label>
       <label class="selbtn">${icon("sort", 16)}<span>เรียง:</span><select id="so" aria-label="เรียงลำดับ">
         <option value="todo">งานที่ต้องดำเนินการก่อน</option><option value="new">ล่าสุดก่อน</option></select></label>
     </div>
@@ -62,7 +62,7 @@ route(/^\/qc$/, async (el) => {
     const shown = rows.slice((page - 1) * PER, page * PER);
     $$(".tabs button", el).forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === tab));
     $("#tb").innerHTML = !rows.length ? `<div class="empty">${jobs.length ? "ไม่พบงานที่ตรงกับเงื่อนไข" : "ยังไม่มีงานที่รอตรวจ QC งานจะเข้ามาเมื่อยืนยันผลิตเสร็จในหน้า Production"}</div>` :
-      `<div class="tw"><table class="t req"><thead><tr><th>Order No.</th><th>ลูกค้า</th><th>รุ่นเครื่อง</th><th>QC Round</th><th>สถานะ QC</th><th>วันที่ตรวจ</th><th>ดำเนินการ</th></tr></thead>
+      `<div class="tw"><table class="t req"><thead><tr><th>เลขคำสั่งซื้อ</th><th>ลูกค้า</th><th>รุ่นเครื่อง</th><th>รอบ QC</th><th>สถานะ QC</th><th>วันที่ตรวจ</th><th>ดำเนินการ</th></tr></thead>
         <tbody>${shown.map(row).join("")}</tbody></table></div>
        <div class="pager"><span class="small muted">แสดง ${(page - 1) * PER + 1}–${(page - 1) * PER + shown.length} จาก ${rows.length} รายการ</span>
         <div class="pages"><button class="pg" data-pg="${page - 1}" ${page === 1 ? "disabled" : ""} aria-label="หน้าก่อน">${icon("chevronLeft", 16)}</button>

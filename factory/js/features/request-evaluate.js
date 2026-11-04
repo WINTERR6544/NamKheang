@@ -3,7 +3,7 @@
 route(/^\/requests\/(\d+)\/evaluate$/, async (el, [id]) => {
   const [a, all, fac] = await Promise.all([fetchRequest(Number(id)), fetchRequests(), fetchFactory()]);
   const o = a.orders;
-  setCrumbs("Manufacturing Requests", o.order_code);
+  setCrumbs("คำขอผลิต", o.order_code);
   el.onclick = null;
   const back = `<a class="btn ghost" href="#/requests">${icon("arrowLeft", 16)}กลับรายการคำขอ</a>`;
   if (a.state !== "pending") {
@@ -40,7 +40,7 @@ route(/^\/requests\/(\d+)\/evaluate$/, async (el, [id]) => {
         </div>
         <div class="card"><div class="confirm-h"><span class="tile warm">${icon("send", 20)}</span><div><h2>ยืนยันก่อนส่งผลการประเมิน</h2>
             <div class="muted small">ตรวจสอบข้อความที่จะส่งให้ร้านอีกครั้ง</div></div></div>
-          <dl class="kv2"><div><dt>Order No.</dt><dd>${esc(o.order_code)}</dd></div><div><dt>ผลที่กำลังจะส่ง</dt><dd id="res"></dd></div></dl>
+          <dl class="kv2"><div><dt>เลขคำสั่งซื้อ</dt><dd>${esc(o.order_code)}</dd></div><div><dt>ผลที่กำลังจะส่ง</dt><dd id="res"></dd></div></dl>
           <div class="quote" id="rq" hidden><div class="small muted">เหตุผลที่ร้านจะได้รับ</div><div id="rqt"></div></div>
           <p class="small muted" id="note"></p>
           <hr><div class="row-sb"><button class="btn ghost" id="edit">กลับไปแก้ไข</button><button class="btn" id="go" disabled></button></div>

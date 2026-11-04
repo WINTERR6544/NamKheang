@@ -31,12 +31,12 @@
   }
 
   const details = (d) => {
-    const { o, quote: Q } = d, li = (rows, f) => rows.length ? `<ul>${rows.map((r) => `<li>${f(r)}</li>`).join("")}</ul>` : `<div class="muted small">None yet</div>`;
-    return `<h2>Contact</h2><div>${esc(o.customers?.phone)} · ${esc(o.customers?.email)}</div>
-      <h2>Install</h2><div>${esc(o.install_address)}<br><span class="muted">${esc(o.install_power ?? "-")} · ${esc(o.install_space ?? "-")}</span></div>
-      <h2>Quotation</h2>${Q ? `<div>Total ${baht(Q.total_price)} · deposit ${baht(Q.deposit_amount)}<br><span class="muted">Valid until ${dateTH(Q.valid_until)}</span></div>` : `<div class="muted small">No quotation yet</div>`}
-      <h2>Payments</h2>${li(d.pays, (p) => `${esc({ deposit: "Deposit", final: "Final", refund: "Refund" }[p.pay_type])} ${baht(p.amount)} · ${p.verified ? "verified" : "pending"}`)}
-      <h2>History</h2>${li(d.logs, (l) => `${esc(STATUS[l.status])} <span class="muted">${dateTH(l.changed_at, true)}</span>`)}`;
+    const { o, quote: Q } = d, li = (rows, f) => rows.length ? `<ul>${rows.map((r) => `<li>${f(r)}</li>`).join("")}</ul>` : `<div class="muted small">ยังไม่มี</div>`;
+    return `<h2>ติดต่อ</h2><div>${esc(o.customers?.phone)} · ${esc(o.customers?.email)}</div>
+      <h2>ติดตั้ง</h2><div>${esc(o.install_address)}<br><span class="muted">${esc(o.install_power ?? "-")} · ${esc(o.install_space ?? "-")}</span></div>
+      <h2>ใบเสนอราคา</h2>${Q ? `<div>ยอดรวม ${baht(Q.total_price)} · มัดจำ ${baht(Q.deposit_amount)}<br><span class="muted">ใช้ได้ถึง ${dateTH(Q.valid_until)}</span></div>` : `<div class="muted small">ยังไม่มีใบเสนอราคา</div>`}
+      <h2>การชำระเงิน</h2>${li(d.pays, (p) => `${esc({ deposit: "มัดจำ", final: "ยอดคงเหลือ", refund: "คืนเงิน" }[p.pay_type])} ${baht(p.amount)} บาท · ${p.verified ? "ตรวจแล้ว" : "รอตรวจ"}`)}
+      <h2>ประวัติสถานะ</h2>${li(d.logs, (l) => `${esc(STATUS[l.status])} <span class="muted">${dateTH(l.changed_at, true)}</span>`)}`;
   };
 
   window.openOrderPopup = async function openOrderPopup(id) {
@@ -44,28 +44,28 @@
     await loadFeature("order-actions");
     if (!document.getElementById("op-bd")) {
       const bd = document.createElement("div"); bd.id = "op-bd"; bd.onclick = close; document.body.append(bd);
-      const p = document.createElement("div"); p.id = "op"; p.setAttribute("role", "dialog"); p.setAttribute("aria-modal", "true"); p.setAttribute("aria-label", "Order details"); document.body.append(p);
+      const p = document.createElement("div"); p.id = "op"; p.setAttribute("role", "dialog"); p.setAttribute("aria-modal", "true"); p.setAttribute("aria-label", "รายละเอียดคำสั่งซื้อ"); document.body.append(p);
       document.addEventListener("keydown", onKey);
     }
     const panel = document.getElementById("op");
-    panel.innerHTML = `<p class="muted">Loading...</p>`;
+    panel.innerHTML = `<p class="muted">กำลังโหลด…</p>`;
     let d;
     try { d = await loadOrder(id); } catch (e) { toast(errText(e), true); return close(); }
     const reload = () => { refreshCounts(); openOrderPopup(id); navigate(); };
     const { panel: next, handle } = orderNext(d, reload);
     const { o, quote: Q } = d;
-    panel.innerHTML = `<div class="op-h"><div><div class="op-code mono">${esc(o.order_code)}</div>${pill(o.status)}</div><button class="op-x" aria-label="Close">&times;</button></div>
-      <dl class="kv"><dt>Customer</dt><dd>${esc(o.customers?.name)}</dd><dt>Model</dt><dd>${esc(o.machine_models?.name ?? o.machine_type)} · ${esc(o.capacity)}</dd>
-        <dt>Total</dt><dd>${Q ? baht(Q.total_price) + " THB" : "—"}</dd><dt>Factory</dt><dd>${esc(o.factories?.name ?? "-")}</dd></dl>
-      <div class="card next"><h2>Next step</h2><div>${next}</div></div>
-      <div class="row"><button class="btn ghost" id="op-nx">Next task →</button><a class="btn ghost" data-full href="#/order/${o.order_id}">Open full page</a></div>
-      <details><summary>Details and history</summary>${details(d)}</details>`;
+    panel.innerHTML = `<div class="op-h"><div><div class="op-code mono">${esc(o.order_code)}</div>${pill(o.status)}</div><button class="op-x" aria-label="ปิด">&times;</button></div>
+      <dl class="kv"><dt>ลูกค้า</dt><dd>${esc(o.customers?.name)}</dd><dt>รุ่น</dt><dd>${esc(o.machine_models?.name ?? typeTH(o.machine_type))} · ${esc(o.capacity)}</dd>
+        <dt>ยอดรวม</dt><dd>${Q ? baht(Q.total_price) + " บาท" : "—"}</dd><dt>โรงงาน</dt><dd>${esc(o.factories?.name ?? "-")}</dd></dl>
+      <div class="card next"><h2>ขั้นตอนถัดไป</h2><div>${next}</div></div>
+      <div class="row"><button class="btn ghost" id="op-nx">งานถัดไป →</button><a class="btn ghost" data-full href="#/order/${o.order_id}">เปิดหน้าเต็ม</a></div>
+      <details><summary>รายละเอียดและประวัติ</summary>${details(d)}</details>`;
     $(".op-x", panel).onclick = close;
     $(".op-x", panel).focus();
     $(".next", panel).onclick = (e) => { const b = e.target.closest("[data-act]"); if (b) handle(b.dataset.act); };
     $("#op-nx", panel).onclick = async () => {
       const n = await nextTask(id).catch(() => null);
-      if (n) openOrderPopup(n); else toast("Nothing else needs you");
+      if (n) openOrderPopup(n); else toast("ไม่มีงานอื่นรออยู่แล้ว");
     };
     $("a[data-full]", panel).addEventListener("click", close);
   };

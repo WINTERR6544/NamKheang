@@ -122,7 +122,7 @@ export async function render(context, el) {
     el.innerHTML =
       heading("แก้ไขข้อมูลลูกค้า", "บันทึกเฉพาะข้อมูลในบัญชีของคุณ") +
       `<div class="profile-page"><form id="profile-form" class="card profile-edit" novalidate>
-        <h2>Edit · แก้ไขข้อมูล</h2>${profileFields(profile)}
+        <h2>แก้ไขข้อมูล</h2>${profileFields(profile)}
         <div data-banner hidden role="alert"></div><div class="rule"></div>
         <div class="profile-edit-actions"><button type="button" class="btn ghost" id="discard">ยกเลิก</button>
         <button type="submit" class="btn">${icon("imgCheck", "236:13712")}บันทึก</button></div></form></div>`;
