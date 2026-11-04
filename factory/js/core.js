@@ -1,7 +1,7 @@
 // Factory core: helpers, icons, router, sidebar, login gate.
 // Same structure as admin/js/core.js; the factory sees only its own requests (RLS + factory_* functions).
 // db, $, $$, esc, must, toast, rpc, route, main, hashParams and loadFeature come from ../shared/staff-lib.js.
-const errText = (e) => (e && e.message) || "เกิดข้อผิดพลาด";
+const errText = (e) => nkErrorTH(e); // plain Thai, from ../shared/errors-th.js
 
 // Thai dates in the Buddhist era, as in the Figma: "11 มิ.ย. 2569", "11 มิ.ย. 2569 · 14:20 น."
 const dateTH = (s) => (s ? new Date(s).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" }) : "-");

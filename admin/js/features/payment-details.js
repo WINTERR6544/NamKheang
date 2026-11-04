@@ -47,7 +47,7 @@ route(/^\/settings\/payment$/, async (el) => {
     if (!/^image\/(jpeg|png|webp)$/.test(f.type) || f.size > 2 * 1024 * 1024) return fail("รูป QR ต้องเป็น JPG, PNG หรือ WebP ขนาดไม่เกิน 2 MB");
     const path = `qr/${Date.now()}.${f.type.split("/")[1].replace("jpeg", "jpg")}`;
     const up = await db.storage.from("shop-assets").upload(path, f, { contentType: f.type, upsert: false });
-    if (up.error) return fail("อัปโหลดไม่สำเร็จ: " + up.error.message);
+    if (up.error) return fail("อัปโหลดรูปไม่สำเร็จ " + nkErrorTH(up.error, "กรุณาลองใหม่"));
     qr = db.storage.from("shop-assets").getPublicUrl(path).data.publicUrl;
     $("#pd-qr-rm").hidden = false; prev(); toast("อัปโหลด QR แล้ว กดบันทึกเพื่อให้ลูกค้าเห็น");
   };

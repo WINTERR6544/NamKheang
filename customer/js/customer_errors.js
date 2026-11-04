@@ -35,6 +35,9 @@ export function errorMessage(error) {
   const text = String(error?.message ?? "");
   for (const [code, message] of Object.entries(businessErrors))
     if (text.includes(code)) return message;
+  // every other message the database raises on purpose (../../shared/errors-th.js, loaded in index.html)
+  const known = globalThis.nkErrorTH?.known(error);
+  if (known) return known;
   if (error?.code === "23505")
     return /phone/i.test(text)
       ? "เบอร์โทรศัพท์นี้ถูกใช้งานแล้ว"

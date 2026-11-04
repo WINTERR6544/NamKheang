@@ -110,7 +110,7 @@ route(/^\/profile$/, async (el) => {
         return fail(/different from the old/i.test(error.message) ? "รหัสผ่านใหม่ต้องไม่ซ้ำกับรหัสเดิม"
           : /weak|short|characters/i.test(error.message) ? "รหัสผ่านง่ายเกินไป กรุณาตั้งให้ยาวหรือซับซ้อนขึ้น"
           : /reauth|recent/i.test(error.message) ? "เพื่อความปลอดภัย กรุณาออกจากระบบแล้วเข้าใหม่ก่อนเปลี่ยนรหัสผ่าน"
-          : error.message);
+          : nkErrorTH(error));
       }
       $("#pf-p1").value = ""; $("#pf-p2").value = "";
       toast("เปลี่ยนรหัสผ่านแล้ว");
