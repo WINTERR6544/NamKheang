@@ -1,7 +1,8 @@
 // Sidebar: Installation (install dates, the factory's on-site QC, and the customer's acceptance results.
 // A problem goes customer -> shop -> factory: the shop forwards it and books a fix visit from the order page)
 route(/^\/installation$/, async (el) => {
-  const [orders, ap, ac, qc, moves, cmoves] = await Promise.all([fetchOrders([7, 8, 9]),
+  // keep this list in the same order as the queries below
+  const [orders, moves, ap, ac, qc, cmoves] = await Promise.all([fetchOrders([7, 8, 9]),
     db.from("install_reschedule_requests").select("request_id, order_id, proposed_datetime, reason, status, created_at, resolved_at, appointments(install_datetime), orders(order_code, customers(name))").order("created_at", { ascending: false }).limit(100).then(must),
     db.from("appointments").select("order_id, install_datetime, status, reschedule_count").order("created_at", { ascending: false }).then(must),
     db.from("acceptance_checks").select("order_id, passed, note, checked_at, forwarded_at, orders(order_code, customers(name))").order("checked_at", { ascending: false }).limit(200).then(must),
