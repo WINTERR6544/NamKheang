@@ -157,7 +157,7 @@ $("#sform").addEventListener("submit", async (e) => {
   } catch (err) {
     note(f, /registered|exists/i.test(err.message || "") ? "อีเมลนี้มีบัญชีแล้ว กรุณาเข้าสู่ระบบ"
       : /rate|too many/i.test(err.message || "") ? "ทำรายการถี่เกินไป กรุณารอแล้วลองใหม่"
-      : err.message || "สมัครสมาชิกไม่สำเร็จ กรุณาลองใหม่");
+      : nkErrorTH(err, "สมัครสมาชิกไม่สำเร็จ กรุณาลองใหม่"));
   }
   btn.disabled = false; btn.textContent = "สมัครสมาชิก";
 });
@@ -196,7 +196,7 @@ $("#pform").addEventListener("submit", async (e) => {
       const r = await temp.auth.signInWithPassword({ email: id, password });
       if (r.error) {
         throw new Error(/invalid login/i.test(r.error.message) ? "อีเมลหรือรหัสผ่านไม่ถูกต้อง"
-          : /not confirmed/i.test(r.error.message) ? "กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ" : r.error.message);
+          : /not confirmed/i.test(r.error.message) ? "กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ" : nkErrorTH(r.error, "เข้าสู่ระบบไม่สำเร็จ กรุณาลองใหม่"));
       }
       data = r.data;
     }
@@ -213,7 +213,7 @@ $("#pform").addEventListener("submit", async (e) => {
     }
     location.replace(DEST[role]);
   } catch (err) {
-    showError(err.message || "เกิดข้อผิดพลาด กรุณาลองใหม่");
+    showError(nkErrorTH(err, "เกิดข้อผิดพลาด กรุณาลองใหม่"));
     busy(false);
   }
 });

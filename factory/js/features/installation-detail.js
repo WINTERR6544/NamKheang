@@ -35,7 +35,7 @@ route(/^\/installation\/(\d+)(?:\/confirm)?$/, async (el, [id]) => {
       <div class="muted small">${blockedWhy}</div></div>`
     : passedRound ? `<div class="card"><div class="row-sb"><h2>ผลติดตั้งและทดสอบจริง</h2><span class="pill dot ok">ผ่านแล้ว</span></div>
       <div class="muted small">บันทึก QC หน้างานรอบ ${passedRound.round_no} ผ่านทุกข้อแล้วเมื่อ ${dateTimeTH(passedRound.at)} · ยืนยันติดตั้งเสร็จได้เลย</div></div>`
-    : !items.length ? `<div class="card"><div class="err">โหลดหัวข้อทดสอบไม่ได้ · ต้องรัน migration factory_qc ก่อน</div></div>`
+    : !items.length ? `<div class="card"><div class="err">โหลดรายการทดสอบไม่ได้ กรุณาโหลดหน้าใหม่ หากยังไม่ได้ให้แจ้งร้าน</div></div>`
     : `<div class="card" id="test"><div class="row-sb"><h2>ผลติดตั้งและทดสอบจริง</h2><span class="pill dot" id="cnt"></span></div>
       <div class="muted small">ทดสอบหน้างานครบทุกหัวข้อก่อนปิดงาน (QC หน้างาน${rounds.length ? ` รอบ ${rounds[0].round_no + 1}` : ""}) · หัวข้อที่ไม่ผ่านต้องระบุจุดที่ต้องแก้</div>
       ${lastFail ? `<div class="note-box small amber">ทดสอบรอบ ${lastFail.round_no} ไม่ผ่าน ${lastFail.failed.length} ข้อ · แก้ไขแล้วทดสอบใหม่ก่อนยืนยัน</div>` : ""}

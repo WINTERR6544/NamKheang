@@ -44,7 +44,7 @@ route(/^\/qc\/(\d+)$/, async (el, [id]) => {
     right = `<div class="card primary"><h2>รอร้านตรวจผล</h2><p class="small muted">ร้านจะตรวจผลรอบนี้ แล้วกดผ่าน QC หรือส่งกลับให้แก้ไขพร้อมรายละเอียด โรงงานจะได้รับแจ้งทันที</p></div>${limit}${history}`;
   } else if (o.status === 5) {
     const prevFail = new Map((last?.failed ?? []).map((i) => [i.item_id, i.note]));
-    left = !items.length ? `<div class="card"><div class="err">โหลดหัวข้อ QC ไม่ได้ · ต้องรัน migration factory_qc ก่อน (ให้โรงงานอ่าน qc_items ได้)</div></div>`
+    left = !items.length ? `<div class="card"><div class="err">โหลดรายการตรวจ QC ไม่ได้ กรุณาโหลดหน้าใหม่ หากยังไม่ได้ให้แจ้งร้าน</div></div>`
       : `<div class="card"><div class="row-sb"><h2>รายการตรวจ QC · รอบ ${next}</h2><span class="pill dot">${items.length} หัวข้อ</span></div>
         <div class="muted small">เลือกผ่านหรือไม่ผ่านทุกหัวข้อ หัวข้อที่ไม่ผ่านต้องระบุจุดที่ต้องแก้</div>
         ${items.map((i) => `<div class="qc-item" data-i="${i.item_id}"><div class="row-sb"><div>${qcTitle(i, true)}</div>

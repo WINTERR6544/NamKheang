@@ -1,6 +1,6 @@
 // Admin core: helpers, modal, router, sidebar, login gate.
 // db, $, $$, esc, toast, rpc, route, main, hashParams and loadFeature come from ../shared/staff-lib.js.
-const errText = (e) => (e && e.message) || "เกิดข้อผิดพลาด กรุณาลองใหม่";
+const errText = (e) => nkErrorTH(e); // plain Thai, from ../shared/errors-th.js
 const baht = (n) => Number(n ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const dateTH = (s, time) => (s ? new Date(s).toLocaleString("th-TH", time ? { dateStyle: "medium", timeStyle: "short" } : { dateStyle: "medium" }) : "-");
 const daysAgo = (s) => (Date.now() - new Date(s).getTime()) / 86400000;

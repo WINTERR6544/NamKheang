@@ -32,6 +32,9 @@
   const urlOf = (user) => user?.user_metadata?.avatar_url || "";
   const pathOf = (url) => { const m = String(url).match(/\/object\/public\/avatars\/(.+?)(\?|$)/); return m ? decodeURIComponent(m[1]) : null; };
 
+  // the reason in plain Thai (../shared/errors-th.js), never the raw server text
+  const why = (e) => (globalThis.nkErrorTH ? nkErrorTH(e, "กรุณาลองใหม่") : "กรุณาลองใหม่");
+
   // upload a new picture, point the account at it, then remove the old file; returns the new URL
   async function upload(client, file) {
     const blob = await squareBlob(file);
@@ -40,10 +43,10 @@
     const old = pathOf(urlOf(u.user));
     const path = `${u.user.id}/${Date.now()}.${blob.type === "image/webp" ? "webp" : "jpg"}`;
     const up = await client.storage.from(BUCKET).upload(path, blob, { contentType: blob.type, cacheControl: "31536000", upsert: false });
-    if (up.error) throw new Error("อัปโหลดรูปไม่สำเร็จ: " + up.error.message);
+    if (up.error) throw new Error("อัปโหลดรูปไม่สำเร็จ " + why(up.error));
     const url = client.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
     const { error } = await client.auth.updateUser({ data: { avatar_url: url } });
-    if (error) { await client.storage.from(BUCKET).remove([path]); throw new Error("บันทึกรูปไม่สำเร็จ: " + error.message); }
+    if (error) { await client.storage.from(BUCKET).remove([path]); throw new Error("บันทึกรูปไม่สำเร็จ " + why(error)); }
     if (old && old !== path) await client.storage.from(BUCKET).remove([old]);
     return url;
   }
@@ -52,7 +55,7 @@
     const { data: u } = await client.auth.getUser();
     const old = pathOf(urlOf(u?.user));
     const { error } = await client.auth.updateUser({ data: { avatar_url: null } });
-    if (error) throw new Error("ลบรูปไม่สำเร็จ: " + error.message);
+    if (error) throw new Error("ลบรูปไม่สำเร็จ " + why(error));
     if (old) await client.storage.from(BUCKET).remove([old]);
   }
 
