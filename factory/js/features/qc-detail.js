@@ -7,7 +7,7 @@ route(/^\/qc\/(\d+)$/, async (el, [id]) => {
   const [j, items, maxRounds, roundsBy] = await Promise.all([fetchQcJob(Number(id)), fetchQcItems(), qcMaxRounds(), fetchQcRounds([Number(id)])]);
   const o = j.o, rounds = roundsBy.get(o.order_id) ?? [], last = rounds[0];
   const st = qcState(j, rounds), next = (last?.round_no ?? 0) + 1;
-  setCrumbs("QC / Rework", o.order_code);
+  setCrumbs("QC / แก้ไข", o.order_code);
   el.onclick = null;
   const review = st === "review"; // the latest round is recorded and waits for the shop
   const TITLE = review ? ["รอร้านตรวจผล QC", `QC รอบ ${last.round_no} · ส่งผลให้ร้านแล้ว`] : { 5: ["ตรวจ QC", `QC รอบ ${next} · ตรวจทุกหัวข้อแล้วบันทึกผล`], 6: ["แก้ไขงานจากผล QC", `QC รอบ ${last?.round_no} ไม่ผ่าน · แก้ไขทุกจุดแล้วส่งตรวจใหม่`],
@@ -45,7 +45,7 @@ route(/^\/qc\/(\d+)$/, async (el, [id]) => {
   } else if (o.status === 5) {
     const prevFail = new Map((last?.failed ?? []).map((i) => [i.item_id, i.note]));
     left = !items.length ? `<div class="card"><div class="err">โหลดหัวข้อ QC ไม่ได้ · ต้องรัน migration factory_qc ก่อน (ให้โรงงานอ่าน qc_items ได้)</div></div>`
-      : `<div class="card"><div class="row-sb"><h2>QC Checklist · รอบ ${next}</h2><span class="pill dot">${items.length} หัวข้อ</span></div>
+      : `<div class="card"><div class="row-sb"><h2>รายการตรวจ QC · รอบ ${next}</h2><span class="pill dot">${items.length} หัวข้อ</span></div>
         <div class="muted small">เลือกผ่านหรือไม่ผ่านทุกหัวข้อ หัวข้อที่ไม่ผ่านต้องระบุจุดที่ต้องแก้</div>
         ${items.map((i) => `<div class="qc-item" data-i="${i.item_id}"><div class="row-sb"><div>${qcTitle(i, true)}</div>
           <div class="seg2" role="radiogroup" aria-label="${esc(i.item_name)}">

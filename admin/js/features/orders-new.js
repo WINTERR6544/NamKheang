@@ -1,2 +1,2 @@
 // Sidebar: Orders > New Orders
-route(/^\/orders\/new$/, (el) => ordersPage(el, "New Orders", "Review new orders, then issue a quote", [0]));
+route(/^\/orders\/new$/, (el) => ordersPage(el, "คำสั่งซื้อใหม่", "ตรวจรายละเอียดคำสั่งซื้อใหม่ แล้วออกใบเสนอราคา", [0]));

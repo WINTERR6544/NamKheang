@@ -30,7 +30,7 @@ route(/^\/installation$/, async (el) => {
     </div>
     <div class="tabs" role="tablist">${TABS.map(([k, l]) => `<button role="tab" data-tab="${k}">${l} ${n(k)}</button>`).join("")}</div>
     <div class="toolbar">
-      <label class="search">${icon("search")}<input id="q" placeholder="ค้นหา Order No., ลูกค้า หรือสถานที่ติดตั้ง" aria-label="ค้นหา"></label>
+      <label class="search">${icon("search")}<input id="q" placeholder="ค้นหาเลขคำสั่งซื้อ, ลูกค้า หรือสถานที่ติดตั้ง" aria-label="ค้นหา"></label>
       <label class="selbtn">${icon("calendar", 16)}<span>วันนัด:</span><select id="mo" aria-label="เดือนที่นัด"><option value="">ทุกเดือน</option>${months.map(([k, l]) => `<option value="${k}">${esc(l)}</option>`).join("")}</select></label>
       <label class="selbtn">${icon("sort", 16)}<span>เรียง:</span><select id="so" aria-label="เรียงลำดับ"><option value="near">วันนัดใกล้สุด</option><option value="far">วันนัดไกลสุด</option></select></label>
     </div>
@@ -63,7 +63,7 @@ route(/^\/installation$/, async (el) => {
     $$(".tabs button", el).forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === tab));
     $("#tt").textContent = TITLE[tab];
     $("#tb").innerHTML = !rows.length ? `<div class="empty">ไม่มีงานในหมวดนี้</div>` :
-      `<div class="tw"><table class="t req"><thead><tr><th>วัน / เวลา</th><th>Order No.</th><th>ลูกค้า / สถานที่</th><th>รุ่นเครื่อง</th><th>สถานะ</th><th>ดำเนินการ</th></tr></thead>
+      `<div class="tw"><table class="t req"><thead><tr><th>วัน / เวลา</th><th>เลขคำสั่งซื้อ</th><th>ลูกค้า / สถานที่</th><th>รุ่นเครื่อง</th><th>สถานะ</th><th>ดำเนินการ</th></tr></thead>
         <tbody>${shown.map(row).join("")}</tbody></table></div>
        <div class="pager"><span class="small muted">แสดง ${(page - 1) * PER + 1}–${(page - 1) * PER + shown.length} จาก ${rows.length} รายการ</span>
         <div class="pages"><button class="pg" data-pg="${page - 1}" ${page === 1 ? "disabled" : ""} aria-label="หน้าก่อน">${icon("chevronLeft", 16)}</button>

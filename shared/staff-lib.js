@@ -29,6 +29,9 @@ document.addEventListener("visibilitychange", async () => {
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+// machine_type is stored in English (it is a key); show it in Thai
+const TYPE_TH = { "Tube ice machine": "เครื่องทำน้ำแข็งหลอด", "Flake ice machine": "เครื่องทำน้ำแข็งเกล็ด", "Block ice machine": "เครื่องทำน้ำแข็งก้อน" };
+const typeTH = (t) => TYPE_TH[t] ?? t;
 const must = (r) => { if (r.error) throw r.error; return r.data; };
 
 function toast(msg, bad) {
@@ -101,7 +104,7 @@ function loadFeature(name) {
     const s = document.createElement("script");
     s.src = `js/features/${name}.js`;
     s.onload = resolve;
-    s.onerror = () => { delete loaded[name]; reject(new Error(`feature "${name}" is not installed`)); };
+    s.onerror = () => { delete loaded[name]; reject(new Error(`ไม่พบหน้า "${name}"`)); };
     document.head.append(s);
   });
   return loaded[name];
@@ -115,7 +118,7 @@ function loadFeature(name) {
   const KEY = "sidebar-collapsed";
   const wide = () => window.matchMedia("(min-width: 901px)").matches;
   const b = document.createElement("button");
-  b.type = "button"; b.className = "side-toggle"; b.textContent = "☰"; b.title = b.ariaLabel = "Toggle sidebar";
+  b.type = "button"; b.className = "side-toggle"; b.textContent = "☰"; b.title = b.ariaLabel = "เปิด/ปิดเมนู";
   const sync = () => b.setAttribute("aria-expanded", String(!app.classList.contains("collapsed")));
   let saved = false;
   try { saved = localStorage.getItem(KEY) === "1"; } catch { /* private mode: just not remembered */ }

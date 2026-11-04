@@ -1,2 +1,2 @@
 // Sidebar: Orders > Cancelled
-route(/^\/orders\/cancelled$/, (el) => ordersPage(el, "Cancelled", "Cancelled orders", [99]));
+route(/^\/orders\/cancelled$/, (el) => ordersPage(el, "ยกเลิกแล้ว", "คำสั่งซื้อที่ถูกยกเลิก", [99]));

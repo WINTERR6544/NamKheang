@@ -8,7 +8,7 @@
 route(/^\/production\/(\d+)$/, async (el, [id]) => {
   const [j, ups] = await Promise.all([fetchJob(Number(id)), fetchProductionUpdates(Number(id))]);
   const o = j.o;
-  setCrumbs("Production", o.order_code);
+  setCrumbs("การผลิต", o.order_code);
   el.onclick = null;
   const bad = badPlan(o);
   const TITLE = { ready: ["เริ่มงานผลิต", "ตรวจสอบความพร้อม กำหนดวันที่คาดว่าจะเสร็จ แล้วเริ่มผลิต"],
@@ -29,7 +29,7 @@ route(/^\/production\/(\d+)$/, async (el, [id]) => {
       <div><dt>รับผลิตเมื่อ</dt><dd>${dateTH(j.responded_at)}</dd></div>
     </dl></div>`;
   const machine = `<div class="card"><h2>ข้อมูลเครื่อง</h2><div class="muted small">รุ่นที่ร้านยืนยันกับลูกค้า</div>
-    <dl class="kv2"><div><dt>รุ่นเครื่อง</dt><dd>${esc(modelName(o))}</dd></div><div><dt>ประเภทเครื่อง</dt><dd>${esc(o.machine_type)}</dd></div>
+    <dl class="kv2"><div><dt>รุ่นเครื่อง</dt><dd>${esc(modelName(o))}</dd></div><div><dt>ประเภทเครื่อง</dt><dd>${esc(typeTH(o.machine_type))}</dd></div>
       <div><dt>กำลังผลิต</dt><dd>${esc(o.capacity)}</dd></div>${o.machine_models?.description ? `<div><dt>รายละเอียดรุ่น</dt><dd>${esc(o.machine_models.description)}</dd></div>` : ""}</dl></div>`;
   const plan = `<div class="card"><h2>แผนการผลิต</h2>
     <dl class="kv2">
@@ -66,7 +66,7 @@ route(/^\/production\/(\d+)$/, async (el, [id]) => {
       <button class="btn wide" id="go" disabled>${icon("check", 16)}ผลิตเสร็จสิ้น</button></div>${summary}`;
   } else {
     left = `${plan}${timeline}`;
-    right = `<div class="card primary"><h2>ส่งตรวจ QC แล้ว</h2><p class="small muted">ผลิตเสร็จเมื่อ ${dateTimeTH(o.finished_at)} · ติดตามต่อได้ที่ QC / Rework</p></div>${summary}`;
+    right = `<div class="card primary"><h2>ส่งตรวจ QC แล้ว</h2><p class="small muted">ผลิตเสร็จเมื่อ ${dateTimeTH(o.finished_at)} · ติดตามต่อได้ที่ QC / แก้ไข</p></div>${summary}`;
   }
 
   el.innerHTML = `<div class="head"><div><h1>${TITLE[0]}</h1><div class="muted">${esc(o.order_code)} · ${TITLE[1]}</div></div>

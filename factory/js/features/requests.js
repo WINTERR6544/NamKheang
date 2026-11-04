@@ -14,7 +14,7 @@ route(/^\/requests$/, async (el) => {
       <div class="small muted">ตรวจสอบสเปกเครื่อง สถานที่ติดตั้ง และกำลังผลิตของโรงงาน ก่อนยืนยันรับผลิตหรือปฏิเสธงาน</div></div></div>` : ""}
     <div class="tabs" role="tablist">${TABS.map(([k, l, n]) => `<button role="tab" data-tab="${k}">${l} ${n}</button>`).join("")}</div>
     <div class="toolbar">
-      <label class="search">${icon("search")}<input id="q" placeholder="ค้นหา Order No., รุ่นเครื่อง หรือลูกค้า" aria-label="ค้นหา"></label>
+      <label class="search">${icon("search")}<input id="q" placeholder="ค้นหาเลขคำสั่งซื้อ, รุ่นเครื่อง หรือลูกค้า" aria-label="ค้นหา"></label>
       <label class="selbtn">${icon("calendar", 16)}<span>วันที่ส่ง:</span><select id="mo" aria-label="วันที่ส่ง"><option value="">ทุกเดือน</option>${months.map(([k, l]) => `<option value="${k}">${esc(l)}</option>`).join("")}</select></label>
       <label class="selbtn">${icon("sort", 16)}<span>เรียง:</span><select id="so" aria-label="เรียงลำดับ"><option value="new">ล่าสุดก่อน</option><option value="old">เก่าสุดก่อน</option></select></label>
     </div>
@@ -25,7 +25,7 @@ route(/^\/requests$/, async (el) => {
     const o = r.orders;
     return `<tr class="click" data-href="#/requests/${o.order_id}/evaluate">
       <td><b class="mono">${esc(o.order_code)}</b><div class="small muted">${esc(o.customers?.name ?? "-")}</div></td>
-      <td><b>${esc(modelName(o))}</b><div class="small muted">${esc(o.machine_type)} · ${esc(o.capacity)}</div></td>
+      <td><b>${esc(modelName(o))}</b><div class="small muted">${esc(typeTH(o.machine_type))} · ${esc(o.capacity)}</div></td>
       <td>${dateTH(r.sent_at)}</td>
       <td>${statePill(r.state)}</td>
       <td><div class="acts"><a class="btn ghost eval" href="#/requests/${o.order_id}/evaluate">${r.state === "pending" ? `${icon("arrowUpRight", 16)}ประเมินงาน` : "ดูผลการประเมิน"}</a></div></td>
@@ -41,7 +41,7 @@ route(/^\/requests$/, async (el) => {
     const shown = rows.slice((page - 1) * PER, page * PER);
     $$(".tabs button", el).forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === tab));
     $("#tb").innerHTML = !rows.length ? `<div class="empty">${reqs.length ? "ไม่พบคำขอที่ตรงกับเงื่อนไข" : "ยังไม่มีคำขอผลิตจากร้าน"}</div>` :
-      `<div class="tw"><table class="t req"><thead><tr><th>Order No. / ลูกค้า</th><th>รุ่นเครื่อง</th><th>วันที่ส่ง</th><th>สถานะ</th><th>ดำเนินการ</th></tr></thead>
+      `<div class="tw"><table class="t req"><thead><tr><th>เลขคำสั่งซื้อ / ลูกค้า</th><th>รุ่นเครื่อง</th><th>วันที่ส่ง</th><th>สถานะ</th><th>ดำเนินการ</th></tr></thead>
         <tbody>${shown.map(row).join("")}</tbody></table></div>
        <div class="pager"><span class="small muted">แสดง ${(page - 1) * PER + 1}–${(page - 1) * PER + shown.length} จาก ${rows.length} รายการ</span>
         <div class="pages"><button class="pg" data-pg="${page - 1}" ${page === 1 ? "disabled" : ""} aria-label="หน้าก่อน">${icon("chevronLeft", 16)}</button>

@@ -13,7 +13,7 @@ route(/^\/installation\/(\d+)(?:\/confirm)?$/, async (el, [id]) => {
   const o = j.o, list = appts.get(o.order_id) ?? [], appt = list.find((a) => a.status === "scheduled") ?? null;
   const prob = openProblem(j, probs.get(o.order_id)), move = moves.get(o.order_id) ?? null, st = instState(j, appt, probs.get(o.order_id), move);
   const passedQc = (qc.get(o.order_id) ?? []).find((r) => !r.failed.length);
-  setCrumbs("Installation", o.order_code);
+  setCrumbs("การติดตั้ง", o.order_code);
   el.onclick = null;
   const canConfirm = o.status === 8 && !!appt;
   const early = appt && isoOf(appt.install_datetime) > todayISO();
@@ -52,7 +52,7 @@ route(/^\/installation\/(\d+)(?:\/confirm)?$/, async (el, [id]) => {
     ${map ? `<a class="btn ghost" href="${map}" target="_blank" rel="noopener">${icon("pin", 16)}เปิดแผนที่สถานที่ติดตั้ง</a>` : ""}</div>`;
   const machine = `<div class="card"><h2>ข้อมูลเครื่องและเงื่อนไขติดตั้ง</h2>
     <div class="muted small">ผลิตเสร็จ ${dateTH(o.finished_at)}${passedQc ? ` · ผ่าน QC รอบ ${passedQc.round_no} (${dateTH(passedQc.at)})` : " · ผ่าน QC"} · พร้อมส่งมอบ</div>
-    <dl class="spec2"><dt>เครื่อง</dt><dd>${esc(modelName(o))} · ${esc(o.machine_type)}</dd><dt>กำลังผลิต</dt><dd>${esc(o.capacity)}</dd>
+    <dl class="spec2"><dt>เครื่อง</dt><dd>${esc(modelName(o))} · ${esc(typeTH(o.machine_type))}</dd><dt>กำลังผลิต</dt><dd>${esc(o.capacity)}</dd>
       <dt>ระบบไฟฟ้า</dt><dd>${esc(o.install_power || "-")}</dd><dt>พื้นที่ติดตั้ง</dt><dd>${esc(o.install_space || "-")}</dd></dl></div>`;
 
   const action = blocked ? `<div class="card"><div class="row-sb" style="justify-content:flex-start">${icon("shield", 20)}<h2 style="margin:0">ยืนยันติดตั้งและทดสอบเสร็จ</h2></div>

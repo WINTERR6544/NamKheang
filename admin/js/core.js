@@ -1,26 +1,26 @@
 // Admin core: helpers, modal, router, sidebar, login gate.
 // db, $, $$, esc, toast, rpc, route, main, hashParams and loadFeature come from ../shared/staff-lib.js.
-const errText = (e) => (e && e.message) || "Something went wrong";
+const errText = (e) => (e && e.message) || "เกิดข้อผิดพลาด กรุณาลองใหม่";
 const baht = (n) => Number(n ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const dateTH = (s, time) => (s ? new Date(s).toLocaleString("en-GB", time ? { dateStyle: "medium", timeStyle: "short" } : { dateStyle: "medium" }) : "-");
+const dateTH = (s, time) => (s ? new Date(s).toLocaleString("th-TH", time ? { dateStyle: "medium", timeStyle: "short" } : { dateStyle: "medium" }) : "-");
 const daysAgo = (s) => (Date.now() - new Date(s).getTime()) / 86400000;
 
 // Staff wording for orders.status
 const STATUS = {
-  0: "New, waiting for quote", 1: "Quoted", 2: "Deposit paid, to send to factory", 3: "Sent to factory", 4: "In production",
-  5: "Built, waiting for QC", 6: "QC failed, being fixed", 7: "QC passed, to schedule install", 8: "Install scheduled", 9: "Installed, waiting for acceptance",
-  10: "Completed", 99: "Cancelled",
+  0: "ใหม่ · รอออกใบเสนอราคา", 1: "ส่งใบเสนอราคาแล้ว", 2: "ชำระมัดจำแล้ว · รอส่งโรงงาน", 3: "ส่งโรงงานแล้ว", 4: "กำลังผลิต",
+  5: "ผลิตเสร็จ · รอตรวจ QC", 6: "ไม่ผ่าน QC · กำลังแก้ไข", 7: "ผ่าน QC · รอนัดติดตั้ง", 8: "นัดติดตั้งแล้ว", 9: "ติดตั้งแล้ว · รอตรวจรับ",
+  10: "เสร็จสมบูรณ์", 99: "ยกเลิกแล้ว",
 };
 const pill = (s) => `<span class="pill ${s === 10 ? "ok" : s === 99 ? "bad" : [0, 2, 5, 7, 9].includes(s) ? "warn" : ""}">${esc(STATUS[s] ?? s)}</span>`;
 
 // modal(title, bodyHtml, { ok, onOk(root) }) -> resolves true when onOk succeeded
-function modal(title, body, { ok = "Save", onOk, onOpen } = {}) {
+function modal(title, body, { ok = "บันทึก", onOk, onOpen } = {}) {
   return new Promise((resolve) => {
     const ov = document.createElement("div");
     ov.className = "ov";
     ov.innerHTML = `<div class="card" role="dialog" aria-modal="true"><h2>${esc(title)}</h2><div class="m">${body}</div>
       <div class="err" hidden style="margin-top:12px"></div>
-      <div class="row end" style="margin-top:14px"><button class="btn ghost c">Close</button>${onOk ? `<button class="btn o">${esc(ok)}</button>` : ""}</div></div>`;
+      <div class="row end" style="margin-top:14px"><button class="btn ghost c">ปิด</button>${onOk ? `<button class="btn o">${esc(ok)}</button>` : ""}</div></div>`;
     document.body.append(ov);
     const close = (v) => { ov.remove(); resolve(v); };
     $(".c", ov).onclick = () => close(false);
@@ -41,8 +41,8 @@ async function slipUrl(path) {
   return data.signedUrl;
 }
 async function showSlip(path) {
-  if (!path) return toast("No slip file (paid in cash)", true);
-  try { const u = await slipUrl(path); modal("Slip", `<a href="${u}" target="_blank" rel="noopener"><img class="slip" src="${u}" alt="Payment slip"></a>`); }
+  if (!path) return toast("ไม่มีไฟล์สลิป (ชำระเงินสด)", true);
+  try { const u = await slipUrl(path); modal("สลิปการโอน", `<a href="${u}" target="_blank" rel="noopener"><img class="slip" src="${u}" alt="สลิปการโอนเงิน"></a>`); }
   catch (e) { toast(errText(e), true); }
 }
 async function uploadSlip(file, prefix) {
@@ -59,9 +59,9 @@ function crumbsFor(path) {
   let grp = "", item = null;
   for (const n of NAV) { if (n.group) grp = n.group; else if (n.href === "#" + path) { item = n; if (!n.sub) grp = ""; break; } }
   const parts = [];
-  if (/^\/order\/\d+$/.test(path)) parts.push("Orders", "Order detail");
+  if (/^\/order\/\d+$/.test(path)) parts.push("คำสั่งซื้อ", "รายละเอียดคำสั่งซื้อ");
   else if (item) { if (grp) parts.push(grp); parts.push(item.label); }
-  return `<span>NamKheang / Shop</span>${icon("chevronRight", 14)}<b>${parts.map(esc).join(" / ")}</b>`;
+  return `<span>NamKheang / ร้าน</span>${icon("chevronRight", 14)}<b>${parts.map(esc).join(" / ")}</b>`;
 }
 
 // ---- features: one file per page, loaded when its route is first opened ----
@@ -81,46 +81,46 @@ async function navigate() {
   const feature = FEATURES.find(([re]) => re.test(path));
   if (feature) {
     try { await loadFeature(feature[1]); }
-    catch { main().innerHTML = `<div class="card empty">This page is not installed in this build.<div class="small">Missing: js/features/${feature[1]}.js</div></div>`; return; }
+    catch { main().innerHTML = `<div class="card empty">ยังไม่มีหน้านี้ในเวอร์ชันนี้<div class="small">ไม่พบไฟล์: js/features/${feature[1]}.js</div></div>`; return; }
   }
   for (const r of routes) {
     const m = path.match(r.re);
     if (m) {
-      main().innerHTML = `<p class="muted">Loading...</p>`;
+      main().innerHTML = `<p class="muted">กำลังโหลด…</p>`;
       try { await r.fn(main(), m.slice(1)); } catch (e) { main().innerHTML = `<div class="err">${esc(errText(e))}</div>`; }
       window.scrollTo(0, 0);
       return;
     }
   }
-  main().innerHTML = `<div class="card empty">Page not found</div>`;
+  main().innerHTML = `<div class="card empty">ไม่พบหน้านี้</div>`;
 }
 window.addEventListener("hashchange", navigate);
 
 // ---- sidebar ----
 const G = (label) => ({ group: label });
 const NAV = [
-  { label: "Dashboard", href: "#/dashboard", icon: "grid" },
-  { label: "Notifications", href: "#/notifications", key: "note", icon: "bell" },
-  G("Orders"),
-  { label: "All Orders", href: "#/orders", sub: 1, icon: "list" }, { label: "New Orders", href: "#/orders/new", sub: 1, key: "new", icon: "inbox" },
-  { label: "Quotations", href: "#/orders/quotations", sub: 1, icon: "fileText" }, { label: "Cancelled", href: "#/orders/cancelled", sub: 1, icon: "ban" },
-  G("Manufacturing"),
-  { label: "Factory Requests", href: "#/mfg/requests", sub: 1, icon: "clipboard" }, { label: "Order Status", href: "#/mfg/status", sub: 1, icon: "activity" },
-  { label: "Installation", href: "#/installation", sub: 1, icon: "wrench" },
-  G("Payments"),
-  { label: "Deposit", href: "#/payments/deposit", sub: 1, key: "dep", icon: "wallet" }, { label: "Final Payment", href: "#/payments/final", sub: 1, key: "fin", icon: "receipt" },
-  { label: "Refund", href: "#/payments/refund", sub: 1, key: "ref", icon: "undo" },
-  G("Admin"),
-  { label: "Customers", href: "#/customers", sub: 1, icon: "users" }, { label: "Factories", href: "#/factories", sub: 1, icon: "building" },
-  { label: "Users & Roles", href: "#/users", sub: 1, icon: "shield" },
-  { label: "Payment details", href: "#/settings/payment", sub: 1, icon: "wallet" },
-  G("Account"),
-  { label: "Profile", href: "#/profile", sub: 1, icon: "user" },
+  { label: "แดชบอร์ด", href: "#/dashboard", icon: "grid" },
+  { label: "การแจ้งเตือน", href: "#/notifications", key: "note", icon: "bell" },
+  G("คำสั่งซื้อ"),
+  { label: "คำสั่งซื้อทั้งหมด", href: "#/orders", sub: 1, icon: "list" }, { label: "คำสั่งซื้อใหม่", href: "#/orders/new", sub: 1, key: "new", icon: "inbox" },
+  { label: "ใบเสนอราคา", href: "#/orders/quotations", sub: 1, icon: "fileText" }, { label: "ยกเลิกแล้ว", href: "#/orders/cancelled", sub: 1, icon: "ban" },
+  G("การผลิต"),
+  { label: "คำขอผลิตถึงโรงงาน", href: "#/mfg/requests", sub: 1, icon: "clipboard" }, { label: "สถานะการผลิต", href: "#/mfg/status", sub: 1, icon: "activity" },
+  { label: "การติดตั้ง", href: "#/installation", sub: 1, icon: "wrench" },
+  G("การชำระเงิน"),
+  { label: "มัดจำ", href: "#/payments/deposit", sub: 1, key: "dep", icon: "wallet" }, { label: "ยอดคงเหลือ", href: "#/payments/final", sub: 1, key: "fin", icon: "receipt" },
+  { label: "คืนเงิน", href: "#/payments/refund", sub: 1, key: "ref", icon: "undo" },
+  G("ผู้ดูแลระบบ"),
+  { label: "ลูกค้า", href: "#/customers", sub: 1, icon: "users" }, { label: "โรงงาน", href: "#/factories", sub: 1, icon: "building" },
+  { label: "ผู้ใช้และสิทธิ์", href: "#/users", sub: 1, icon: "shield" },
+  { label: "บัญชีรับเงิน", href: "#/settings/payment", sub: 1, icon: "wallet" },
+  G("บัญชีของฉัน"),
+  { label: "โปรไฟล์", href: "#/profile", sub: 1, icon: "user" },
 ];
 const initials = (name) => (name || "?").trim().split(/\s+/).slice(0, 2).map((w) => w.charAt(0)).join("");
 // same frame as the factory site: icon menu, the signed-in person at the bottom, sign-out in the top bar
 function sidebar(user) {
-  return `<a class="nk-logo" href="#/dashboard">Nam<b>Kheang</b></a><span class="nk-tag">ร้าน · Shop / Admin</span>` +
+  return `<a class="nk-logo" href="#/dashboard">Nam<b>Kheang</b></a><span class="nk-tag">ร้าน · ผู้ดูแลระบบ</span>` +
     NAV.map((n) =>
       n.group ? `<div class="group">${n.group}</div>` :
       `<a class="nav" href="${n.href}">${icon(n.icon)}<span>${n.label}</span>${n.key ? `<span class="count" id="c-${n.key}" hidden></span>` : ""}</a>`).join("") +
@@ -163,7 +163,7 @@ async function boot() {
 
 // generic table: cols = [{h, f(row)->html, cls}], rows, onClick(row)->href
 function table(cols, rows, href) {
-  if (!rows.length) return `<div class="empty">No items</div>`;
+  if (!rows.length) return `<div class="empty">ไม่มีรายการ</div>`;
   return `<div class="tw"><table class="t"><thead><tr>${cols.map((c) => `<th>${c.h}</th>`).join("")}</tr></thead><tbody>${rows.map((r) =>
     `<tr ${href ? `class="click" data-href="${href(r)}"` : ""}>${cols.map((c) => `<td>${c.f(r)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 }

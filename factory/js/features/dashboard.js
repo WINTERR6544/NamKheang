@@ -43,7 +43,7 @@ route(/^\/dashboard$/, async (el) => {
     <div class="metrics">
       ${card("#/requests?tab=pending", "clipboard", "งานใหม่", pending.length, "รอประเมินจากร้าน")}
       ${card("#/production", "factory", "กำลังผลิต", making.length, `${ready.length} งานรอเริ่มผลิต`)}
-      ${card("#/qc?tab=fail", "x", "Rework", rework.length, "รอแก้ไขจากผล QC", rework.length ? "red" : "")}
+      ${card("#/qc?tab=fail", "x", "แก้ไขตามผล QC", rework.length, "รอแก้ไขจากผล QC", rework.length ? "red" : "")}
       ${card("#/installation", "wrench", "งานติดตั้ง", booked.length, "นัดยืนยันแล้ว")}
     </div>
     <div class="card"><div class="row-sb"><h2>งานที่ต้องดำเนินการ</h2><span class="pill dot mute">${todo.length} งาน</span></div>

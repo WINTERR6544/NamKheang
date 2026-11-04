@@ -1,6 +1,6 @@
 // Sidebar: Payments > Final Payment
 route(/^\/payments\/final$/, (el) => paymentsPage(el, {
-  type: "final", title: "Final Payment", sub: "Check final payment and issue receipt",
+  type: "final", title: "ยอดคงเหลือ", sub: "ตรวจสลิปยอดคงเหลือและออกใบเสร็จ",
   actions: verifyActions,
-  onAct: (act, p, after) => verifyAct(act, p, after, "Approved. Receipt issued, order completed"),
+  onAct: (act, p, after) => verifyAct(act, p, after, "อนุมัติแล้ว ออกใบเสร็จและปิดคำสั่งซื้อเรียบร้อย"),
 }));

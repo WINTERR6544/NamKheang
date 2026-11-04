@@ -13,7 +13,7 @@ const monthKey = (s) => { const d = new Date(s); return `${d.getFullYear()}-${St
 // ---- router ----
 // breadcrumb: "NamKheang / Factory > <page> / <extra>"; a feature can add its part once its data is loaded
 function setCrumbs(...parts) {
-  $("#crumbs").innerHTML = `<span>NamKheang / Factory</span>${icon("chevronRight", 14)}<b>${parts.map(esc).join(" / ")}</b>`;
+  $("#crumbs").innerHTML = `<span>NamKheang / โรงงาน</span>${icon("chevronRight", 14)}<b>${parts.map(esc).join(" / ")}</b>`;
 }
 
 // ---- features: one file per page, loaded when its route is first opened ----
@@ -49,18 +49,18 @@ window.addEventListener("hashchange", navigate);
 
 // ---- sidebar ----
 const NAV = [
-  { label: "Dashboard", href: "#/dashboard", icon: "grid" },
-  { label: "Manufacturing Requests", href: "#/requests", icon: "clipboard" },
-  { label: "Production", href: "#/production", icon: "factory" },
-  { label: "QC / Rework", href: "#/qc", icon: "circleCheck" },
-  { label: "Installation", href: "#/installation", icon: "wrench" },
-  { label: "Notifications", href: "#/notifications", icon: "bell" },
-  { label: "Profile", href: "#/profile", icon: "user" },
+  { label: "แดชบอร์ด", href: "#/dashboard", icon: "grid" },
+  { label: "คำขอผลิต", href: "#/requests", icon: "clipboard" },
+  { label: "การผลิต", href: "#/production", icon: "factory" },
+  { label: "QC / แก้ไข", href: "#/qc", icon: "circleCheck" },
+  { label: "การติดตั้ง", href: "#/installation", icon: "wrench" },
+  { label: "การแจ้งเตือน", href: "#/notifications", icon: "bell" },
+  { label: "โปรไฟล์", href: "#/profile", icon: "user" },
 ];
 const initials = (name) => (name || "?").trim().split(/\s+/).slice(0, 2).map((w) => w.charAt(0)).join("");
 function sidebar(user) {
-  return `<a class="nk-logo" href="#/dashboard">Nam<b>Kheang</b></a><span class="nk-tag">โรงงาน · Factory</span>
-    <div class="group">Workspace</div>` +
+  return `<a class="nk-logo" href="#/dashboard">Nam<b>Kheang</b></a><span class="nk-tag">โรงงาน</span>
+    <div class="group">เมนู</div>` +
     NAV.map((n) => `<a class="nav" href="${n.href}">${icon(n.icon)}<span>${n.label}</span></a>`).join("") +
     `<div class="grow"></div>
     <div class="who"><a class="who-link" href="#/profile" title="โปรไฟล์ของฉัน"><span class="avatar">${esc(initials(user.name))}</span><div><b>${esc(user.name)}</b><div class="small">ผู้จัดการโรงงาน</div></div></a><button class="menu-btn" type="button" title="ออกจากระบบ" aria-label="ออกจากระบบ"></button></div>`;
