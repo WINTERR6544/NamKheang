@@ -1,4 +1,4 @@
-// Sidebar: Admin > Users & Roles. Everyone on the shop side can view; only role "admin" can add and edit (enforced by the database).
+// Sidebar: Admin > Users & Roles. Roles: admin (the shop) and factory. Only an active admin can add and edit (enforced by the database).
 route(/^\/users$/, async (el) => {
   const { data: au } = await db.auth.getUser();
   const [rows, facs, accts] = await Promise.all([
@@ -6,7 +6,7 @@ route(/^\/users$/, async (el) => {
     db.from("factories").select("factory_id, name").eq("is_active", true).order("name").then(must),
     db.rpc("admin_unlinked_accounts").then((r) => r.data ?? [])]);
   const isAdmin = rows.some((u) => u.auth_id === au.user.id && u.role === "admin" && u.is_active);
-  const ROLE = { admin: "ผู้ดูแลระบบ", shop: "พนักงานร้าน", factory: "โรงงาน" };
+  const ROLE = { admin: "ผู้ดูแลระบบ (ร้าน)", factory: "โรงงาน" };
   const roleOpts = (sel) => Object.entries(ROLE).map(([k, v]) => `<option value="${k}" ${k === sel ? "selected" : ""}>${v}</option>`).join("");
   const facOpts = (sel) => facs.map((f) => `<option value="${f.factory_id}" ${f.factory_id === sel ? "selected" : ""}>${esc(f.name)}</option>`).join("");
   // Add form: a searchable account dropdown (search box + filter); choosing one fills in the name, which stays editable
@@ -54,12 +54,12 @@ route(/^\/users$/, async (el) => {
   };
   const fields = (u) => `${u ? "" : picker()}
     <label${u ? "" : ` style="margin-top:10px"`}>ชื่อ</label><input id="nm" value="${esc(u?.name ?? "")}" placeholder="${u ? "" : "เลือกบัญชีแล้วชื่อจะขึ้นให้ แก้ไขได้"}">
-    <label style="margin-top:10px">บทบาท</label><select id="ro">${roleOpts(u?.role ?? "shop")}</select>
+    <label style="margin-top:10px">บทบาท</label><select id="ro">${roleOpts(u?.role ?? "admin")}</select>
     <div id="fw"><label style="margin-top:10px">โรงงาน</label><select id="fa">${facOpts(u?.factory_id)}</select></div>
     ${u ? `<label style="margin-top:10px">สถานะ</label><select id="ac"><option value="1" ${u.is_active ? "selected" : ""}>ใช้งาน</option><option value="0" ${u.is_active ? "" : "selected"}>ปิดใช้งาน</option></select>` : ""}`;
   const fac = (m) => ($("#ro", m).value === "factory" ? Number($("#fa", m).value) || null : null);
   const done = (ok) => ok && navigate();
-  el.innerHTML = head("ผู้ใช้และสิทธิ์", isAdmin ? "เพิ่มและแก้ไขบัญชีพนักงานร้าน ผู้ดูแลระบบ และโรงงาน" : "บัญชีพนักงานร้าน ผู้ดูแลระบบ และโรงงาน (แก้ไขได้เฉพาะผู้ดูแลระบบ)") +
+  el.innerHTML = head("ผู้ใช้และสิทธิ์", isAdmin ? "เพิ่มและแก้ไขบัญชีผู้ดูแลระบบ (ร้าน) และโรงงาน" : "บัญชีผู้ดูแลระบบ (ร้าน) และโรงงาน") +
     (isAdmin ? `<div class="row" style="margin-bottom:12px"><button class="btn" id="add">เพิ่มผู้ใช้</button></div>` : "") +
     `<div class="card"><h2>ผู้ใช้ (${rows.length})</h2>${table([
       { h: "ชื่อ", f: (u) => esc(u.name) }, { h: "อีเมล", f: (u) => esc(u.email) }, { h: "บทบาท", f: (u) => esc(ROLE[u.role] ?? u.role) },

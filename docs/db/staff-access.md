@@ -3,7 +3,7 @@
 Migration: `supabase/migrations/20261004144505_admin_staff_access.sql`. Every shop screen in `admin/` depends on it.
 
 ## Who is staff
-`is_staff()` is true when the signed-in Supabase user has an active row in `users` with role `admin` or `shop` (linked by `users.auth_id`). Add staff by registering an account on the customer site, then inserting the `users` row.
+`is_staff()` is true when the signed-in Supabase user has an active row in `users` with role `admin` (the old `shop` role was merged into `admin`) (linked by `users.auth_id`). Add staff by registering an account on the customer site, then inserting the `users` row.
 
 ## What staff can do directly
 - **Read** orders, customers, status logs, quotations (+ items), payments, QC results, appointments, factory assignments, production updates, acceptance checks and notifications.
@@ -46,7 +46,7 @@ Also (migrations `20261010170000_withdraw_request_balance_reminder.sql` and `202
 
 Not done on purpose: partial payments / "pay the shortfall" for the final payment (UC10). It needs a policy decision and a customer-portal change.
 
-### Shop functions (`is_staff()`: role `admin` or `shop`)
+### Shop functions (`is_staff()`: role `admin`)
 
 | Function | Does | Allowed from status | Moves to |
 |---|---|---|---|

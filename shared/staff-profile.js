@@ -5,7 +5,7 @@
 // - edit name: staff_update_my_profile (role, factory, email and active flag are changed by an admin on Users & Roles)
 // - change password: supabase auth updateUser
 // - profile picture: ../shared/avatar.js (NKAvatar)
-const ROLE_TH = { admin: "ผู้ดูแลระบบ", shop: "พนักงานร้าน", factory: "ผู้ใช้โรงงาน" };
+const ROLE_TH = { admin: "ผู้ดูแลระบบ", factory: "ผู้ใช้โรงงาน" };
 // show / hide password button (same eye / eye-off icons as the sign-in page): eye = show, eye-off = hide
 const revealBtn = (id) =>
   `<button type="button" class="pass-reveal" data-reveal="${id}" aria-controls="${id}" aria-label="แสดงรหัสผ่าน" aria-pressed="false">${icon("eye", 20)}</button>`;

@@ -7,7 +7,7 @@ route(/^\/notifications$/, async (el) => {
   let tab = hashParams().get("tab") === "unread" ? "unread" : "all";
   const draw = () => {
     const unread = notes.filter((n) => !n.read_at), shown = tab === "unread" ? unread : notes;
-    el.innerHTML = head("การแจ้งเตือน", "เรื่องที่ร้านต้องดำเนินการในแต่ละคำสั่งซื้อ พนักงานร้านทุกคนเห็นการแจ้งเตือนชุดเดียวกัน") +
+    el.innerHTML = head("การแจ้งเตือน", "เรื่องที่ร้านต้องดำเนินการในแต่ละคำสั่งซื้อ ผู้ดูแลระบบทุกคนเห็นการแจ้งเตือนชุดเดียวกัน") +
       `<div class="card notes">
         <div class="row-sb notes-bar"><div class="tabs" role="tablist" style="margin:0">
             <button role="tab" data-tab="all" aria-selected="${tab === "all"}">ทั้งหมด ${notes.length}</button>

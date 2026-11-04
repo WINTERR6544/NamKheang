@@ -3,7 +3,7 @@
 // Single sign-in for every actor. Signs in once, reads the account's role, then hands the session
 // to the right site and opens it:
 //   users.role = factory (active, with factory_id) -> factory/
-//   users.role = admin | shop (active)             -> admin/
+//   users.role = admin (active)                    -> admin/
 //   no users row                                   -> customer/
 // Email or phone: a phone number (customers only) goes through the Edge Function customer_phone_login,
 // which finds the account on the server and returns a session; the email never reaches the browser.
@@ -76,7 +76,7 @@ async function roleOf(client, authId) {
     if (!u.factory_id) throw new Error("บัญชีโรงงานนี้ยังไม่ได้ผูกกับโรงงาน กรุณาติดต่อผู้ดูแลระบบ");
     return "factory";
   }
-  if (u.role === "admin" || u.role === "shop") return "staff";
+  if (u.role === "admin") return "staff";
   throw new Error("บัญชีนี้ไม่มีสิทธิ์เข้าใช้งาน");
 }
 

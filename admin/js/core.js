@@ -125,7 +125,7 @@ function sidebar(user) {
       n.group ? `<div class="group">${n.group}</div>` :
       `<a class="nav" href="${n.href}">${icon(n.icon)}<span>${n.label}</span>${n.key ? `<span class="count" id="c-${n.key}" hidden></span>` : ""}</a>`).join("") +
     `<div class="grow"></div>
-    <div class="who"><a class="who-link" href="#/profile" title="โปรไฟล์ของฉัน"><span class="avatar">${esc(initials(user.name))}</span><div><b>${esc(user.name)}</b><div class="small">${user.role === "admin" ? "ผู้ดูแลระบบ" : "พนักงานร้าน"}</div></div></a><button class="menu-btn" type="button" title="ออกจากระบบ" aria-label="ออกจากระบบ"></button></div>`;
+    <div class="who"><a class="who-link" href="#/profile" title="โปรไฟล์ของฉัน"><span class="avatar">${esc(initials(user.name))}</span><div><b>${esc(user.name)}</b><div class="small">ผู้ดูแลระบบ</div></div></a><button class="menu-btn" type="button" title="ออกจากระบบ" aria-label="ออกจากระบบ"></button></div>`;
 }
 async function refreshCounts() {
   const [n, p, u] = await Promise.all([
@@ -145,7 +145,7 @@ async function boot() {
   const { data } = await db.auth.getSession();
   if (!data.session) return location.replace("../"); // universal sign-in
   const { data: u } = await db.from("users").select("user_id, name, role, is_active").eq("auth_id", data.session.user.id).maybeSingle();
-  if (!u || !u.is_active || !["admin", "shop"].includes(u.role)) return location.replace("../"); // the portal opens the site that matches this account
+  if (!u || !u.is_active || u.role !== "admin") return location.replace("../"); // the portal opens the site that matches this account
   window.ME = u;
   $("#app").hidden = false;
   $("#side").innerHTML = sidebar(u);
