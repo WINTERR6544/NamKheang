@@ -7,19 +7,19 @@ route(/^\/notifications$/, async (el) => {
   let tab = hashParams().get("tab") === "unread" ? "unread" : "all";
   const draw = () => {
     const unread = notes.filter((n) => !n.read_at), shown = tab === "unread" ? unread : notes;
-    el.innerHTML = head("Notifications", "What happened on orders that needs the shop. Shop messages are shared by all shop staff") +
+    el.innerHTML = head("การแจ้งเตือน", "เรื่องที่ร้านต้องดำเนินการในแต่ละคำสั่งซื้อ พนักงานร้านทุกคนเห็นการแจ้งเตือนชุดเดียวกัน") +
       `<div class="card notes">
         <div class="row-sb notes-bar"><div class="tabs" role="tablist" style="margin:0">
-            <button role="tab" data-tab="all" aria-selected="${tab === "all"}">All ${notes.length}</button>
-            <button role="tab" data-tab="unread" aria-selected="${tab === "unread"}">Unread ${unread.length}</button></div>
-          <button class="btn ghost" data-all ${unread.length ? "" : "disabled"}>${icon("checks", 16)}Mark all as read</button></div>
+            <button role="tab" data-tab="all" aria-selected="${tab === "all"}">ทั้งหมด ${notes.length}</button>
+            <button role="tab" data-tab="unread" aria-selected="${tab === "unread"}">ยังไม่อ่าน ${unread.length}</button></div>
+          <button class="btn ghost" data-all ${unread.length ? "" : "disabled"}>${icon("checks", 16)}อ่านทั้งหมดแล้ว</button></div>
         ${shown.length ? shown.map((n) => `<article class="note ${n.read_at ? "" : "unread"}">
-            <div class="row-sb"><span class="small muted">${dateTH(n.created_at, true)}</span><span class="pill dot ${n.read_at ? "mute" : ""}">${n.read_at ? "Read" : "Unread"}</span></div>
+            <div class="row-sb"><span class="small muted">${dateTH(n.created_at, true)}</span><span class="pill dot ${n.read_at ? "mute" : ""}">${n.read_at ? "อ่านแล้ว" : "ยังไม่อ่าน"}</span></div>
             <div class="desc">${esc(n.message)}</div>
             <div class="row" style="margin-top:10px">
-              ${n.order_id ? `<a class="btn ghost sm" href="#/order/${n.order_id}" data-open="${n.notification_id}">${icon("arrowUpRight", 14)}Open order</a>` : ""}
-              ${n.read_at ? "" : `<button class="btn ghost sm" data-read="${n.notification_id}">${icon("check", 14)}Mark as read</button>`}</div>
-          </article>`).join("") : `<div class="empty">${tab === "unread" ? "No unread notifications" : "No notifications yet"}</div>`}
+              ${n.order_id ? `<a class="btn ghost sm" href="#/order/${n.order_id}" data-open="${n.notification_id}">${icon("arrowUpRight", 14)}เปิดคำสั่งซื้อ</a>` : ""}
+              ${n.read_at ? "" : `<button class="btn ghost sm" data-read="${n.notification_id}">${icon("check", 14)}ทำเครื่องหมายว่าอ่านแล้ว</button>`}</div>
+          </article>`).join("") : `<div class="empty">${tab === "unread" ? "ไม่มีการแจ้งเตือนที่ยังไม่อ่าน" : "ยังไม่มีการแจ้งเตือน"}</div>`}
       </div>`;
   };
   const mark = async (ids) => {

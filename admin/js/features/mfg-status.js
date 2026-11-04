@@ -9,14 +9,14 @@ route(/^\/mfg\/status$/, async (el) => {
     qc.filter((r) => (r.stage ?? "production") === stage).forEach((r) => { const x = m.get(r.order_id); if (!x || r.round_no > x.round_no) m.set(r.order_id, { round_no: r.round_no, fail: 0, at: r.checked_at }); if (!r.passed && m.get(r.order_id).round_no === r.round_no) m.get(r.order_id).fail++; });
     return m; };
   const lastQc = lastBy("production"), lastOnsite = lastBy("onsite");
-  const qcCell = (q) => q ? `Round ${q.round_no}: ${q.fail ? `<span class="pill bad">Failed ${q.fail}</span>` : `<span class="pill ok">Passed</span>`}` : `<span class="muted">-</span>`;
+  const qcCell = (q) => q ? `รอบ ${q.round_no}: ${q.fail ? `<span class="pill bad">ไม่ผ่าน ${q.fail} ข้อ</span>` : `<span class="pill ok">ผ่าน</span>`}` : `<span class="muted">-</span>`;
   const late = (o) => o.status === 4 && o.est_finish_date && new Date(o.est_finish_date) < new Date(new Date().toDateString());
-  const stage = { started: "Started", in_progress: "In progress", finished: "Finished", delayed: "Delayed" };
-  el.innerHTML = head("Order Status", "Status reported by the factory (view only)") + `<div class="card"><h2>Orders at the factory (${orders.length})</h2>${table([
-    ...ORDER_COLS.slice(0, 2), { h: "Factory", f: (o) => esc(o.factories?.name) }, { h: "Status", f: (o) => pill(o.status) },
-    { h: "Est. finish", f: (o) => `${dateTH(o.est_finish_date)}${late(o) ? ` <span class="pill bad">Overdue</span>` : ""}` },
-    { h: "Latest factory update", f: (o) => { const u = lastUp.get(o.order_id); return u ? `${esc(stage[u.stage])}${u.note ? ` · ${esc(u.note)}` : ""}<div class="small muted">${dateTH(u.created_at, true)}</div>` : `<span class="muted">-</span>`; } },
-    { h: "QC (factory)", f: (o) => qcCell(lastQc.get(o.order_id)) },
-    { h: "On-site QC (factory)", f: (o) => qcCell(lastOnsite.get(o.order_id)) },
+  const stage = { started: "เริ่มผลิต", in_progress: "กำลังผลิต", finished: "ผลิตเสร็จ", delayed: "ล่าช้า" };
+  el.innerHTML = head("สถานะการผลิต", "สถานะที่โรงงานรายงาน (ดูอย่างเดียว)") + `<div class="card"><h2>คำสั่งซื้อที่อยู่ที่โรงงาน (${orders.length})</h2>${table([
+    ...ORDER_COLS.slice(0, 2), { h: "โรงงาน", f: (o) => esc(o.factories?.name) }, { h: "สถานะ", f: (o) => pill(o.status) },
+    { h: "คาดว่าเสร็จ", f: (o) => `${dateTH(o.est_finish_date)}${late(o) ? ` <span class="pill bad">เลยกำหนด</span>` : ""}` },
+    { h: "อัปเดตล่าสุดจากโรงงาน", f: (o) => { const u = lastUp.get(o.order_id); return u ? `${esc(stage[u.stage])}${u.note ? ` · ${esc(u.note)}` : ""}<div class="small muted">${dateTH(u.created_at, true)}</div>` : `<span class="muted">-</span>`; } },
+    { h: "QC (โรงงาน)", f: (o) => qcCell(lastQc.get(o.order_id)) },
+    { h: "QC หน้างาน (โรงงาน)", f: (o) => qcCell(lastOnsite.get(o.order_id)) },
   ], orders, goOrder)}</div>`;
 });

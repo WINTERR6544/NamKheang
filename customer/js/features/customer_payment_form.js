@@ -101,7 +101,7 @@ export async function render(context, el) {
       value: "transfer",
       options: [
         { value: "transfer", label: "โอนผ่านธนาคาร" },
-        { value: "qr", label: "QR / PromptPay" },
+        { value: "qr", label: "QR / พร้อมเพย์" },
         { value: "cash", label: "เงินสดที่ร้าน" },
       ],
     }) +

@@ -28,7 +28,7 @@ const STATE = {
   pending: ["รอประเมิน", ""], rejected: ["ปฏิเสธแล้ว", "bad"], accepted: ["รับผลิตแล้ว", "ok"], closed: ["ร้านยกเลิกคำสั่งซื้อ", "mute"],
 };
 const statePill = (s) => `<span class="pill dot ${STATE[s][1]}">${STATE[s][0]}</span>`;
-const modelName = (o) => (o.machine_models?.name ?? o.machine_type) + (o.quantity > 1 ? ` × ${o.quantity}` : "");
+const modelName = (o) => (o.machine_models?.name ?? typeTH(o.machine_type)) + (o.quantity > 1 ? ` × ${o.quantity}` : "");
 
 // "สรุปงานที่ประเมิน" card on the accept / decline page
 function summaryCard(title, a) {
@@ -93,7 +93,7 @@ function dueText(j) {
   return n < 0 ? `<span class="red">เลยวันที่คาดว่าจะเสร็จ ${-n} วัน</span>` : n === 0 ? `<span class="amber">ครบกำหนดวันนี้</span>`
     : n === 1 ? `<span class="amber">ครบกำหนดพรุ่งนี้</span>` : `อีก ${n} วัน`;
 }
-const AFTER = { 5: "รอตรวจ QC", 6: "Rework", 7: "ผ่าน QC", 8: "นัดติดตั้งแล้ว", 9: "ติดตั้งแล้ว", 10: "เสร็จสิ้น" };
+const AFTER = { 5: "รอตรวจ QC", 6: "กำลังแก้ไข", 7: "ผ่าน QC", 8: "นัดติดตั้งแล้ว", 9: "ติดตั้งแล้ว", 10: "เสร็จสิ้น" };
 function stagePill(j) {
   if (j.stage === "ready") return `<span class="pill dot warn">รอเริ่มผลิต</span>`;
   if (j.stage === "making") return `<span class="pill dot">กำลังผลิต</span>`;
@@ -159,12 +159,12 @@ function qcState(j, rounds) {
 }
 const QC_STATE = { pending: ["รอตรวจ QC", "warn"], review: ["รอร้านตรวจผล", "warn"], recheck: ["รอตรวจซ้ำหลังแก้ไข", "warn"], fail: ["ไม่ผ่าน · รอแก้ไข", "bad"], pass: ["ผ่าน QC", "ok"] };
 const qcPill = (s) => `<span class="pill dot ${QC_STATE[s][1]}">${QC_STATE[s][0]}</span>`;
-// "ระบบทำความเย็นและการผลิตน้ำแข็ง" over "Cooling system and ice production", and what to check (Thai / English) under it.
+// Thai name of the QC item, and what to check under it (English only when no Thai text exists yet).
 // The Thai name, descriptions and the fix example live in qc_items (migration qc_items_thai), so an admin edits them in the database;
 // an item without a Thai name shows its English name only.
 function qcTitle(it, withDesc) {
-  return `<b>${esc(it.item_name_th || it.item_name)}</b>${it.item_name_th ? `<div class="small muted">${esc(it.item_name)}</div>` : ""}` +
-    (withDesc && (it.description_th || it.description_en) ? `<div class="small desc">${esc(it.description_th ?? "")}${it.description_th && it.description_en ? "<br>" : ""}<span class="muted">${esc(it.description_en ?? "")}</span></div>` : "");
+  return `<b>${esc(it.item_name_th || it.item_name)}</b>` +
+    (withDesc && (it.description_th || it.description_en) ? `<div class="small desc">${esc(it.description_th || it.description_en)}</div>` : "");
 }
 
 // ---- Installation (UC8 schedule, UC9 confirm install, UC10 fix after a failed acceptance) ----
@@ -244,7 +244,7 @@ function thaiStamp(text) {
 function noteView(n) {
   const [, kind, category, title, tone] = NOTE_KINDS.find(([re]) => re.test(n.message)) ?? [null, "other", "แจ้งเตือน", "แจ้งเตือนจากระบบ", ""];
   const o = n.orders, body = n.message.split(" · ").slice(1).join(" · ") || n.message, after = body.split(": ").slice(1).join(": ");
-  const who = o ? [o.customers?.name, o.machine_models?.name ?? o.machine_type].filter(Boolean).join(" · ") : "";
+  const who = o ? [o.customers?.name, o.machine_models?.name ?? typeTH(o.machine_type)].filter(Boolean).join(" · ") : "";
   const days = /(\d+) day/.exec(body)?.[1];
   const sum = { new: days ? `ตอบรับหรือปฏิเสธภายใน ${days} วัน` : "", remind: /waiting (\d+)/.exec(body) ? `รอการตอบกลับมาแล้ว ${/waiting (\d+)/.exec(body)[1]} วัน` : "",
     withdrawn: after ? `เหตุผล: ${after}` : "", deadline: thaiStamp(body) ? `วันที่คาดว่าจะเสร็จ ${thaiStamp(body)} · อัปเดตสถานะการผลิต` : "",

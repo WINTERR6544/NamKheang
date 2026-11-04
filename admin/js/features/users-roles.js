@@ -6,7 +6,7 @@ route(/^\/users$/, async (el) => {
     db.from("factories").select("factory_id, name").eq("is_active", true).order("name").then(must),
     db.rpc("admin_unlinked_accounts").then((r) => r.data ?? [])]);
   const isAdmin = rows.some((u) => u.auth_id === au.user.id && u.role === "admin" && u.is_active);
-  const ROLE = { admin: "Admin", shop: "Shop staff", factory: "Factory" };
+  const ROLE = { admin: "ผู้ดูแลระบบ", shop: "พนักงานร้าน", factory: "โรงงาน" };
   const roleOpts = (sel) => Object.entries(ROLE).map(([k, v]) => `<option value="${k}" ${k === sel ? "selected" : ""}>${v}</option>`).join("");
   const facOpts = (sel) => facs.map((f) => `<option value="${f.factory_id}" ${f.factory_id === sel ? "selected" : ""}>${esc(f.name)}</option>`).join("");
   // the factory picker only matters for the Factory role
@@ -15,29 +15,29 @@ route(/^\/users$/, async (el) => {
     if (em) { const fill = () => { $("#nm", m).value = accts.find((a) => a.email === em.value)?.name ?? ""; }; em.onchange = fill; fill(); }
     const sync = () => { $("#fw", m).hidden = $("#ro", m).value !== "factory"; }; $("#ro", m).onchange = sync; sync();
   };
-  const fields = (u) => `<label>Name</label><input id="nm" value="${esc(u?.name ?? "")}">
-    ${u ? "" : `<label style="margin-top:10px">Sign-in account</label><select id="em">${accts.map((a) => `<option value="${esc(a.email)}">${esc(a.email)}</option>`).join("") || `<option value="">No free sign-in accounts: create one in Supabase first</option>`}</select>`}
-    <label style="margin-top:10px">Role</label><select id="ro">${roleOpts(u?.role ?? "shop")}</select>
-    <div id="fw"><label style="margin-top:10px">Factory</label><select id="fa">${facOpts(u?.factory_id)}</select></div>
-    ${u ? `<label style="margin-top:10px">Status</label><select id="ac"><option value="1" ${u.is_active ? "selected" : ""}>Active</option><option value="0" ${u.is_active ? "" : "selected"}>Inactive</option></select>` : ""}`;
+  const fields = (u) => `<label>ชื่อ</label><input id="nm" value="${esc(u?.name ?? "")}">
+    ${u ? "" : `<label style="margin-top:10px">บัญชีเข้าสู่ระบบ</label><select id="em">${accts.map((a) => `<option value="${esc(a.email)}">${esc(a.email)}</option>`).join("") || `<option value="">ไม่มีบัญชีว่าง กรุณาสร้างบัญชีใน Supabase ก่อน</option>`}</select>`}
+    <label style="margin-top:10px">บทบาท</label><select id="ro">${roleOpts(u?.role ?? "shop")}</select>
+    <div id="fw"><label style="margin-top:10px">โรงงาน</label><select id="fa">${facOpts(u?.factory_id)}</select></div>
+    ${u ? `<label style="margin-top:10px">สถานะ</label><select id="ac"><option value="1" ${u.is_active ? "selected" : ""}>ใช้งาน</option><option value="0" ${u.is_active ? "" : "selected"}>ปิดใช้งาน</option></select>` : ""}`;
   const fac = (m) => ($("#ro", m).value === "factory" ? Number($("#fa", m).value) || null : null);
   const done = (ok) => ok && navigate();
-  el.innerHTML = head("Users & Roles", isAdmin ? "Add and edit staff, admin and factory accounts" : "Staff, admin and factory accounts (only an admin can edit)") +
-    (isAdmin ? `<div class="row" style="margin-bottom:12px"><button class="btn" id="add">Add user</button></div>` : "") +
-    `<div class="card"><h2>Users (${rows.length})</h2>${table([
-      { h: "Name", f: (u) => esc(u.name) }, { h: "Email", f: (u) => esc(u.email) }, { h: "Role", f: (u) => esc(ROLE[u.role] ?? u.role) },
-      { h: "Factory", f: (u) => esc(u.factories?.name ?? "-") },
-      { h: "Status", f: (u) => (u.is_active ? `<span class="pill ok">Active</span>` : `<span class="pill">Inactive</span>`) + (u.auth_id ? "" : ` <span class="pill warn">No sign-in yet</span>`) },
-      { h: "Created", f: (u) => dateTH(u.created_at) },
-      ...(isAdmin ? [{ h: "", f: (u) => `<button class="btn sm ghost" data-edit="${u.user_id}">Edit</button>` }] : []),
+  el.innerHTML = head("ผู้ใช้และสิทธิ์", isAdmin ? "เพิ่มและแก้ไขบัญชีพนักงานร้าน ผู้ดูแลระบบ และโรงงาน" : "บัญชีพนักงานร้าน ผู้ดูแลระบบ และโรงงาน (แก้ไขได้เฉพาะผู้ดูแลระบบ)") +
+    (isAdmin ? `<div class="row" style="margin-bottom:12px"><button class="btn" id="add">เพิ่มผู้ใช้</button></div>` : "") +
+    `<div class="card"><h2>ผู้ใช้ (${rows.length})</h2>${table([
+      { h: "ชื่อ", f: (u) => esc(u.name) }, { h: "อีเมล", f: (u) => esc(u.email) }, { h: "บทบาท", f: (u) => esc(ROLE[u.role] ?? u.role) },
+      { h: "โรงงาน", f: (u) => esc(u.factories?.name ?? "-") },
+      { h: "สถานะ", f: (u) => (u.is_active ? `<span class="pill ok">ใช้งาน</span>` : `<span class="pill">ปิดใช้งาน</span>`) + (u.auth_id ? "" : ` <span class="pill warn">ยังไม่มีบัญชีเข้าสู่ระบบ</span>`) },
+      { h: "วันที่สร้าง", f: (u) => dateTH(u.created_at) },
+      ...(isAdmin ? [{ h: "", f: (u) => `<button class="btn sm ghost" data-edit="${u.user_id}">แก้ไข</button>` }] : []),
     ], rows)}</div>`;
   if (!isAdmin) return;
-  $("#add", el).onclick = async () => done(await modal("Add user", fields(null), { ok: "Add", onOpen: wire,
-    onOk: (m) => rpc("admin_add_user", { p_name: $("#nm", m).value, p_email: $("#em", m).value, p_role: $("#ro", m).value, p_factory: fac(m) }, "User added") }));
+  $("#add", el).onclick = async () => done(await modal("เพิ่มผู้ใช้", fields(null), { ok: "เพิ่ม", onOpen: wire,
+    onOk: (m) => rpc("admin_add_user", { p_name: $("#nm", m).value, p_email: $("#em", m).value, p_role: $("#ro", m).value, p_factory: fac(m) }, "เพิ่มผู้ใช้แล้ว") }));
   el.onclick = async (e) => {
     const b = e.target.closest("[data-edit]"); if (!b) return;
     const u = rows.find((r) => r.user_id === Number(b.dataset.edit));
-    done(await modal("Edit " + u.name, fields(u), { ok: "Save", onOpen: wire,
-      onOk: (m) => rpc("admin_update_user", { p_user: u.user_id, p_name: $("#nm", m).value, p_role: $("#ro", m).value, p_factory: fac(m), p_active: $("#ac", m).value === "1" }, "Saved") }));
+    done(await modal("แก้ไข " + u.name, fields(u), { ok: "บันทึก", onOpen: wire,
+      onOk: (m) => rpc("admin_update_user", { p_user: u.user_id, p_name: $("#nm", m).value, p_role: $("#ro", m).value, p_factory: fac(m), p_active: $("#ac", m).value === "1" }, "บันทึกแล้ว") }));
   };
 });
