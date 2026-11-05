@@ -1,6 +1,6 @@
 const fs = require('fs');
 const { Document, Packer, Paragraph, TextRun, ImageRun, AlignmentType, HeadingLevel, PageOrientation,
-  Table, TableRow, TableCell, WidthType, VerticalMergeType, VerticalAlign, BorderStyle } = require('docx');
+  Table, TableRow, TableCell, WidthType, TableLayoutType, VerticalMergeType, VerticalAlign, BorderStyle } = require('docx');
 
 const D = __dirname + '/../screenshots/';
 const F = 'TH Sarabun New';
@@ -142,7 +142,7 @@ function ucTable([id, name, shots]) {
           children: [new ImageRun({ type: 'png', data: b, transformation: { width: W, height: H } })] })],
         { width: { size: C3, type: WidthType.DXA } })] });
   });
-  return new Table({ width: { size: CW, type: WidthType.DXA }, columnWidths: [C1, C2, C3], rows: [head, ...rows] });
+  return new Table({ layout: TableLayoutType.FIXED, width: { size: CW, type: WidthType.DXA }, columnWidths: [C1, C2, C3], rows: [head, ...rows] });
 }
 
 const H1 = (t) => new Paragraph({ heading: HeadingLevel.HEADING_1, children: [r(t, { bold: true, size: 36 })] });
@@ -161,7 +161,7 @@ function sqlTable() {
   const rows = Q.map(([q, uc, , sql]) => new TableRow({ cantSplit: true, children: [
     cell([p(q, AlignmentType.CENTER)], A), cell([p(uc, AlignmentType.CENTER)], B),
     cell(sql.map((l) => new Paragraph({ spacing: { after: 0 }, indent: { left: /^(FROM|WHERE|SET|VALUES|JOIN|ORDER|GROUP|AND)\b/.test(l) ? 0 : 0 }, children: [r(l, { size: 28 })] })), C)] }));
-  return new Table({ width: { size: W, type: WidthType.DXA }, columnWidths: [A, B, C], rows: [head, ...rows] });
+  return new Table({ layout: TableLayoutType.FIXED, width: { size: W, type: WidthType.DXA }, columnWidths: [A, B, C], rows: [head, ...rows] });
 }
 
 const portrait = [
