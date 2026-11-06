@@ -6,6 +6,7 @@ import { unreadCount } from "../services/customer_notification_service.js";
 // NamKheang app shell: the landing page's top bar (wordmark, menu, pill button) over a centred page.
 const nav = [
   ["dashboard", "หน้าหลัก"],
+  ["catalog", "แค็ตตาล็อก"],
   ["orders", "คำสั่งซื้อของฉัน"],
   ["payments", "การชำระเงิน"],
   ["notifications", "แจ้งเตือน"],
@@ -29,9 +30,7 @@ export function layout(profile, page) {
     ? "payments"
     : ["order", "appointment", "acceptance", "cancel-order", "orders"].includes(page)
       ? "orders"
-      : ["new-order", "catalog"].includes(page)
-        ? "new-order"
-        : page;
+      : page;
   document.body.className = "app-page";
   $("#app").innerHTML =
     '<a class="skip-link" href="#view">ข้ามไปเนื้อหา</a>' +
