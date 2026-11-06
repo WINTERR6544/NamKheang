@@ -29,7 +29,7 @@ export function layout(profile, page) {
     ? "payments"
     : ["order", "appointment", "acceptance", "cancel-order", "orders"].includes(page)
       ? "orders"
-      : ["new-order", "catalog"].includes(page)
+      : page === "new-order"
         ? "new-order"
         : page;
   document.body.className = "app-page";

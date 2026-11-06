@@ -36,6 +36,10 @@ async function renderRoute(token) {
   try {
     $("#app").innerHTML = loading();
     document.body.dataset.page = route.page;
+    if (route.page === "catalog") {
+      location.replace("#/new-order"); // the catalog page was removed; models are chosen on the order form
+      return;
+    }
     if (route.page === "index") {
       (await import("./features/customer_auth.js")).renderLanding();
       document.title = "NamKheang · ระบบบริการลูกค้า";

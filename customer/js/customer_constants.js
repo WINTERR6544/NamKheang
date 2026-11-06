@@ -21,7 +21,6 @@ export const TITLES = {
   receipt: "ใบเสร็จรับเงิน",
   dashboard: "หน้าหลัก",
   orders: "คำสั่งซื้อของฉัน",
-  catalog: "แค็ตตาล็อกเครื่องทำน้ำแข็ง",
   "new-order": "สร้างคำสั่งซื้อ",
   order: "ติดตามคำสั่งซื้อ",
   quotation: "ใบเสนอราคา",
