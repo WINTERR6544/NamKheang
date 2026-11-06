@@ -265,7 +265,7 @@ export function renderLanding() {
       .map(
         ([img, name, models, text]) =>
           '<article class="lp-type"><figure><img src="' + MODEL_IMG(img) + '" alt="เครื่อง' + name + '" loading="lazy" width="512" height="512"><figcaption>ภาพประกอบ</figcaption></figure>' +
-          "<h3>" + name + '</h3><p class="lp-models">' + models + "</p><p>" + text + '</p><a class="pill line" href="#/catalog">ดูรุ่นและราคา ' + ARROW + "</a></article>",
+          "<h3>" + name + '</h3><p class="lp-models">' + models + "</p><p>" + text + '</p><a class="pill line" href="#/new-order">ดูรุ่นและราคา ' + ARROW + "</a></article>",
       )
       .join("") +
     "</div></section>" +

@@ -3,7 +3,6 @@ export const FEATURES = Object.freeze({
   receipt: "customer_receipt",
   dashboard: "customer_dashboard",
   orders: "customer_orders",
-  catalog: "customer_new_order",
   "new-order": "customer_new_order",
   order: "customer_order",
   quotation: "customer_quotation",
@@ -49,6 +48,7 @@ export function parseRoute(hash = globalThis.location?.hash || "") {
   const page = segments[0] || "index";
   const valid =
     page === "index" ||
+    page === "catalog" || // removed page, core.js sends it to new-order
     AUTH_PAGES.includes(page) ||
     Object.hasOwn(FEATURES, page);
   if (

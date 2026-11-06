@@ -22,51 +22,8 @@ import { errorMessage, errorField } from "../customer_errors.js";
 // Machines per order the customer can pick (the database still accepts up to 20).
 const MAX_QTY = 5;
 // AI illustration per model code (customer/img/models/<code>.webp); hidden if the file is missing.
-const modelPhoto = (m) =>
-  '<figure class="model-photo"><img src="img/models/' +
-  esc(String(m.code || "").toLowerCase()) +
-  '.webp" alt="' +
-  esc(m.name) +
-  '" loading="lazy" width="512" height="512" onerror="this.closest(\'figure\').remove()"><figcaption>ภาพประกอบ</figcaption></figure>';
 export async function render(context, el) {
   const models = await getCatalog();
-  if (context.page === "catalog") {
-    el.innerHTML =
-      heading(
-        "แค็ตตาล็อกเครื่องทำน้ำแข็ง",
-        "ราคาประกอบการพิจารณา ใบเสนอราคาจากร้านเป็นราคายืนยัน",
-      ) +
-      (models.length
-        ? '<div class="model-grid">' +
-          models
-            .map((m) =>
-              card(
-                "",
-                modelPhoto(m) +
-                  "<h2>" +
-                  esc(m.name) +
-                  "</h2><p>" +
-                  esc(TYPE_LABELS[m.machine_type] ?? m.machine_type) +
-                  " · " +
-                  esc(m.capacity) +
-                  '</p><p class="muted">' +
-                  esc(m.description) +
-                  '</p><div class="rule"></div><strong>' +
-                  money(m.price) +
-                  '</strong><small> ก่อน VAT</small><div class="actions">' +
-                  button("เลือกรุ่นนี้", "#/new-order?model=" + m.model_id) +
-                  "</div>",
-                "model-card",
-              ),
-            )
-            .join("") +
-          "</div>"
-        : card(
-            "",
-            empty("ยังไม่มีรุ่นเครื่อง", "กรุณาติดต่อร้านเพื่อสอบถามข้อมูล"),
-          ));
-    return;
-  }
   if (!models.length) {
     el.innerHTML = card(
       "",
